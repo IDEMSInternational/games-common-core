@@ -1,0 +1,28 @@
+@let c = controls();
+
+<header class="top-bar">
+  <h1>{{ c.title }}</h1>
+  <button type="button" (click)="skip.emit()">Skip</button>
+</header>
+
+<main class="board-area">
+  <ng-content />
+  @if (c.finished()) {
+    <p class="well-done" role="status">Well done!</p>
+  }
+</main>
+
+<div class="caption" aria-live="polite">
+  @if (!c.finished()) {
+    <!-- Keyed by the text, so each new caption fades in. -->
+    @for (text of [c.text()]; track text) {
+      <p>{{ text }}</p>
+    }
+  }
+</div>
+
+<ol class="dots" [attr.aria-label]="'Step ' + (c.stepIndex() + 1) + ' of ' + c.stepCount">
+  @for (i of dots(c.stepCount); track i) {
+    <li [class.done]="i < c.stepIndex() || c.finished()" [class.current]="i === c.stepIndex() && !c.finished()"></li>
+  }
+</ol>

@@ -1,0 +1,104 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  min-height: 100dvh;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: max(12px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+
+  h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+}
+
+.board-area {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.well-done {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: fit-content;
+  height: fit-content;
+  padding: 12px 28px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--board);
+  font-size: 1.4rem;
+  font-weight: 700;
+  pointer-events: none;
+  animation: pop 350ms ease-out;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+}
+
+.caption {
+  width: 100%;
+  max-width: 420px;
+  min-height: 6em; // room for the longest caption, so the board doesn't jump
+
+  p {
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.45;
+    text-align: center;
+    animation: fade-in 400ms ease-out;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.dots {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--grid);
+    transition: background-color 200ms ease, width 200ms ease;
+
+    &.done {
+      background: var(--accent);
+    }
+
+    &.current {
+      width: 22px;
+      border-radius: 4px;
+      background: var(--accent);
+    }
+  }
+}

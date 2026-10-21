@@ -1,0 +1,26 @@
+/*
+ * For type-checking the engine on its own (npm run typecheck) and for
+ * editors. Only the engine: this repo deliberately has no Angular of its
+ * own (see README), so the Angular container is type-checked by the games
+ * that include it. The games compile this code with their own settings,
+ * which should be kept compatible with these.
+ */
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "erasableSyntaxOnly": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    "types": ["vitest/globals"],
+    "noEmit": true
+  },
+  "include": ["src/engine/**/*.ts"]
+}

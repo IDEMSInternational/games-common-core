@@ -1,0 +1,164 @@
+/*
+ * Shared theme for every game: design tokens and base styles. A placeholder palette
+ * until the studio's visual design is chosen. One theme only: the apps
+ * look the same whatever the device's light/dark setting.
+ */
+:root {
+  color-scheme: light;
+  --bg: #f4f1ea;
+  --surface: #ffffff;
+  --surface-sunken: #e8e3d8;
+  --text: #22252b;
+  --text-muted: #6b6f78;
+  --ink: #22252b;
+  --board: #fffdf8;
+  --grid: #d9d3c5;
+
+  /* Rectangle tiles: soft fills with a deeper outline of the same hue. */
+  --tile-0: #d9e8f5;
+  --tile-0-edge: #5b8ab8;
+  --tile-1: #fbe1d0;
+  --tile-1-edge: #c98153;
+  --tile-2: #e6defa;
+  --tile-2-edge: #8a72c4;
+  --tile-3: #d4eeea;
+  --tile-3-edge: #4a978b;
+  --tile-4: #f8edc6;
+  --tile-4-edge: #b99a35;
+  --tile-5: #f7d9e1;
+  --tile-5-edge: #c0647e;
+
+  --accent: #2a7f86;
+  --accent-soft: rgb(42 127 134 / 0.16);
+  --danger: #c0473a;
+  --danger-soft: rgb(192 71 58 / 0.14);
+  --success: #2f8a4c;
+  --border: #d9d3c5;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+select {
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 14px;
+  min-height: 40px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+}
+
+/*
+ * Board pieces shared by every game's SVG board (drawn in cell units):
+ * the paper and grid, tutorial hints with the animated finger, and the
+ * pill-shaped labels placed by container/board-label.ts.
+ */
+.board-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 70dvh;
+  touch-action: none; // the board handles all touch gestures itself
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: crosshair;
+}
+
+.board-paper {
+  fill: var(--board);
+  stroke: var(--grid);
+  stroke-width: 0.04;
+}
+
+.board-grid {
+  stroke: var(--grid);
+  stroke-width: 0.025;
+}
+
+.board-hint {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-width: 0.06;
+  stroke-dasharray: 0.15 0.1;
+  pointer-events: none;
+  animation: board-hint-pulse 1.8s ease-in-out infinite;
+
+  &.preview {
+    animation: none; // what the player is drawing right now
+  }
+}
+
+@keyframes board-hint-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.board-finger {
+  fill: var(--accent);
+  fill-opacity: 0.55;
+  stroke: var(--surface);
+  stroke-width: 0.04;
+  pointer-events: none;
+
+  &.tap {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: board-finger-tap 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes board-finger-tap {
+  0%,
+  100% {
+    transform: scale(1);
+    fill-opacity: 0.55;
+  }
+  40% {
+    transform: scale(0.7);
+    fill-opacity: 0.85;
+  }
+}
+
+.board-label {
+  pointer-events: none;
+
+  rect {
+    fill: var(--ink);
+    opacity: 0.88;
+  }
+
+  &.note rect {
+    fill: var(--danger);
+    opacity: 1;
+  }
+
+  text {
+    font-size: 0.42px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    fill: var(--board);
+  }
+}

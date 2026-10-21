@@ -1,0 +1,69 @@
+@let c = controls();
+
+<header class="top-bar">
+  <h1>{{ c.title }}</h1>
+  <div class="game-menu">
+    <select aria-label="Puzzle size" (change)="choosePreset($event)">
+      @for (name of c.presetNames; track $index) {
+        <option [value]="$index" [selected]="!customOpen() && $index === c.presetIndex()">{{ name }}</option>
+      }
+      <option [value]="CUSTOM" [selected]="customOpen() || c.presetIndex() < 0">Custom…</option>
+    </select>
+    @if (c.difficulties.length > 0) {
+      <select aria-label="Difficulty" (change)="chooseDifficulty($event)">
+        @for (name of c.difficulties; track $index) {
+          <option [value]="$index" [selected]="$index === c.difficulty()">{{ name }}</option>
+        }
+      </select>
+    }
+    <button type="button" class="primary" (click)="c.newGame()">New</button>
+    <button type="button" class="help" aria-label="How to play" (click)="help.emit()">?</button>
+  </div>
+</header>
+
+@if (customOpen()) {
+  <form class="custom-form" (submit)="submitCustom($event)">
+    @for (field of c.customFields(); track field.key) {
+      <label>
+        {{ field.label }}
+        <input
+          type="number"
+          inputmode="numeric"
+          [name]="field.key"
+          [min]="field.min"
+          [max]="field.max"
+          [value]="field.value"
+          required
+        />
+      </label>
+    }
+    <button type="submit" class="primary">Create</button>
+    <button type="button" (click)="customOpen.set(false)">Cancel</button>
+    @if (customError(); as error) {
+      <p class="error" role="alert">{{ error }}</p>
+    }
+  </form>
+}
+
+<main class="board-area" [class.completed]="c.completed()">
+  <ng-content />
+</main>
+
+<p class="status" aria-live="polite">
+  @if (c.completed()) {
+    Solved!
+  }
+</p>
+
+<div class="tools">
+  <ng-content select="[puzzleTools]" />
+</div>
+
+<nav class="action-bar" aria-label="Game actions">
+  <button type="button" (click)="c.undo()" [disabled]="!c.canUndo()">Undo</button>
+  <button type="button" (click)="c.redo()" [disabled]="!c.canRedo()">Redo</button>
+  <button type="button" (click)="c.restart()" [disabled]="!c.canUndo()">Restart</button>
+  <button type="button" (click)="c.solve()" [disabled]="c.completed()">Solve</button>
+</nav>
+
+<footer class="game-id" title="Game ID: this puzzle can be regenerated from it">{{ c.gameId() }}</footer>

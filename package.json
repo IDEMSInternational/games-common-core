@@ -1,0 +1,18 @@
+{
+  "name": "@idems/games-common-core",
+  "version": "0.1.0",
+  "description": "Code shared by every IDEMS puzzle game: the framework-free engine and the Angular container.",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@angular/core": "^21.2.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.12"
+  }
+}
