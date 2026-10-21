@@ -1,5 +1,9 @@
-# Keep Unix line endings in every checkout, on every platform.
+# Keep Unix line endings in every checkout, on every platform,
+# except Windows batch files, which need Windows line endings.
 * text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
 *.png binary
 *.jpg binary
 *.ico binary
+*.jar binary
