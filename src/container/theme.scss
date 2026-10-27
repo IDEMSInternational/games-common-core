@@ -14,20 +14,7 @@
   --board: #fffdf8;
   --grid: #d9d3c5;
 
-  /* Rectangle tiles: soft fills with a deeper outline of the same hue. */
-  --tile-0: #d9e8f5;
-  --tile-0-edge: #5b8ab8;
-  --tile-1: #fbe1d0;
-  --tile-1-edge: #c98153;
-  --tile-2: #e6defa;
-  --tile-2-edge: #8a72c4;
-  --tile-3: #d4eeea;
-  --tile-3-edge: #4a978b;
-  --tile-4: #f8edc6;
-  --tile-4-edge: #b99a35;
-  --tile-5: #f7d9e1;
-  --tile-5-edge: #c0647e;
-
+  /* Games define their own piece colours; red (--danger) is kept for mistakes. */
   --accent: #2a7f86;
   --accent-soft: rgb(42 127 134 / 0.16);
   --danger: #c0473a;

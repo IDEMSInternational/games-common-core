@@ -22,7 +22,8 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `puzzle-shell/`: title, size and difficulty menus, custom size, undo/redo bar
   - `puzzle-tutorial/`: the tutorial frame (captions, progress dots, Skip)
   - `session-store.ts`, `tutorial-store.ts`: connect the engine to Angular
-  - `theme.scss`: design tokens, base styles and shared `.board-*` SVG styles
+  - `theme.scss`: design tokens, base styles and shared `.board-*` SVG
+    styles (each game defines its own piece colours)
   - `puzzle-switch/`: an on/off switch for game modes and settings
     under the board (e.g. Slant's Thinking, Rectangles' Lock)
   - `board-label.ts`, `first-run.ts`, `stored-setting.ts`: label
