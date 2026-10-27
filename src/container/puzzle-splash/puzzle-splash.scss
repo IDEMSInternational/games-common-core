@@ -1,0 +1,33 @@
+.splash {
+  /* The logo image's own background colour, so it fills the screen seamlessly. */
+  --splash-bg: #f6f3ed;
+
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--splash-bg);
+  transition: opacity 400ms ease;
+
+  &.leaving {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+img {
+  display: block;
+  width: min(100%, 720px);
+  height: auto;
+  /* Fade the image's edges into the background, so no border shows. */
+  mask-image: radial-gradient(ellipse at center, #000 60%, transparent 80%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash {
+    transition: none;
+  }
+}

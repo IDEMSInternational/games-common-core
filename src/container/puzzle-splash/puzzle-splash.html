@@ -1,0 +1,5 @@
+@if (phase() !== 'gone') {
+  <div class="splash" [class.leaving]="phase() === 'leaving'" (click)="leave()">
+    <img src="studio/idems-games-logo.jpg" alt="IDEMS Games" width="1200" height="675" />
+  </div>
+}

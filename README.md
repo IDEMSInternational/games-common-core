@@ -24,6 +24,7 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `session-store.ts`, `tutorial-store.ts`: connect the engine to Angular
   - `theme.scss`: design tokens, base styles and shared `.board-*` SVG
     styles (each game defines its own piece colours)
+  - `puzzle-splash/`: the IDEMS Games opening screen (logo in `assets/`)
   - `puzzle-switch/`: an on/off switch for game modes and settings
     under the board (e.g. Slant's Thinking, Rectangles' Lock)
   - `board-label.ts`, `first-run.ts`, `stored-setting.ts`: label
@@ -52,7 +53,13 @@ import { RandomState } from '@studio/engine/random/random-state';
 import { PuzzleShell } from '@studio/container/puzzle-shell/puzzle-shell';
 ```
 
-Its global styles start with `@use '../games-common-core/src/container/theme';`.
+Its global styles start with `@use '../games-common-core/src/container/theme';`,
+and its `angular.json` serves the shared images by adding to the build's
+`assets`:
+
+```json
+{ "glob": "**/*", "input": "games-common-core/assets", "output": "studio" }
+```
 
 **Important: one copy of Angular.** This repository deliberately has no
 Angular in its dependencies (only as a peer dependency). Inside a game, the
