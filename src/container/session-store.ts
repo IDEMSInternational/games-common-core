@@ -1,7 +1,7 @@
 import { Signal, WritableSignal, computed, signal } from '@angular/core';
-import { GameSession } from '../engine/game-session';
+import { GameSession, SessionSnapshot } from '../engine/game-session';
 import { CustomField, PuzzleGame } from '../engine/puzzle-game';
-import { readStored, storedSetting, writeStored } from './stored-setting';
+import { readStored, readStoredJson, storedSetting, writeStored, writeStoredJson } from './stored-setting';
 
 /** What the puzzle shell needs from a game session, independent of the game's types. */
 export interface ShellControls {
@@ -37,16 +37,19 @@ export interface ShellControls {
  * Makes a GameSession observable by Angular: every change bumps a version
  * signal, and the computed signals below re-read the session.
  *
- * Remembers on the device the last size and difficulty played, so a
- * reload starts a new puzzle in the same form. Create it in an injection
- * context (e.g. a component field), since the "Show mistakes" setting is
- * remembered too.
+ * Saves the game in progress on the device after every change, so after
+ * a reload, or closing and reopening the app, the player continues where
+ * they left off (undo history included). If no saved game can be
+ * restored, a new puzzle starts at the last size and difficulty played.
+ * Create it in an injection context (e.g. a component field), since the
+ * "Show mistakes" setting is remembered too.
  */
 export class SessionStore<Params, State, Move> implements ShellControls {
   private readonly session: GameSession<Params, State, Move>;
   private readonly game: PuzzleGame<Params, State, Move>;
   private readonly version = signal(0);
   private readonly paramsKey: string;
+  private readonly savedGameKey: string;
   readonly celebrate = signal(false);
 
   readonly title: string;
@@ -70,7 +73,11 @@ export class SessionStore<Params, State, Move> implements ShellControls {
   constructor(game: PuzzleGame<Params, State, Move>) {
     this.game = game;
     this.paramsKey = `${game.id}.size`;
+    this.savedGameKey = `${game.id}.game`;
     this.session = new GameSession(game, this.rememberedParams());
+    const saved = readStoredJson<SessionSnapshot<Move>>(this.savedGameKey);
+    if (saved) this.session.restore(saved);
+    this.save();
     this.title = game.name;
     this.presetNames = game.presets().map((p) => p.name);
     this.difficulties = game.difficulties ?? [];
@@ -147,7 +154,13 @@ export class SessionStore<Params, State, Move> implements ShellControls {
   private change(action: () => void): void {
     this.celebrate.set(false); // only a winning move (in move()) sets it
     action();
+    this.save();
     this.version.update((v) => v + 1);
+  }
+
+  /** Saves the game in progress, to continue it after a reload. */
+  private save(): void {
+    writeStoredJson(this.savedGameKey, this.session.snapshot());
   }
 
   private read<T>(get: () => T): Signal<T> {
