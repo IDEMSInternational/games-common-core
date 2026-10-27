@@ -65,4 +65,11 @@ export interface PuzzleGame<Params, State, Move> {
   isCompleted(state: State): boolean;
   /** Returns a move that solves the puzzle, or null if it can't. */
   solve(initial: State, solution?: string): Move | null;
+
+  /**
+   * True if the game's board can mark rule-breaking pieces in red. The
+   * shell then offers a "Show mistakes" switch; what counts as a mistake,
+   * and how it's drawn, is up to the game's board.
+   */
+  readonly canShowMistakes?: boolean;
 }

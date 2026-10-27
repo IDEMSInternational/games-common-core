@@ -55,8 +55,14 @@
   }
 </p>
 
-<div class="tools">
+<!-- Game options: the game's own (projected with puzzleTools), then shared ones. -->
+<div class="options">
   <ng-content select="[puzzleTools]" />
+  @if (c.canShowMistakes) {
+    <puzzle-switch [(checked)]="c.showMistakes" description="Rule-breaking pieces are shown in red">
+      Show mistakes
+    </puzzle-switch>
+  }
 </div>
 
 <nav class="action-bar" aria-label="Game actions">

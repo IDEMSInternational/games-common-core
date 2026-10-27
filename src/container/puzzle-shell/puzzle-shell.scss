@@ -98,8 +98,17 @@
   color: var(--success);
 }
 
-.tools:empty {
-  display: none;
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px 16px;
+  width: 100%;
+
+  &:empty {
+    display: none;
+  }
 }
 
 .action-bar {

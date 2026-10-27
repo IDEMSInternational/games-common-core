@@ -1,6 +1,7 @@
-import { Signal, computed, signal } from '@angular/core';
+import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { GameSession } from '../engine/game-session';
 import { CustomField, PuzzleGame } from '../engine/puzzle-game';
+import { storedSetting } from './stored-setting';
 
 /** What the puzzle shell needs from a game session, independent of the game's types. */
 export interface ShellControls {
@@ -16,6 +17,9 @@ export interface ShellControls {
   readonly completed: Signal<boolean>;
   /** Custom-puzzle settings, filled in from the current puzzle. */
   readonly customFields: Signal<readonly CustomField[]>;
+  /** Whether the game supports "Show mistakes", and the player's setting for it. */
+  readonly canShowMistakes: boolean;
+  readonly showMistakes: WritableSignal<boolean>;
   newGame(presetIndex?: number): void;
   /** Starts a new puzzle of the current size at another difficulty. */
   setDifficulty(difficulty: number): void;
@@ -30,6 +34,8 @@ export interface ShellControls {
 /**
  * Makes a GameSession observable by Angular: every change bumps a version
  * signal, and the computed signals below re-read the session.
+ * Create it in an injection context (e.g. a component field), since the
+ * "Show mistakes" setting is remembered on the device.
  */
 export class SessionStore<Params, State, Move> implements ShellControls {
   private readonly session: GameSession<Params, State, Move>;
@@ -39,6 +45,8 @@ export class SessionStore<Params, State, Move> implements ShellControls {
   readonly title: string;
   readonly presetNames: readonly string[];
   readonly difficulties: readonly string[];
+  readonly canShowMistakes: boolean;
+  readonly showMistakes: WritableSignal<boolean>;
 
   readonly state = this.read(() => this.session.state);
   readonly gameId = this.read(() => this.session.gameId);
@@ -58,6 +66,8 @@ export class SessionStore<Params, State, Move> implements ShellControls {
     this.title = game.name;
     this.presetNames = game.presets().map((p) => p.name);
     this.difficulties = game.difficulties ?? [];
+    this.canShowMistakes = game.canShowMistakes ?? false;
+    this.showMistakes = storedSetting(`${game.id}.showMistakes`);
   }
 
   newGame(presetIndex?: number): void {
