@@ -1,6 +1,6 @@
 .splash {
-  /* The logo image's own background colour, so it fills the screen seamlessly. */
-  --splash-bg: #f6f3ed;
+  /* The theme background is the logo image's own colour, so it fills the screen seamlessly. */
+  --splash-bg: var(--bg);
 
   position: fixed;
   inset: 0;
