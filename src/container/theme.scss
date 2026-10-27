@@ -70,6 +70,48 @@ select {
 }
 
 /*
+ * "Well done!": pops up over the board when a puzzle is solved, in the
+ * game and at the end of the tutorial. Its container must be
+ * position: relative. Add .fades to let it fade away after a moment,
+ * so the finished board can be admired.
+ */
+.puzzle-well-done {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: auto;
+  width: fit-content;
+  height: fit-content;
+  padding: 12px 28px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--board);
+  font-size: 1.4rem;
+  font-weight: 700;
+  pointer-events: none;
+  animation: puzzle-well-done-pop 350ms ease-out both;
+
+  &.fades {
+    animation:
+      puzzle-well-done-pop 350ms ease-out both,
+      puzzle-well-done-fade 600ms ease-in 2.4s forwards;
+  }
+}
+
+@keyframes puzzle-well-done-pop {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+}
+
+@keyframes puzzle-well-done-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+/*
  * Board pieces shared by every game's SVG board (drawn in cell units):
  * the paper and grid, tutorial hints with the animated finger, and the
  * pill-shaped labels placed by container/board-label.ts.

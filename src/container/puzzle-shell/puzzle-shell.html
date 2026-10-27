@@ -47,13 +47,10 @@
 
 <main class="board-area" [class.completed]="c.completed()">
   <ng-content />
-</main>
-
-<p class="status" aria-live="polite">
-  @if (c.completed()) {
-    Solved!
+  @if (c.celebrate()) {
+    <p class="puzzle-well-done fades" role="status">Well done!</p>
   }
-</p>
+</main>
 
 <!-- Game options: the game's own (projected with puzzleTools), then shared ones. -->
 <div class="options">

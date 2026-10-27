@@ -33,29 +33,6 @@
   align-items: center;
 }
 
-.well-done {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: fit-content;
-  height: fit-content;
-  padding: 12px 28px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--board);
-  font-size: 1.4rem;
-  font-weight: 700;
-  pointer-events: none;
-  animation: pop 350ms ease-out;
-}
-
-@keyframes pop {
-  from {
-    transform: scale(0.7);
-    opacity: 0;
-  }
-}
-
 .caption {
   width: 100%;
   max-width: 420px;

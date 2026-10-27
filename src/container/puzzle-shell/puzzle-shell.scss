@@ -78,6 +78,7 @@
 }
 
 .board-area {
+  position: relative; // for the "Well done!" pill
   width: 100%;
   flex: 1;
   display: flex;
@@ -89,13 +90,6 @@
   &.completed {
     box-shadow: 0 0 0 4px var(--success);
   }
-}
-
-.status {
-  min-height: 1.5em;
-  margin: 0;
-  font-weight: 600;
-  color: var(--success);
 }
 
 .options {

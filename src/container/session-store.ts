@@ -1,7 +1,7 @@
 import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { GameSession } from '../engine/game-session';
 import { CustomField, PuzzleGame } from '../engine/puzzle-game';
-import { storedSetting } from './stored-setting';
+import { readStored, storedSetting, writeStored } from './stored-setting';
 
 /** What the puzzle shell needs from a game session, independent of the game's types. */
 export interface ShellControls {
@@ -15,6 +15,8 @@ export interface ShellControls {
   readonly canUndo: Signal<boolean>;
   readonly canRedo: Signal<boolean>;
   readonly completed: Signal<boolean>;
+  /** True right after the player solves the puzzle themselves (not with Solve). */
+  readonly celebrate: Signal<boolean>;
   /** Custom-puzzle settings, filled in from the current puzzle. */
   readonly customFields: Signal<readonly CustomField[]>;
   /** Whether the game supports "Show mistakes", and the player's setting for it. */
@@ -34,13 +36,18 @@ export interface ShellControls {
 /**
  * Makes a GameSession observable by Angular: every change bumps a version
  * signal, and the computed signals below re-read the session.
- * Create it in an injection context (e.g. a component field), since the
- * "Show mistakes" setting is remembered on the device.
+ *
+ * Remembers on the device the last size and difficulty played, so a
+ * reload starts a new puzzle in the same form. Create it in an injection
+ * context (e.g. a component field), since the "Show mistakes" setting is
+ * remembered too.
  */
 export class SessionStore<Params, State, Move> implements ShellControls {
   private readonly session: GameSession<Params, State, Move>;
   private readonly game: PuzzleGame<Params, State, Move>;
   private readonly version = signal(0);
+  private readonly paramsKey: string;
+  readonly celebrate = signal(false);
 
   readonly title: string;
   readonly presetNames: readonly string[];
@@ -62,7 +69,8 @@ export class SessionStore<Params, State, Move> implements ShellControls {
 
   constructor(game: PuzzleGame<Params, State, Move>) {
     this.game = game;
-    this.session = new GameSession(game);
+    this.paramsKey = `${game.id}.size`;
+    this.session = new GameSession(game, this.rememberedParams());
     this.title = game.name;
     this.presetNames = game.presets().map((p) => p.name);
     this.difficulties = game.difficulties ?? [];
@@ -72,13 +80,12 @@ export class SessionStore<Params, State, Move> implements ShellControls {
 
   newGame(presetIndex?: number): void {
     const preset = presetIndex === undefined ? undefined : this.game.presets()[presetIndex];
-    this.change(() => this.session.newGame(preset && this.atCurrentDifficulty(preset.params)));
+    this.startGame(preset && this.atCurrentDifficulty(preset.params));
   }
 
   setDifficulty(difficulty: number): void {
     if (!this.game.withDifficulty) return;
-    const params = this.game.withDifficulty(this.session.params, difficulty);
-    this.change(() => this.session.newGame(params));
+    this.startGame(this.game.withDifficulty(this.session.params, difficulty));
   }
 
   newCustomGame(values: Readonly<Record<string, number>>): string | null {
@@ -90,12 +97,14 @@ export class SessionStore<Params, State, Move> implements ShellControls {
     }
     const params = this.atCurrentDifficulty(this.game.customParams(values));
     const error = this.game.validateParams(params);
-    if (!error) this.change(() => this.session.newGame(params));
+    if (!error) this.startGame(params);
     return error;
   }
 
   move(move: Move): void {
+    const wasCompleted = this.session.isCompleted;
     this.change(() => this.session.move(move));
+    if (!wasCompleted && this.session.isCompleted) this.celebrate.set(true);
   }
 
   undo(): void {
@@ -114,6 +123,20 @@ export class SessionStore<Params, State, Move> implements ShellControls {
     this.change(() => this.session.solve());
   }
 
+  /** A new puzzle (with new parameters, if given); remembers its size for next time. */
+  private startGame(params?: Params): void {
+    this.change(() => this.session.newGame(params));
+    writeStored(this.paramsKey, this.game.encodeParams(this.session.params));
+  }
+
+  /** The size and difficulty last played on this device, if any and still valid. */
+  private rememberedParams(): Params | undefined {
+    const text = readStored(this.paramsKey);
+    if (!text) return undefined;
+    const params = this.game.decodeParams(text);
+    return this.game.validateParams(params) ? undefined : params;
+  }
+
   /** The given size, at the difficulty currently being played. */
   private atCurrentDifficulty(params: Params): Params {
     const game = this.game;
@@ -122,6 +145,7 @@ export class SessionStore<Params, State, Move> implements ShellControls {
   }
 
   private change(action: () => void): void {
+    this.celebrate.set(false); // only a winning move (in move()) sets it
     action();
     this.version.update((v) => v + 1);
   }
