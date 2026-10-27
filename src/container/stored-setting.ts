@@ -23,6 +23,15 @@ export function writeStored(key: string, value: string): void {
   }
 }
 
+/** Forgets a remembered value, if storage is available. */
+export function removeStored(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // Nothing stored anyway.
+  }
+}
+
 /** Typed arrays that stored data may contain (games' states and moves use them). */
 const TYPED_ARRAYS = {
   Int8Array,

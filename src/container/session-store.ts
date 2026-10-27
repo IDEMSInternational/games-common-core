@@ -1,7 +1,14 @@
 import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { GameSession, SessionSnapshot } from '../engine/game-session';
 import { CustomField, PuzzleGame } from '../engine/puzzle-game';
-import { readStored, readStoredJson, storedSetting, writeStored, writeStoredJson } from './stored-setting';
+import {
+  readStored,
+  readStoredJson,
+  removeStored,
+  storedSetting,
+  writeStored,
+  writeStoredJson,
+} from './stored-setting';
 
 /** What the puzzle shell needs from a game session, independent of the game's types. */
 export interface ShellControls {
@@ -39,8 +46,9 @@ export interface ShellControls {
  *
  * Saves the game in progress on the device after every change, so after
  * a reload, or closing and reopening the app, the player continues where
- * they left off (undo history included). If no saved game can be
- * restored, a new puzzle starts at the last size and difficulty played.
+ * they left off (undo history included). A finished puzzle isn't kept:
+ * then, as when no saved game can be restored, a new puzzle starts at the
+ * last size and difficulty played.
  * Create it in an injection context (e.g. a component field), since the
  * "Show mistakes" setting is remembered too.
  */
@@ -76,7 +84,9 @@ export class SessionStore<Params, State, Move> implements ShellControls {
     this.savedGameKey = `${game.id}.game`;
     this.session = new GameSession(game, this.rememberedParams());
     const saved = readStoredJson<SessionSnapshot<Move>>(this.savedGameKey);
-    if (saved) this.session.restore(saved);
+    if (saved && this.session.restore(saved) && this.session.isCompleted) {
+      this.session.newGame(); // a finished puzzle (saved by an older version): start afresh
+    }
     this.save();
     this.title = game.name;
     this.presetNames = game.presets().map((p) => p.name);
@@ -130,10 +140,9 @@ export class SessionStore<Params, State, Move> implements ShellControls {
     this.change(() => this.session.solve());
   }
 
-  /** A new puzzle (with new parameters, if given); remembers its size for next time. */
+  /** A new puzzle (with new parameters, if given). */
   private startGame(params?: Params): void {
     this.change(() => this.session.newGame(params));
-    writeStored(this.paramsKey, this.game.encodeParams(this.session.params));
   }
 
   /** The size and difficulty last played on this device, if any and still valid. */
@@ -158,9 +167,14 @@ export class SessionStore<Params, State, Move> implements ShellControls {
     this.version.update((v) => v + 1);
   }
 
-  /** Saves the game in progress, to continue it after a reload. */
+  /**
+   * Saves the game in progress, to continue it after a reload. A finished
+   * one is forgotten, keeping only its size for the next puzzle.
+   */
   private save(): void {
-    writeStoredJson(this.savedGameKey, this.session.snapshot());
+    writeStored(this.paramsKey, this.game.encodeParams(this.session.params));
+    if (this.session.isCompleted) removeStored(this.savedGameKey);
+    else writeStoredJson(this.savedGameKey, this.session.snapshot());
   }
 
   private read<T>(get: () => T): Signal<T> {
