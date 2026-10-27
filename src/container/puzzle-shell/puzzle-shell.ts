@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { PuzzleMenu } from '../puzzle-menu/puzzle-menu';
 import { PuzzleSwitch } from '../puzzle-switch/puzzle-switch';
 import { ShellControls } from '../session-store';
 
@@ -12,7 +13,7 @@ const CUSTOM = 'custom';
  */
 @Component({
   selector: 'puzzle-shell',
-  imports: [PuzzleSwitch],
+  imports: [PuzzleMenu, PuzzleSwitch],
   templateUrl: './puzzle-shell.html',
   styleUrl: './puzzle-shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -17,14 +17,14 @@
   gap: 10px;
 }
 
-/* Title on the left, the tutorial's "?" on the right. */
+/* The ☰ menu and title on the left, the tutorial's "?" on the right. */
 .title-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 4px;
 
   h1 {
+    flex: 1;
     margin: 0;
     font-size: 1.5rem;
     font-weight: 700;

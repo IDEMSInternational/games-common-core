@@ -38,7 +38,7 @@ input {
 }
 
 input:checked + .track {
-  background: var(--accent);
+  background: var(--brand);
 
   &::after {
     transform: translateX(18px);
@@ -46,6 +46,6 @@ input:checked + .track {
 }
 
 input:focus-visible + .track {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
 }

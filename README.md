@@ -19,7 +19,8 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `game-session.ts`: new game, undo/redo, restart, solve, game IDs
   - `tutorial.ts`: the interactive tutorial engine
 - `src/container/`: the Angular frame every game sits in:
-  - `puzzle-shell/`: title, size and difficulty menus, custom size, undo/redo bar
+  - `puzzle-shell/`: ☰ menu, title, size and difficulty menus, custom size, undo/redo bar
+  - `puzzle-menu/`: the ☰ menu of studio pages; their text is in `menu-pages.ts`
   - `puzzle-tutorial/`: the tutorial frame (captions, progress dots, Skip)
   - `session-store.ts`, `tutorial-store.ts`: connect the engine to Angular
   - `theme.scss`: design tokens, base styles and shared `.board-*` SVG

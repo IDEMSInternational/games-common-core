@@ -14,7 +14,15 @@
   --board: #fffdf8;
   --grid: #d9d3c5;
 
-  /* Games define their own piece colours; red (--danger) is kept for mistakes. */
+  /* The IDEMS Games logo's orange: main buttons and switches. */
+  --brand: #fb6325;
+
+  /*
+   * Games define their own piece colours; red (--danger) is kept for
+   * mistakes. --accent is for guidance on the board (tutorial hints, the
+   * shape being drawn), deliberately not orange so it can't be mistaken
+   * for red.
+   */
   --accent: #2a7f86;
   --accent-soft: rgb(42 127 134 / 0.16);
   --danger: #c0473a;
@@ -50,9 +58,10 @@ select {
   }
 
   &.primary {
-    background: var(--accent);
-    border-color: var(--accent);
+    background: var(--brand);
+    border-color: var(--brand);
     color: #fff;
+    font-weight: 600;
   }
 }
 
