@@ -1,0 +1,11 @@
+<label [title]="description()">
+  <input
+    type="checkbox"
+    role="switch"
+    [checked]="checked()"
+    [attr.aria-description]="description() || null"
+    (change)="checked.set(!checked())"
+  />
+  <span class="track" aria-hidden="true"></span>
+  <ng-content />
+</label>
