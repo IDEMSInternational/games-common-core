@@ -1,7 +1,10 @@
 @let c = controls();
 
 <header class="top-bar">
-  <h1>{{ c.title }}</h1>
+  <div class="title-row">
+    <h1>{{ c.title }}</h1>
+    <button type="button" class="help" aria-label="How to play" (click)="help.emit()">?</button>
+  </div>
   <div class="game-menu">
     <select aria-label="Puzzle size" (change)="choosePreset($event)">
       @for (name of c.presetNames; track $index) {
@@ -16,8 +19,7 @@
         }
       </select>
     }
-    <button type="button" class="primary" (click)="c.newGame()">New</button>
-    <button type="button" class="help" aria-label="How to play" (click)="help.emit()">?</button>
+    <button type="button" class="primary new" (click)="c.newGame()">New</button>
   </div>
 </header>
 

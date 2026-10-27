@@ -12,10 +12,16 @@
 
 .top-bar {
   display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
+}
+
+/* Title on the left, the tutorial's "?" on the right. */
+.title-row {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  width: 100%;
   gap: 12px;
 
   h1 {
@@ -24,18 +30,23 @@
     font-weight: 700;
     letter-spacing: -0.01em;
   }
-}
-
-.game-menu {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 
   .help {
     width: 40px;
     padding: 0;
     border-radius: 50%;
     font-weight: 700;
+  }
+}
+
+/* Size, difficulty and New. */
+.game-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .new {
+    min-width: 96px;
   }
 }
 
