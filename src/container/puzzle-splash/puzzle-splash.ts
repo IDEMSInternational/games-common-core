@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
 
 /** How long the logo shows before fading, and how long the fade takes (ms). */
-const SHOW_MS = 1500;
-const FADE_MS = 400;
+const SHOW_MS = 2000;
+const FADE_MS = 600;
 
 /**
  * The IDEMS Games opening screen: the logo, centred, over its own

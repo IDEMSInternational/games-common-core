@@ -25,6 +25,9 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `theme.scss`: design tokens, base styles and shared `.board-*` SVG
     styles (each game defines its own piece colours)
   - `puzzle-splash/`: the IDEMS Games opening screen (logo in `assets/`)
+- `assets/app/`: source images for the app icon and Android's launch
+  screen (the IDEMS knot), made by `tools/make-app-images.ps1`; each game
+  turns them into Android resources with `npm run app-images`
   - `puzzle-switch/`: an on/off switch for game modes and settings
     under the board (e.g. Slant's Thinking, Rectangles' Lock)
   - `board-label.ts`, `first-run.ts`, `stored-setting.ts`: label
