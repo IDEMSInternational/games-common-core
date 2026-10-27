@@ -44,10 +44,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-
-  .new {
-    min-width: 96px;
-  }
 }
 
 .custom-form {
@@ -121,10 +117,4 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   width: 100%;
-}
-
-.game-id {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  user-select: all;
 }

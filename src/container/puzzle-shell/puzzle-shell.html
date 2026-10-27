@@ -19,7 +19,7 @@
         }
       </select>
     }
-    <button type="button" class="primary new" (click)="c.newGame()">New</button>
+    <button type="button" class="primary" (click)="c.newGame()">New</button>
   </div>
 </header>
 
@@ -71,4 +71,3 @@
   <button type="button" (click)="c.solve()" [disabled]="c.completed()">Solve</button>
 </nav>
 
-<footer class="game-id" title="Game ID: this puzzle can be regenerated from it">{{ c.gameId() }}</footer>
