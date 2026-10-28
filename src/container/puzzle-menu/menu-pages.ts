@@ -1,3 +1,4 @@
+import { LegalDocument, PRIVACY, TERMS } from '../legal';
 import { APACHE_LICENCE } from './apache-licence';
 import { LICENCE, MIT_TERMS, OTHER_APACHE_WORKS, OTHER_MIT_NOTICES } from './licence';
 
@@ -104,6 +105,12 @@ export function menuPages(game: MenuGame): readonly MenuPage[] {
         },
       ],
     },
-    { id: 'terms', title: 'Terms and Conditions' },
+    legalPage('terms', TERMS),
+    legalPage('privacy', PRIVACY),
   ];
+}
+
+/** A page showing one of the legal documents, as written in its Markdown file. */
+function legalPage(id: string, doc: LegalDocument): MenuPage {
+  return { id, title: doc.title, paragraphs: doc.intro, sections: doc.sections };
 }
