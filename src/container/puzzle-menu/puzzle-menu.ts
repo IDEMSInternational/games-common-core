@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, signal, viewChild } from '@angular/core';
-import { MENU_PAGES, MenuPage } from './menu-pages';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, input, signal, viewChild } from '@angular/core';
+import { MenuGame, MenuPage, menuPages } from './menu-pages';
 
 /**
  * The ☰ button and the menu it opens: a panel sliding in from the left
@@ -14,7 +14,9 @@ import { MENU_PAGES, MenuPage } from './menu-pages';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PuzzleMenu {
-  protected readonly pages = MENU_PAGES;
+  readonly game = input.required<MenuGame>();
+
+  protected readonly pages = computed(() => menuPages(this.game()));
   protected readonly open = signal(false);
   /** The page being read, or null for the list of pages. */
   protected readonly page = signal<MenuPage | null>(null);
@@ -38,9 +40,18 @@ export class PuzzleMenu {
     this.panel()?.nativeElement.focus();
   }
 
-  /** The address as people read it: "chiark.greenend.org.uk/~sgtatham/puzzles". */
-  protected shortUrl(url: string): string {
-    return url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+  /**
+   * The address as people read it, "chiark.greenend.org.uk/~sgtatham/puzzles",
+   * in pieces ending at each "/" so a long one wraps there, not mid-word.
+   */
+  protected urlParts(url: string): string[] {
+    const short = url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+    return short.match(/[^/]*\/?/g)!.filter(Boolean);
+  }
+
+  /** An indented quote inside a quote, or null for a plain paragraph. */
+  protected nested(item: string | readonly string[]): readonly string[] | null {
+    return typeof item === 'string' ? null : item;
   }
 
   /** Keys stay inside the menu (so the game's shortcuts don't fire); Escape goes back or closes. */

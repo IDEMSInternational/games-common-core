@@ -2,7 +2,7 @@
 
 <header class="top-bar">
   <div class="title-row">
-    <puzzle-menu />
+    <puzzle-menu [game]="{ id: c.id, name: c.title }" />
     <h1>{{ c.title }}</h1>
     <button type="button" class="help" aria-label="How to play" (click)="help.emit()">?</button>
   </div>

@@ -12,6 +12,8 @@ import {
 
 /** What the puzzle shell needs from a game session, independent of the game's types. */
 export interface ShellControls {
+  /** The game's short id ("slant"), also its repository's name. */
+  readonly id: string;
   readonly title: string;
   readonly presetNames: readonly string[];
   readonly presetIndex: Signal<number>;
@@ -60,6 +62,7 @@ export class SessionStore<Params, State, Move> implements ShellControls {
   private readonly savedGameKey: string;
   readonly celebrate = signal(false);
 
+  readonly id: string;
   readonly title: string;
   readonly presetNames: readonly string[];
   readonly difficulties: readonly string[];
@@ -88,6 +91,7 @@ export class SessionStore<Params, State, Move> implements ShellControls {
       this.session.newGame(); // a finished puzzle (saved by an older version): start afresh
     }
     this.save();
+    this.id = game.id;
     this.title = game.name;
     this.presetNames = game.presets().map((p) => p.name);
     this.difficulties = game.difficulties ?? [];

@@ -97,6 +97,7 @@ li button {
 .page {
   padding: 4px 12px;
   line-height: 1.5;
+  overflow-wrap: break-word; // long web addresses wrap instead of widening the page
 
   .soon {
     color: var(--text-muted);
@@ -116,6 +117,10 @@ li button {
     margin: 0;
     padding-left: 14px;
     border-left: 3px solid var(--border);
+
+    blockquote {
+      margin: 0 0 0 4px;
+    }
   }
 }
 
@@ -133,7 +138,7 @@ li button {
   text-decoration: none;
   line-height: 1.3;
 
-  span {
+  > span {
     display: flex;
     flex: 1;
     flex-direction: column;
@@ -144,7 +149,6 @@ li button {
   small {
     color: var(--text-muted);
     font-size: 0.85rem;
-    overflow-wrap: anywhere;
   }
 
   svg {
@@ -155,6 +159,10 @@ li button {
   &:hover,
   &:focus-visible {
     border-color: var(--brand);
+  }
+
+  & + & {
+    margin-top: 8px;
   }
 }
 

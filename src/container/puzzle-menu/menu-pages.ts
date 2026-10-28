@@ -1,9 +1,9 @@
-import { PUZZLES_LICENCE } from './licence';
+import { LICENCE } from './licence';
 
 /**
- * The pages in every game's ☰ menu, in order. To fill one in, give it
- * `paragraphs` (then any `links` and headed `sections`, shown below them);
- * a page without paragraphs shows a "coming soon" message.
+ * A page in the ☰ menu. To fill one in, give it `paragraphs` (then any
+ * `links` and headed `sections`, shown below them); a page without
+ * paragraphs shows a "coming soon" message.
  */
 export interface MenuPage {
   readonly id: string;
@@ -13,48 +13,69 @@ export interface MenuPage {
   readonly sections?: readonly MenuSection[];
 }
 
-/** A part of a page with its own heading; `quote` is someone else's text, set apart below ours. */
-export interface MenuSection {
-  readonly heading: string;
-  readonly paragraphs: readonly string[];
-  readonly quote?: readonly string[];
-}
-
 /** A website a page points to; opens in the phone's browser. */
 export interface MenuLink {
   readonly label: string;
   readonly url: string;
 }
 
-export const MENU_PAGES: readonly MenuPage[] = [
-  { id: 'announcements', title: 'Announcements' },
-  {
-    id: 'acknowledgements',
-    title: 'Acknowledgements',
-    paragraphs: [
-      "This game is based on Simon Tatham's Portable Puzzle Collection, a free collection of logic puzzles by " +
-        'Simon Tatham and contributors.',
-      'We are grateful to them for sharing their work under the MIT licence. You can play all of the original ' +
-        'puzzles on their website.',
-    ],
-    links: [
-      {
-        label: "Simon Tatham's Portable Puzzle Collection",
-        url: 'https://www.chiark.greenend.org.uk/~sgtatham/puzzles/',
-      },
-    ],
-    sections: [
-      {
-        heading: 'Licence',
-        paragraphs: [
-          "This game is © 2026 IDEMS International. Parts of it are ported from Simon Tatham's Portable Puzzle " +
-            'Collection, which is distributed under the following licence:',
-        ],
-        quote: PUZZLES_LICENCE,
-      },
-    ],
-  },
-  { id: 'about', title: 'About IDEMS Games' },
-  { id: 'other-games', title: 'Other IDEMS Games' },
-  { id: 'terms', title: 'Terms and Conditions' },
-];
+/**
+ * A part of a page with its own heading. `quote` is someone else's text,
+ * set apart below ours; a nested list inside it is indented further.
+ */
+export interface MenuSection {
+  readonly heading: string;
+  readonly paragraphs?: readonly string[];
+  readonly quote?: readonly (string | readonly string[])[];
+}
+
+/** The game the menu belongs to: its id (also its repository's name) and display name. */
+export interface MenuGame {
+  readonly id: string;
+  readonly name: string;
+}
+
+const GITHUB = 'https://github.com/IDEMSInternational';
+
+/** The pages in every game's ☰ menu, in order. */
+export function menuPages(game: MenuGame): readonly MenuPage[] {
+  return [
+    { id: 'announcements', title: 'Announcements' },
+    {
+      id: 'acknowledgements',
+      title: 'Acknowledgements',
+      paragraphs: [
+        "This game is based on Simon Tatham's Portable Puzzle Collection, a free collection of logic puzzles by " +
+          'Simon Tatham and contributors.',
+        'We are grateful to them for sharing their work. You can play all of the original puzzles on their ' +
+          'website.',
+      ],
+      links: [
+        {
+          label: "Simon Tatham's Portable Puzzle Collection",
+          url: 'https://www.chiark.greenend.org.uk/~sgtatham/puzzles/',
+        },
+      ],
+    },
+    { id: 'about', title: 'About IDEMS Games' },
+    { id: 'other-games', title: 'Other IDEMS Games' },
+    {
+      id: 'licence',
+      title: 'Licence',
+      paragraphs: [
+        `${game.name} is © 2026 IDEMS International, and it is open source.`,
+        'Open source means that the code that makes the game work is published for everyone. Anyone may read ' +
+          'it, learn from it, change it and share it, free of charge, as long as they keep the licence below ' +
+          'with it.',
+        "The same licence covers the parts of the game ported from Simon Tatham's Portable Puzzle Collection, " +
+          'and includes its notice.',
+      ],
+      links: [
+        { label: `${game.name} source code`, url: `${GITHUB}/${game.id}` },
+        { label: 'Code shared by all IDEMS Games', url: `${GITHUB}/games-common-core` },
+      ],
+      sections: [{ heading: 'The licence', quote: LICENCE }],
+    },
+    { id: 'terms', title: 'Terms and Conditions' },
+  ];
+}

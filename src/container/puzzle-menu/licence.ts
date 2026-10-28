@@ -1,14 +1,21 @@
 /**
- * The licence notice of Simon Tatham's Portable Puzzle Collection, word for
- * word (only the line breaks inside paragraphs are removed, so it wraps on a
- * phone). The MIT licence requires it in every copy of the games, so it is
- * shown in the app, not only kept in the repositories.
+ * The games' licence, word for word as in each repository's LICENSE (only
+ * the line breaks inside paragraphs are removed, so it wraps on a phone). A
+ * nested list is the original collection's notice, indented there too. The
+ * MIT licence requires the notice in every copy of the games, so it is shown
+ * in the app, not only kept in the repositories.
  */
-export const PUZZLES_LICENCE: readonly string[] = [
-  'This software is copyright (c) 2004-2024 Simon Tatham.',
-  'Portions copyright Richard Boulton, James Harvey, Mike Pinna, Jonas Kölker, Dariusz Olszewski, Michael ' +
-    'Schierl, Lambros Lambrou, Bernd Schmidt, Steffen Bauer, Lennard Sprong, Rogier Goossens, Michael Quevillon, ' +
-    'Asher Gordon, Didi Kohen, Ben Harris and Anders Höglund.',
+export const LICENCE: readonly (string | readonly string[])[] = [
+  'MIT License',
+  'Copyright (c) 2026 IDEMS International.',
+  "Parts of this software are ports of Simon Tatham's Portable Puzzle Collection " +
+    '(https://www.chiark.greenend.org.uk/~sgtatham/puzzles/), which carries this notice:',
+  [
+    'This software is copyright (c) 2004-2024 Simon Tatham.',
+    'Portions copyright Richard Boulton, James Harvey, Mike Pinna, Jonas Kölker, Dariusz Olszewski, Michael ' +
+      'Schierl, Lambros Lambrou, Bernd Schmidt, Steffen Bauer, Lennard Sprong, Rogier Goossens, Michael ' +
+      'Quevillon, Asher Gordon, Didi Kohen, Ben Harris and Anders Höglund.',
+  ],
   'Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated ' +
     'documentation files (the "Software"), to deal in the Software without restriction, including without ' +
     'limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of ' +
