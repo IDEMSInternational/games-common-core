@@ -19,6 +19,14 @@ button.icon {
   background: transparent;
 }
 
+button.opener {
+  color: var(--brand);
+
+  svg {
+    stroke-width: 2.75;
+  }
+}
+
 .backdrop {
   position: fixed;
   inset: 0;
