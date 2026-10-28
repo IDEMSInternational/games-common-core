@@ -21,13 +21,19 @@ export interface MenuLink {
 
 /**
  * A part of a page with its own heading. `quote` is someone else's text,
- * set apart below ours; a nested list inside it is indented further.
+ * set apart below ours.
  */
 export interface MenuSection {
   readonly heading: string;
   readonly paragraphs?: readonly string[];
-  readonly quote?: readonly (string | readonly string[])[];
+  readonly quote?: readonly QuoteItem[];
 }
+
+/**
+ * A paragraph of a quote: plain text, a list of text and links (shown as
+ * linked words in the sentence), or `indented` paragraphs set in further.
+ */
+export type QuoteItem = string | readonly (string | MenuLink)[] | { readonly indented: readonly string[] };
 
 /** The game the menu belongs to: its id (also its repository's name) and display name. */
 export interface MenuGame {

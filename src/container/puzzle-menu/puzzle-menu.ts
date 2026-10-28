@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, input, signal, viewChild } from '@angular/core';
-import { MenuGame, MenuPage, menuPages } from './menu-pages';
+import { MenuGame, MenuLink, MenuPage, QuoteItem, menuPages } from './menu-pages';
 
 /**
  * The ☰ button and the menu it opens: a panel sliding in from the left
@@ -49,9 +49,18 @@ export class PuzzleMenu {
     return short.match(/[^/]*\/?/g)!.filter(Boolean);
   }
 
-  /** An indented quote inside a quote, or null for a plain paragraph. */
-  protected nested(item: string | readonly string[]): readonly string[] | null {
-    return typeof item === 'string' ? null : item;
+  /** The paragraphs of an indented quote inside a quote, or null for a paragraph. */
+  protected indented(item: QuoteItem): readonly string[] | null {
+    return typeof item === 'object' && 'indented' in item ? item.indented : null;
+  }
+
+  /** A quote paragraph as text and links. */
+  protected pieces(item: QuoteItem): readonly (string | MenuLink)[] {
+    return typeof item === 'string' ? [item] : 'indented' in item ? [] : item;
+  }
+
+  protected isLink(piece: string | MenuLink): piece is MenuLink {
+    return typeof piece !== 'string';
   }
 
   /** Keys stay inside the menu (so the game's shortcuts don't fire); Escape goes back or closes. */

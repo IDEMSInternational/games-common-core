@@ -63,14 +63,22 @@
               @if (section.quote) {
                 <blockquote>
                   @for (item of section.quote; track $index) {
-                    @if (nested(item); as inner) {
+                    @if (indented(item); as inner) {
                       <blockquote>
                         @for (paragraph of inner; track $index) {
                           <p>{{ paragraph }}</p>
                         }
                       </blockquote>
                     } @else {
-                      <p>{{ item }}</p>
+                      <!-- one line, so no spaces appear around the links -->
+                      <p
+                        >@for (piece of pieces(item); track $index) {@if (isLink(piece)) {<a
+                              [href]="piece.url"
+                              target="_blank"
+                              rel="noopener"
+                              >{{ piece.label }}</a
+                            >} @else {<span>{{ piece }}</span>}}</p
+                      >
                     }
                   }
                 </blockquote>

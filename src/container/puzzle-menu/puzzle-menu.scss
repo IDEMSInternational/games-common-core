@@ -121,6 +121,13 @@ li button {
     blockquote {
       margin: 0 0 0 4px;
     }
+
+    a {
+      color: inherit;
+      text-decoration-color: var(--brand);
+      text-decoration-thickness: 2px;
+      text-underline-offset: 3px;
+    }
   }
 }
 
