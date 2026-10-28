@@ -1,4 +1,5 @@
-import { LICENCE } from './licence';
+import { APACHE_LICENCE } from './apache-licence';
+import { LICENCE, MIT_TERMS, OTHER_APACHE_WORKS, OTHER_MIT_NOTICES } from './licence';
 
 /**
  * A page in the ☰ menu. To fill one in, give it `paragraphs` (then any
@@ -80,7 +81,24 @@ export function menuPages(game: MenuGame): readonly MenuPage[] {
         { label: `${game.name} source code`, url: `${GITHUB}/${game.id}` },
         { label: 'Code shared by all IDEMS Games', url: `${GITHUB}/games-common-core` },
       ],
-      sections: [{ heading: 'The licence', quote: LICENCE }],
+      sections: [
+        { heading: 'The licence', quote: LICENCE },
+        {
+          heading: 'Other open-source software',
+          paragraphs: [
+            'The app is built with the following open-source software, used under the MIT License:',
+          ],
+          quote: [...OTHER_MIT_NOTICES, ...MIT_TERMS],
+        },
+        {
+          heading: 'Apache License',
+          paragraphs: [
+            'The app also includes the following open-source software, used under the Apache License, Version 2.0:',
+            ...OTHER_APACHE_WORKS,
+          ],
+          quote: APACHE_LICENCE,
+        },
+      ],
     },
     { id: 'terms', title: 'Terms and Conditions' },
   ];
