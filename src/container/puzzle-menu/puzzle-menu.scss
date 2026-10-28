@@ -103,8 +103,49 @@ li button {
     color: var(--text-muted);
   }
 
-  section {
+  .section {
     margin-top: 24px;
+  }
+
+  // A collapsed section: the heading row opens and closes it.
+  details.section {
+    margin-top: 12px;
+    border-top: 1px solid var(--border);
+
+    & + & {
+      margin-top: 0;
+    }
+
+    &:last-child {
+      border-bottom: 1px solid var(--border);
+    }
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    h3 {
+      margin: 0;
+    }
+
+    svg {
+      flex-shrink: 0;
+      color: var(--text-muted);
+      transition: transform 150ms ease-out;
+    }
+  }
+
+  details[open] > summary svg {
+    transform: rotate(180deg);
   }
 
   h3 {

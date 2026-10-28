@@ -28,6 +28,8 @@ export interface MenuSection {
   readonly heading: string;
   readonly paragraphs?: readonly string[];
   readonly quote?: readonly QuoteItem[];
+  /** Starts closed, opening when its heading is tapped. */
+  readonly collapsed?: boolean;
 }
 
 /**
@@ -89,6 +91,7 @@ export function menuPages(game: MenuGame): readonly MenuPage[] {
             'The app is built with the following open-source software, used under the MIT License:',
           ],
           quote: [...OTHER_MIT_NOTICES, ...MIT_TERMS],
+          collapsed: true,
         },
         {
           heading: 'Apache License',
@@ -97,6 +100,7 @@ export function menuPages(game: MenuGame): readonly MenuPage[] {
             ...OTHER_APACHE_WORKS,
           ],
           quote: APACHE_LICENCE,
+          collapsed: true,
         },
       ],
     },

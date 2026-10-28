@@ -47,48 +47,67 @@
             <a class="link-card" [href]="link.url" target="_blank" rel="noopener">
               <span>
                 <strong>{{ link.label }}</strong>
-                <small
-                  >@for (part of urlParts(link.url); track $index) {<span>{{ part }}</span><wbr />}</small
-                >
+                <small>
+                  @for (part of urlParts(link.url); track $index) {
+                    <span>{{ part }}</span
+                    ><wbr />
+                  }
+                </small>
               </span>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5H5V6h5" /></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14 4h6v6M20 4l-9 9M18 14v5H5V6h5" />
+              </svg>
             </a>
           }
           @for (section of p.sections ?? []; track section.heading) {
-            <section>
-              <h3>{{ section.heading }}</h3>
-              @for (paragraph of section.paragraphs ?? []; track $index) {
-                <p>{{ paragraph }}</p>
-              }
-              @if (section.quote) {
-                <blockquote>
-                  @for (item of section.quote; track $index) {
-                    @if (indented(item); as inner) {
-                      <blockquote>
-                        @for (paragraph of inner; track $index) {
-                          <p>{{ paragraph }}</p>
-                        }
-                      </blockquote>
-                    } @else {
-                      <!-- one line, so no spaces appear around the links -->
-                      <p
-                        >@for (piece of pieces(item); track $index) {@if (isLink(piece)) {<a
-                              [href]="piece.url"
-                              target="_blank"
-                              rel="noopener"
-                              >{{ piece.label }}</a
-                            >} @else {<span>{{ piece }}</span>}}</p
-                      >
-                    }
-                  }
-                </blockquote>
-              }
-            </section>
+            @if (section.collapsed) {
+              <details class="section">
+                <summary>
+                  <h3>{{ section.heading }}</h3>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+                </summary>
+                <ng-container *ngTemplateOutlet="sectionBody; context: { $implicit: section }" />
+              </details>
+            } @else {
+              <section class="section">
+                <h3>{{ section.heading }}</h3>
+                <ng-container *ngTemplateOutlet="sectionBody; context: { $implicit: section }" />
+              </section>
+            }
           }
         } @else {
           <p class="soon">Coming soon. We're working on this page.</p>
         }
       </div>
+
+      <ng-template #sectionBody let-section>
+        @for (paragraph of section.paragraphs ?? []; track $index) {
+          <p>{{ paragraph }}</p>
+        }
+        @if (section.quote) {
+          <blockquote>
+            @for (item of section.quote; track $index) {
+              @if (indented(item); as inner) {
+                <blockquote>
+                  @for (paragraph of inner; track $index) {
+                    <p>{{ paragraph }}</p>
+                  }
+                </blockquote>
+              } @else {
+                <p>
+                  @for (piece of pieces(item); track $index) {
+                    @if (isLink(piece)) {
+                      <a [href]="piece.url" target="_blank" rel="noopener">{{ piece.label }}</a>
+                    } @else {
+                      <span>{{ piece }}</span>
+                    }
+                  }
+                </p>
+              }
+            }
+          </blockquote>
+        }
+      </ng-template>
     } @else {
       <nav aria-label="IDEMS Games">
         <ul>

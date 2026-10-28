@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, computed, input, signal, viewChild } from '@angular/core';
 import { MenuGame, MenuLink, MenuPage, QuoteItem, menuPages } from './menu-pages';
 
@@ -9,6 +10,7 @@ import { MenuGame, MenuLink, MenuPage, QuoteItem, menuPages } from './menu-pages
  */
 @Component({
   selector: 'puzzle-menu',
+  imports: [NgTemplateOutlet],
   templateUrl: './puzzle-menu.html',
   styleUrl: './puzzle-menu.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
