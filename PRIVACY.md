@@ -6,7 +6,7 @@ This policy explains what the IDEMS Games puzzle apps, such as Rectangles and Sl
 
 ## The short version
 
-The apps do not collect any personal information. You don't need an account, there are no adverts, and the apps don't send anything about you or your games over the internet.
+At the moment, the apps do not collect any personal information. You don't need an account, there are no adverts, and the apps don't send anything about you or your games over the internet. This may change in the future, for example if we use the apps for research, but never without telling you first: see "Changes, including future research" below.
 
 ## What stays on your device
 
@@ -14,7 +14,7 @@ So that you can carry on where you left off, the app saves the puzzle you are pl
 
 ## Children
 
-We would like the apps to be enjoyed by children as well as adults. Because the apps don't collect personal information, they don't collect any from children either.
+We would like the apps to be enjoyed by children as well as adults. Because the apps don't currently collect personal information, they don't collect any from children either. If that changes, we will ask a parent or carer for permission before collecting any information from children.
 
 ## App stores
 
