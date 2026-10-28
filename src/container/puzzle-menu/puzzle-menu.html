@@ -52,6 +52,14 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5H5V6h5" /></svg>
             </a>
           }
+          @for (section of p.sections ?? []; track section.heading) {
+            <section>
+              <h3>{{ section.heading }}</h3>
+              @for (paragraph of section.paragraphs; track $index) {
+                <p>{{ paragraph }}</p>
+              }
+            </section>
+          }
         } @else {
           <p class="soon">Coming soon. We're working on this page.</p>
         }

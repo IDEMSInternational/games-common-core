@@ -101,6 +101,16 @@ li button {
   .soon {
     color: var(--text-muted);
   }
+
+  section {
+    margin-top: 24px;
+  }
+
+  h3 {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
 }
 
 // A website link, as a card that's easy to tap; the arrow says it leaves the app.

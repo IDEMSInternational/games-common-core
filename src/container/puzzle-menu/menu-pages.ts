@@ -1,13 +1,22 @@
+import { PUZZLES_LICENCE } from './licence';
+
 /**
  * The pages in every game's ☰ menu, in order. To fill one in, give it
- * `paragraphs` (and any `links`, shown below them); a page without
- * paragraphs shows a "coming soon" message.
+ * `paragraphs` (then any `links` and headed `sections`, shown below them);
+ * a page without paragraphs shows a "coming soon" message.
  */
 export interface MenuPage {
   readonly id: string;
   readonly title: string;
   readonly paragraphs?: readonly string[];
   readonly links?: readonly MenuLink[];
+  readonly sections?: readonly MenuSection[];
+}
+
+/** A part of a page with its own heading. */
+export interface MenuSection {
+  readonly heading: string;
+  readonly paragraphs: readonly string[];
 }
 
 /** A website a page points to; opens in the phone's browser. */
@@ -33,6 +42,7 @@ export const MENU_PAGES: readonly MenuPage[] = [
         url: 'https://www.chiark.greenend.org.uk/~sgtatham/puzzles/',
       },
     ],
+    sections: [{ heading: 'Licence', paragraphs: PUZZLES_LICENCE }],
   },
   { id: 'about', title: 'About IDEMS Games' },
   { id: 'other-games', title: 'Other IDEMS Games' },
