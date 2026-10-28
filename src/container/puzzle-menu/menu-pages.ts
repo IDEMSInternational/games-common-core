@@ -13,10 +13,11 @@ export interface MenuPage {
   readonly sections?: readonly MenuSection[];
 }
 
-/** A part of a page with its own heading. */
+/** A part of a page with its own heading; `quote` is someone else's text, set apart below ours. */
 export interface MenuSection {
   readonly heading: string;
   readonly paragraphs: readonly string[];
+  readonly quote?: readonly string[];
 }
 
 /** A website a page points to; opens in the phone's browser. */
@@ -42,7 +43,16 @@ export const MENU_PAGES: readonly MenuPage[] = [
         url: 'https://www.chiark.greenend.org.uk/~sgtatham/puzzles/',
       },
     ],
-    sections: [{ heading: 'Licence', paragraphs: PUZZLES_LICENCE }],
+    sections: [
+      {
+        heading: 'Licence',
+        paragraphs: [
+          "This game is © 2026 IDEMS International. Parts of it are ported from Simon Tatham's Portable Puzzle " +
+            'Collection, which is distributed under the following licence:',
+        ],
+        quote: PUZZLES_LICENCE,
+      },
+    ],
   },
   { id: 'about', title: 'About IDEMS Games' },
   { id: 'other-games', title: 'Other IDEMS Games' },

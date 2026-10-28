@@ -111,6 +111,12 @@ li button {
     font-size: 1.05rem;
     font-weight: 700;
   }
+
+  blockquote {
+    margin: 0;
+    padding-left: 14px;
+    border-left: 3px solid var(--border);
+  }
 }
 
 // A website link, as a card that's easy to tap; the arrow says it leaves the app.

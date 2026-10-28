@@ -58,6 +58,13 @@
               @for (paragraph of section.paragraphs; track $index) {
                 <p>{{ paragraph }}</p>
               }
+              @if (section.quote) {
+                <blockquote>
+                  @for (paragraph of section.quote; track $index) {
+                    <p>{{ paragraph }}</p>
+                  }
+                </blockquote>
+              }
             </section>
           }
         } @else {
