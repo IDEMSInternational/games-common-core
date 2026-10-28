@@ -103,6 +103,45 @@ li button {
   }
 }
 
+// A website link, as a card that's easy to tap; the arrow says it leaves the app.
+.link-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--board);
+  color: var(--text);
+  text-decoration: none;
+  line-height: 1.3;
+
+  span {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  small {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+  }
+
+  svg {
+    flex-shrink: 0;
+    color: var(--brand);
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--brand);
+  }
+}
+
 @keyframes slide-in {
   from {
     transform: translateX(-100%);

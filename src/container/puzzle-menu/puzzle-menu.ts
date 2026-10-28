@@ -38,6 +38,11 @@ export class PuzzleMenu {
     this.panel()?.nativeElement.focus();
   }
 
+  /** The address as people read it: "chiark.greenend.org.uk/~sgtatham/puzzles". */
+  protected shortUrl(url: string): string {
+    return url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+  }
+
   /** Keys stay inside the menu (so the game's shortcuts don't fire); Escape goes back or closes. */
   protected onKey(event: KeyboardEvent): void {
     event.stopPropagation();

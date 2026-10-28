@@ -43,6 +43,15 @@
           @for (paragraph of p.paragraphs; track $index) {
             <p>{{ paragraph }}</p>
           }
+          @for (link of p.links ?? []; track link.url) {
+            <a class="link-card" [href]="link.url" target="_blank" rel="noopener">
+              <span>
+                <strong>{{ link.label }}</strong>
+                <small>{{ shortUrl(link.url) }}</small>
+              </span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5H5V6h5" /></svg>
+            </a>
+          }
         } @else {
           <p class="soon">Coming soon. We're working on this page.</p>
         }
