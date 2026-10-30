@@ -1,0 +1,53 @@
+@let c = controls();
+
+<header class="puzzle-title-row">
+  <puzzle-menu [game]="{ id: c.id, name: c.title, version: c.version }" />
+  <h1>{{ c.title }}</h1>
+  <button type="button" class="help" aria-label="How to play" (click)="c.startTutorial()">?</button>
+</header>
+
+<main>
+  @if (c.today(); as today) {
+    <section class="card" aria-labelledby="daily-heading">
+      <div class="card-head">
+        <h2 id="daily-heading">Daily puzzle</h2>
+        @if (c.streak() > 0) {
+          <span class="streak">🔥 {{ c.streak() }}-day streak</span>
+        }
+      </div>
+      <p class="what">#{{ today.number }} · {{ today.dayName }} · {{ today.label }}</p>
+      <p class="status">{{ status(today) }}</p>
+      <button type="button" class="primary" (click)="c.openDaily(today.date)">{{ playLabel(today) }}</button>
+
+      <h3>This week</h3>
+      <ol class="week">
+        @for (day of c.week(); track $index) {
+          <li>
+            @if (day) {
+              <button
+                type="button"
+                [class]="day.status"
+                [class.today]="day.isToday"
+                [disabled]="day.status === 'future'"
+                [attr.aria-label]="dayLabel(day)"
+                (click)="c.openDaily(day.date)"
+              >
+                {{ letters[$index] }}
+              </button>
+            } @else {
+              <span class="none" aria-hidden="true">{{ letters[$index] }}</span>
+            }
+          </li>
+        }
+      </ol>
+    </section>
+  }
+
+  <section class="card" aria-labelledby="free-heading">
+    <h2 id="free-heading">Free play</h2>
+    <p class="what">Any size, and as many puzzles as you like.</p>
+    <button type="button" class="primary" (click)="c.openFreePlay()">Play</button>
+  </section>
+
+  <button type="button" class="how" (click)="c.startTutorial()">How to play</button>
+</main>

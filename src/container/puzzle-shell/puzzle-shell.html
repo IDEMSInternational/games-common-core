@@ -1,30 +1,51 @@
 @let c = controls();
 
 <header class="top-bar">
-  <div class="title-row">
-    <puzzle-menu [game]="{ id: c.id, name: c.title, version: version() }" />
-    <h1>{{ c.title }}</h1>
+  <div class="puzzle-title-row">
+    <button type="button" class="back" aria-label="Home" (click)="back.emit()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+    </button>
+    <h1>{{ c.kind === 'daily' ? 'Daily puzzle #' + c.number : c.title }}</h1>
     <button type="button" class="help" aria-label="How to play" (click)="help.emit()">?</button>
   </div>
-  <div class="game-menu">
-    <select aria-label="Puzzle size" (change)="choosePreset($event)">
-      @for (name of c.presetNames; track $index) {
-        <option [value]="$index" [selected]="!customOpen() && $index === c.presetIndex()">{{ name }}</option>
-      }
-      <option [value]="CUSTOM" [selected]="customOpen() || c.presetIndex() < 0">Custom…</option>
-    </select>
-    @if (c.difficulties.length > 0) {
-      <select aria-label="Difficulty" (change)="chooseDifficulty($event)">
-        @for (name of c.difficulties; track $index) {
-          <option [value]="$index" [selected]="$index === c.difficulty()">{{ name }}</option>
+  @if (c.kind === 'daily') {
+    <div class="daily-bar">
+      <span>{{ c.dayName }} · {{ c.label }}</span>
+      @if (c.result(); as result) {
+        <span class="clock" role="status">Solved in {{ time(result.time) }}</span>
+        @if (c.canShare()) {
+          <button type="button" class="primary" (click)="share(c)">Share</button>
+        } @else {
+          <p class="shared">Solved after its day, so it doesn't count for your streak.</p>
         }
+        @if (shareMessage(); as message) {
+          <p class="shared" role="status">{{ message }}</p>
+        }
+      } @else {
+        <span class="clock" [attr.aria-label]="'Time ' + time(c.elapsed())">⏱ {{ time(c.elapsed()) }}</span>
+      }
+    </div>
+  } @else {
+    <div class="game-menu">
+      <select aria-label="Puzzle size" (change)="choosePreset($event)">
+        @for (name of c.presetNames; track $index) {
+          <option [value]="$index" [selected]="!customOpen() && $index === c.presetIndex()">{{ name }}</option>
+        }
+        <option [value]="CUSTOM" [selected]="customOpen() || c.presetIndex() < 0">Custom…</option>
       </select>
-    }
-    <button type="button" class="primary" (click)="c.newGame()">New</button>
-  </div>
+      @if (c.difficulties.length > 0) {
+        <select aria-label="Difficulty" (change)="chooseDifficulty($event)">
+          @for (name of c.difficulties; track $index) {
+            <option [value]="$index" [selected]="$index === c.difficulty()">{{ name }}</option>
+          }
+        </select>
+      }
+      <button type="button" class="primary" (click)="c.newGame()">New</button>
+    </div>
+  }
 </header>
 
-@if (customOpen()) {
+@if (customOpen() && c.kind === 'free') {
   <form class="custom-form" (submit)="submitCustom($event)">
     @for (field of c.customFields(); track field.key) {
       <label>
@@ -48,7 +69,7 @@
   </form>
 }
 
-<main class="board-area" [class.completed]="c.completed()">
+<main class="board-area" [class.completed]="c.completed()" (pointerdown)="c.touch()">
   <ng-content />
   @if (c.celebrate()) {
     <p class="puzzle-well-done fades" role="status">Well done!</p>
@@ -65,10 +86,12 @@
   }
 </div>
 
-<nav class="action-bar" aria-label="Game actions">
+<nav class="action-bar" [class.daily]="c.kind === 'daily'" aria-label="Game actions">
   <button type="button" (click)="c.undo()" [disabled]="!c.canUndo()">Undo</button>
   <button type="button" (click)="c.redo()" [disabled]="!c.canRedo()">Redo</button>
   <button type="button" (click)="c.restart()" [disabled]="!c.canUndo()">Restart</button>
-  <button type="button" (click)="c.solve()" [disabled]="c.completed()">Solve</button>
+  @if (c.kind === 'free') {
+    <button type="button" (click)="c.solve()" [disabled]="c.completed()">Solve</button>
+  }
 </nav>
 

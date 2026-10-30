@@ -17,22 +17,35 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `algorithms/dsf.ts`: disjoint set forest (union-find), as in `dsf.c`
   - `puzzle-game.ts`: the interface every game implements
   - `game-session.ts`: new game, undo/redo, restart, solve, game IDs
+  - `daily.ts`: daily puzzles: dates, weeks, and the rule turning a date
+    into the day's puzzle (the same for everyone)
   - `tutorial.ts`: the interactive tutorial engine
 - `src/container/`: the Angular frame every game sits in:
-  - `puzzle-shell/`: ☰ menu, title, size and difficulty menus, custom size, undo/redo bar
+  - `puzzle-screens.ts`: which screen shows (home, free play, a daily
+    puzzle, the tutorial), as browser history so Back works
+  - `puzzle-home/`: the home page: today's daily puzzle, this week's,
+    the streak, free play, how to play, and the ☰ menu
+  - `puzzle-shell/`: the frame around a puzzle: title, size and difficulty
+    menus and custom size (free play) or day and clock (daily puzzle),
+    undo/redo bar
   - `puzzle-menu/`: the ☰ menu of studio pages; their text is in `menu-pages.ts`
   - `puzzle-tutorial/`: the tutorial frame (captions, progress dots, Skip)
-  - `session-store.ts`, `tutorial-store.ts`: connect the engine to Angular
+  - `session-store.ts`, `daily-store.ts`, `tutorial-store.ts`: connect
+    the engine to Angular (free play, a daily puzzle with its clock, the
+    tutorial); `shell-controls.ts` is what the shell needs from them
+  - `daily-records.ts`: daily results, streak and this week's games, kept
+    on the device; `share.ts`: the device's share panel
   - `theme.scss`: design tokens, base styles and shared `.board-*` SVG
     styles (each game defines its own piece colours)
   - `puzzle-splash/`: the IDEMS Games opening screen (logo in `assets/`)
-- `assets/app/`: source images for the app icon and Android's launch
-  screen (the IDEMS knot), made by `tools/make-app-images.ps1`; each game
-  turns them into Android resources with `npm run app-images`
+  - `puzzle-notice/`: the welcome notice with the terms and privacy policy
   - `puzzle-switch/`: an on/off switch for game modes and settings
     under the board (e.g. Slant's Thinking, Rectangles' Lock)
   - `board-label.ts`, `first-run.ts`, `stored-setting.ts`: label
     placement, "tutorial seen" memory, settings remembered on the device
+- `assets/app/`: source images for the app icon and Android's launch
+  screen (the IDEMS knot), made by `tools/make-app-images.ps1`; each game
+  turns them into Android resources with `npm run app-images`
 
 ## How a game uses it
 
@@ -64,6 +77,9 @@ and its `angular.json` serves the shared images by adding to the build's
 ```json
 { "glob": "**/*", "input": "games-common-core/assets", "output": "studio" }
 ```
+
+The game also installs the Capacitor plugins the shared code uses (peer
+dependencies): `npm install @capacitor/app @capacitor/share`.
 
 **Important: one copy of Angular.** This repository deliberately has no
 Angular in its dependencies (only as a peer dependency). Inside a game, the

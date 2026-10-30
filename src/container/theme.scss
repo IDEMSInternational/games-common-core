@@ -66,6 +66,31 @@ select {
 }
 
 /*
+ * The row at the top of every screen: a button on the left (☰ menu or
+ * back), the title, and the tutorial's "?" on the right.
+ */
+.puzzle-title-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  h1 {
+    flex: 1;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .help {
+    width: 40px;
+    padding: 0;
+    border-radius: 50%;
+    font-weight: 700;
+  }
+}
+
+/*
  * "Well done!": pops up over the board when a puzzle is solved, in the
  * game and at the end of the tutorial. Its container must be
  * position: relative. Add .fades to let it fade away after a moment,

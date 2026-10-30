@@ -9,7 +9,9 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@angular/core": "^21.2.0"
+    "@angular/core": "^21.2.0",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/share": "^8.0.3"
   },
   "devDependencies": {
     "typescript": "~5.9.3",

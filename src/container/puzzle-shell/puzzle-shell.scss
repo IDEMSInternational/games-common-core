@@ -17,25 +17,47 @@
   gap: 10px;
 }
 
-/* The ☰ menu and title on the left, the tutorial's "?" on the right. */
-.title-row {
-  display: flex;
+.back {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  width: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--brand);
 
-  h1 {
-    flex: 1;
-    margin: 0;
-    font-size: 1.5rem;
+  svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+/* The daily puzzle's day and size, and its clock (or result). */
+.daily-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+
+  .clock {
+    font-size: 1.35rem;
     font-weight: 700;
-    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
   }
 
-  .help {
-    width: 40px;
-    padding: 0;
-    border-radius: 50%;
-    font-weight: 700;
+  .shared {
+    flex-basis: 100%;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
   }
 }
 
@@ -117,4 +139,8 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   width: 100%;
+
+  &.daily {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }

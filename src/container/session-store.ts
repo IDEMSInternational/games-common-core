@@ -1,6 +1,7 @@
 import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { GameSession, SessionSnapshot } from '../engine/game-session';
-import { CustomField, PuzzleGame } from '../engine/puzzle-game';
+import { PuzzleGame } from '../engine/puzzle-game';
+import { FreePlayControls } from './shell-controls';
 import {
   readStored,
   readStoredJson,
@@ -9,38 +10,6 @@ import {
   writeStored,
   writeStoredJson,
 } from './stored-setting';
-
-/** What the puzzle shell needs from a game session, independent of the game's types. */
-export interface ShellControls {
-  /** The game's short id ("slant"), also its repository's name. */
-  readonly id: string;
-  readonly title: string;
-  readonly presetNames: readonly string[];
-  readonly presetIndex: Signal<number>;
-  /** Difficulty level names; empty if the game has no difficulty levels. */
-  readonly difficulties: readonly string[];
-  readonly difficulty: Signal<number>;
-  readonly gameId: Signal<string>;
-  readonly canUndo: Signal<boolean>;
-  readonly canRedo: Signal<boolean>;
-  readonly completed: Signal<boolean>;
-  /** True right after the player solves the puzzle themselves (not with Solve). */
-  readonly celebrate: Signal<boolean>;
-  /** Custom-puzzle settings, filled in from the current puzzle. */
-  readonly customFields: Signal<readonly CustomField[]>;
-  /** Whether the game supports "Show mistakes", and the player's setting for it. */
-  readonly canShowMistakes: boolean;
-  readonly showMistakes: WritableSignal<boolean>;
-  newGame(presetIndex?: number): void;
-  /** Starts a new puzzle of the current size at another difficulty. */
-  setDifficulty(difficulty: number): void;
-  /** Starts a custom puzzle. Returns an error message, or null on success. */
-  newCustomGame(values: Readonly<Record<string, number>>): string | null;
-  undo(): void;
-  redo(): void;
-  restart(): void;
-  solve(): void;
-}
 
 /**
  * Makes a GameSession observable by Angular: every change bumps a version
@@ -54,7 +23,8 @@ export interface ShellControls {
  * Create it in an injection context (e.g. a component field), since the
  * "Show mistakes" setting is remembered too.
  */
-export class SessionStore<Params, State, Move> implements ShellControls {
+export class SessionStore<Params, State, Move> implements FreePlayControls {
+  readonly kind = 'free';
   private readonly session: GameSession<Params, State, Move>;
   private readonly game: PuzzleGame<Params, State, Move>;
   private readonly version = signal(0);
@@ -142,6 +112,10 @@ export class SessionStore<Params, State, Move> implements ShellControls {
 
   solve(): void {
     this.change(() => this.session.solve());
+  }
+
+  touch(): void {
+    // Free play has no clock.
   }
 
   /** A new puzzle (with new parameters, if given). */

@@ -57,6 +57,7 @@ export const LICENCE: readonly QuoteItem[] = [
 export const OTHER_MIT_NOTICES: readonly string[] = [
   'Angular: Copyright (c) 2010-2026 Google LLC.',
   'Capacitor: Copyright (c) 2017-present Drifty Co.',
+  'Capacitor App and Share plugins: Copyright 2020-present Ionic.',
 ];
 
 export const OTHER_APACHE_WORKS: readonly string[] = [

@@ -1,3 +1,4 @@
+import { DailySchedule } from './daily';
 import { RandomState } from './random/random-state';
 
 /** A named set of parameters offered in the game's size/difficulty menu. */
@@ -72,4 +73,7 @@ export interface PuzzleGame<Params, State, Move> {
    * and how it's drawn, is up to the game's board.
    */
   readonly canShowMistakes?: boolean;
+
+  /** The daily puzzles' settings, day by day (see daily.ts). */
+  readonly daily?: DailySchedule<Params>;
 }
