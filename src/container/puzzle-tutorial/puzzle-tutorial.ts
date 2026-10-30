@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  effect,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 import { TutorialControls } from '../tutorial-store';
 
 /**
@@ -23,10 +31,10 @@ export class PuzzleTutorial {
     // Each new caption fades in.
     effect(() => {
       this.controls().text();
-      this.caption()?.nativeElement.animate?.(
-        [{ opacity: 0, transform: 'translateY(4px)' }, {}],
-        { duration: 400, easing: 'ease-out' },
-      );
+      this.caption()?.nativeElement.animate?.([{ opacity: 0, transform: 'translateY(4px)' }, {}], {
+        duration: 400,
+        easing: 'ease-out',
+      });
     });
   }
 }
