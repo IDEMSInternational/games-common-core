@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
 import { TutorialControls } from '../tutorial-store';
 
 /**
@@ -16,4 +16,17 @@ export class PuzzleTutorial {
   readonly skip = output<void>();
 
   protected readonly dots = (count: number) => Array.from({ length: count }, (_, i) => i);
+
+  private readonly caption = viewChild<ElementRef<HTMLElement>>('caption');
+
+  constructor() {
+    // Each new caption fades in.
+    effect(() => {
+      this.controls().text();
+      this.caption()?.nativeElement.animate?.(
+        [{ opacity: 0, transform: 'translateY(4px)' }, {}],
+        { duration: 400, easing: 'ease-out' },
+      );
+    });
+  }
 }

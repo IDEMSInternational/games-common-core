@@ -14,10 +14,7 @@
 
 <div class="caption" aria-live="polite">
   @if (!c.finished()) {
-    <!-- Keyed by the text, so each new caption fades in. -->
-    @for (text of [c.text()]; track text) {
-      <p>{{ text }}</p>
-    }
+    <p #caption>{{ c.text() }}</p>
   }
 </div>
 
