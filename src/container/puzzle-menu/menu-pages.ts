@@ -43,6 +43,7 @@ export type QuoteItem = string | readonly (string | MenuLink)[] | { readonly ind
 export interface MenuGame {
   readonly id: string;
   readonly name: string;
+  readonly version: string;
 }
 
 const GITHUB = 'https://github.com/IDEMSInternational';

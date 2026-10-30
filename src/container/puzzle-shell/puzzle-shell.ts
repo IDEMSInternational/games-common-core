@@ -23,6 +23,8 @@ const CUSTOM = 'custom';
 })
 export class PuzzleShell {
   readonly controls = input.required<ShellControls>();
+  /** The app's version ("1.2.0"), from the game's package.json. */
+  readonly version = input.required<string>();
   /** The player asked how to play. */
   readonly help = output<void>();
 
