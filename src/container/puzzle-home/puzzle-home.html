@@ -19,23 +19,22 @@
       <p class="status">{{ status(today) }}</p>
       <button type="button" class="primary" (click)="c.openDaily(today.date)">{{ playLabel(today) }}</button>
 
-      <h3>This week</h3>
-      <ol class="week">
-        @for (day of c.week(); track $index) {
+      <h3>The last 7 days</h3>
+      <ol class="days">
+        @for (day of c.days(); track $index) {
           <li>
             @if (day) {
               <button
                 type="button"
                 [class]="day.status"
                 [class.today]="day.isToday"
-                [disabled]="day.status === 'future'"
                 [attr.aria-label]="dayLabel(day)"
                 (click)="c.openDaily(day.date)"
               >
-                {{ letters[$index] }}
+                {{ day.dayName[0] }}
               </button>
             } @else {
-              <span class="none" aria-hidden="true">{{ letters[$index] }}</span>
+              <span class="none" aria-hidden="true"></span>
             }
           </li>
         }

@@ -61,10 +61,12 @@ export function weekdayOf(date: string): number {
   return (new Date(parse(date)).getUTCDay() + 6) % 7;
 }
 
-/** The seven days of the week `date` is in, Monday to Sunday. */
-export function weekOf(date: string): string[] {
-  const monday = addDays(date, -weekdayOf(date));
-  return WEEKDAYS.map((_, i) => addDays(monday, i));
+/** How many days' puzzles can be played: today's and the six before. */
+export const AVAILABLE_DAYS = 7;
+
+/** The days whose puzzles can be played on `today`, oldest first, ending with today. */
+export function availableDays(today: string): string[] {
+  return Array.from({ length: AVAILABLE_DAYS }, (_, i) => addDays(today, i - AVAILABLE_DAYS + 1));
 }
 
 /**

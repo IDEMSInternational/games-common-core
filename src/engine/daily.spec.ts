@@ -1,4 +1,4 @@
-import { addDays, dailyPuzzle, daysBetween, localDay, weekdayOf, weekOf } from './daily';
+import { addDays, availableDays, dailyPuzzle, daysBetween, localDay, weekdayOf } from './daily';
 
 describe('daily puzzles', () => {
   const schedule = {
@@ -19,10 +19,13 @@ describe('daily puzzles', () => {
     expect(daysBetween('2026-10-26', '2026-10-24')).toBe(-2);
   });
 
-  it('knows the weekdays and weeks, Monday first', () => {
+  it('knows the weekdays, Monday first', () => {
     expect(weekdayOf('2026-10-26')).toBe(0); // a Monday
     expect(weekdayOf('2026-11-01')).toBe(6);
-    expect(weekOf('2026-10-30')).toEqual([
+  });
+
+  it("offers today's puzzle and the six before", () => {
+    expect(availableDays('2026-11-01')).toEqual([
       '2026-10-26',
       '2026-10-27',
       '2026-10-28',
@@ -31,7 +34,6 @@ describe('daily puzzles', () => {
       '2026-10-31',
       '2026-11-01',
     ]);
-    expect(weekOf('2026-11-01')[0]).toBe('2026-10-26');
   });
 
   it('numbers the puzzles from the first day, and follows the weekly schedule', () => {

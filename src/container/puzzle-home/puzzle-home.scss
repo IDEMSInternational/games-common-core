@@ -67,8 +67,8 @@ h3 {
   color: var(--text-muted);
 }
 
-/* This week, a circle for each day: green when solved on the day, a green ring when solved late. */
-.week {
+/* The last 7 days, a circle for each: green when solved on the day, a green ring when solved late. */
+.days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;

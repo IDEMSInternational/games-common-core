@@ -1,4 +1,4 @@
-import { addDays, weekOf } from '../engine/daily';
+import { addDays, availableDays } from '../engine/daily';
 import { SessionSnapshot } from '../engine/game-session';
 import { readStoredJson, removeStored, writeStoredJson } from './stored-setting';
 
@@ -24,8 +24,9 @@ export type DayStatus = 'solved' | 'late' | 'started' | 'new';
 
 /**
  * The player's daily puzzles, remembered on this device: every result
- * (small, kept for the streak) and the games of this week (so a solved
- * puzzle can be looked at again; older ones are cleared).
+ * (small, kept for the streak) and the games of the days that can still
+ * be played (so a solved puzzle can be looked at again; older ones are
+ * cleared).
  */
 export class DailyRecords {
   private readonly resultsKey: string;
@@ -73,13 +74,13 @@ export class DailyRecords {
     return streak;
   }
 
-  /** Forgets the games of past weeks (their results are kept). */
+  /** Forgets the games that can no longer be played (their results are kept). */
   clearOldGames(today: string): void {
-    const monday = weekOf(today)[0];
+    const oldest = availableDays(today)[0];
     try {
       const old = Object.keys(localStorage).filter((key) => {
         const date = key.startsWith(this.savePrefix) ? key.slice(this.savePrefix.length) : '';
-        return /^\d{4}-\d{2}-\d{2}$/.test(date) && date < monday;
+        return /^\d{4}-\d{2}-\d{2}$/.test(date) && date < oldest;
       });
       old.forEach(removeStored);
     } catch {

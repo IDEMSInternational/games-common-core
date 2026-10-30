@@ -17,13 +17,13 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `algorithms/dsf.ts`: disjoint set forest (union-find), as in `dsf.c`
   - `puzzle-game.ts`: the interface every game implements
   - `game-session.ts`: new game, undo/redo, restart, solve, game IDs
-  - `daily.ts`: daily puzzles: dates, weeks, and the rule turning a date
+  - `daily.ts`: daily puzzles: dates, the days that can be played, and the rule turning a date
     into the day's puzzle (the same for everyone)
   - `tutorial.ts`: the interactive tutorial engine
 - `src/container/`: the Angular frame every game sits in:
   - `puzzle-screens.ts`: which screen shows (home, free play, a daily
     puzzle, the tutorial), as browser history so Back works
-  - `puzzle-home/`: the home page: today's daily puzzle, this week's,
+  - `puzzle-home/`: the home page: today's daily puzzle, the last 7 days',
     the streak, free play, how to play, and the ☰ menu
   - `puzzle-shell/`: the frame around a puzzle: title, size and difficulty
     menus and custom size (free play) or day and clock (daily puzzle),
@@ -33,7 +33,7 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `session-store.ts`, `daily-store.ts`, `tutorial-store.ts`: connect
     the engine to Angular (free play, a daily puzzle with its clock, the
     tutorial); `shell-controls.ts` is what the shell needs from them
-  - `daily-records.ts`: daily results, streak and this week's games, kept
+  - `daily-records.ts`: daily results, streak and the last 7 days' games, kept
     on the device; `share.ts`: the device's share panel
   - `theme.scss`: design tokens, base styles and shared `.board-*` SVG
     styles (each game defines its own piece colours)

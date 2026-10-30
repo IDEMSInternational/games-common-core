@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { App } from '@capacitor/app';
-import { WEEKDAYS, dailyPuzzle, localDay, weekOf } from '../engine/daily';
+import { WEEKDAYS, availableDays, dailyPuzzle, localDay } from '../engine/daily';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { Tutorial } from '../engine/tutorial';
 import { DailyRecords, DayStatus } from './daily-records';
@@ -24,7 +24,7 @@ export type Screen =
 
 const HOME: Screen = { name: 'home' };
 
-/** A day of this week's daily puzzles, for the home page. */
+/** A day whose daily puzzle can be played, for the home page. */
 export interface DayInfo {
   readonly date: string;
   readonly number: number;
@@ -32,8 +32,7 @@ export interface DayInfo {
   readonly dayName: string;
   /** "9×9", "10×12 Hard" */
   readonly label: string;
-  /** 'future' for the days still to come, which can't be played yet. */
-  readonly status: DayStatus | 'future';
+  readonly status: DayStatus;
   readonly isToday: boolean;
   /** Milliseconds on the clock: the result if solved, else the time so far. */
   readonly time: number;
@@ -44,8 +43,8 @@ export interface HomeControls {
   readonly id: string;
   readonly title: string;
   readonly version: string;
-  /** This week's daily puzzles, Monday to Sunday (null before the first one); empty without daily puzzles. */
-  readonly week: Signal<readonly (DayInfo | null)[]>;
+  /** The daily puzzles that can be played, today's last (null before the first one); empty without daily puzzles. */
+  readonly days: Signal<readonly (DayInfo | null)[]>;
   readonly today: Signal<DayInfo | null>;
   /** Days in a row with the daily puzzle solved on its day. */
   readonly streak: Signal<number>;
@@ -86,13 +85,13 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   /** False while the app is in the background. */
   private readonly appActive = signal(true);
 
-  readonly week = computed(() => {
+  readonly days = computed(() => {
     this.screen(); // read the records again on coming back home
     const today = this.todayDate();
     const schedule = this.game.daily;
     if (!schedule) return [];
     const results = this.records.results();
-    return weekOf(today).map((date): DayInfo | null => {
+    return availableDays(today).map((date): DayInfo | null => {
       const puzzle = dailyPuzzle(this.id, schedule, date);
       if (!puzzle) return null;
       return {
@@ -100,13 +99,13 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
         number: puzzle.number,
         dayName: WEEKDAYS[puzzle.weekday],
         label: paramsLabel(this.game, puzzle.params),
-        status: date > today ? 'future' : this.records.status(date),
+        status: this.records.status(date),
         isToday: date === today,
         time: results[date]?.time ?? this.records.game(date)?.elapsed ?? 0,
       };
     });
   });
-  readonly today = computed(() => this.week().find((day) => day?.isToday) ?? null);
+  readonly today = computed(() => this.days().find((day) => day?.isToday) ?? null);
   readonly streak = computed(() => {
     this.screen();
     return this.records.streak(this.todayDate());
@@ -161,7 +160,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   }
 
   openDaily(date: string): void {
-    if (date <= this.todayDate()) this.go({ name: 'daily', date });
+    if (this.available(date)) this.go({ name: 'daily', date });
   }
 
   /** Back to the home page. */
@@ -193,13 +192,17 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   private show(screen: Screen): void {
     if (screen.name === 'daily') {
       const puzzle = this.game.daily && dailyPuzzle(this.id, this.game.daily, screen.date);
-      if (!puzzle) return this.screen.set(HOME);
+      if (!puzzle || !this.available(screen.date)) return this.screen.set(HOME);
       if (this.daily()?.puzzle.date !== screen.date) {
         this.daily()?.setActive(false);
         this.daily.set(new DailyStore(this.game, puzzle, this.records, this.session.showMistakes));
       }
     }
     this.screen.set(screen);
+  }
+
+  private available(date: string): boolean {
+    return availableDays(this.todayDate()).includes(date);
   }
 
   private newTutorial(): TutorialStore<Params, State, Move, Hint> {
