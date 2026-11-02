@@ -21,17 +21,19 @@ The games are educational phone apps (Angular + Capacitor) built from
     into the day's puzzle (the same for everyone)
   - `tutorial.ts`: the interactive tutorial engine
 - `src/container/`: the Angular frame every game sits in:
-  - `puzzle-screens.ts`: which screen shows (home, free play, a daily
-    puzzle, the tutorial), as browser history so Back works
-  - `puzzle-home/`: the home page: today's daily puzzle, the last 7 days',
-    the streak, free play, how to play, and the ☰ menu
+  - `puzzle-screens.ts`: which screen shows (home, a daily puzzle, Beat
+    the clock, free play, the tutorial), as browser history so Back works
+  - `puzzle-home/`: the home page: today's daily puzzles and the last 7
+    days', the streaks, Beat the clock and its records, free play, how to
+    play, and the ☰ menu
   - `puzzle-shell/`: the frame around a puzzle: title, size and difficulty
-    menus and custom size (free play) or day and clock (daily puzzle),
-    undo/redo bar
+    menus and custom size (free play), day and clock (daily puzzle), or
+    count and time left (Beat the clock); undo/redo bar
   - `puzzle-menu/`: the ☰ menu of studio pages; their text is in `menu-pages.ts`
   - `puzzle-tutorial/`: the tutorial frame (captions, progress dots, Skip)
-  - `session-store.ts`, `daily-store.ts`, `tutorial-store.ts`: connect
-    the engine to Angular (free play, a daily puzzle with its clock, the
+  - `session-store.ts`, `daily-store.ts`, `clock-store.ts`,
+    `tutorial-store.ts`: connect the engine to Angular (free play, a daily
+    puzzle with its clock, a Beat the clock run with its records, the
     tutorial); `shell-controls.ts` is what the shell needs from them
   - `daily-records.ts`: daily results, streak and the last 7 days' games, kept
     on the device; `share.ts`: the device's share panel

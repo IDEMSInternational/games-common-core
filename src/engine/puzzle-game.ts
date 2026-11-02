@@ -76,4 +76,7 @@ export interface PuzzleGame<Params, State, Move> {
 
   /** The daily puzzles' settings, day by day (see daily.ts). */
   readonly daily?: DailySchedule<Params>;
+
+  /** Beat the clock: the puzzle settings to pick from at random, one after another. */
+  readonly beatTheClock?: readonly Params[];
 }

@@ -5,11 +5,23 @@
     <button type="button" class="back" aria-label="Home" (click)="back.emit()">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
     </button>
-    <h1>{{ c.kind === 'daily' ? 'Daily puzzle #' + c.number : c.title }}</h1>
+    <h1>
+      @switch (c.kind) {
+        @case ('daily') {
+          Daily puzzle #{{ c.number }}
+        }
+        @case ('clock') {
+          Beat the clock
+        }
+        @default {
+          {{ c.title }}
+        }
+      }
+    </h1>
     <button type="button" class="help" aria-label="How to play" (click)="help.emit()">?</button>
   </div>
   @if (c.kind === 'daily') {
-    <div class="daily-bar">
+    <div class="mode-bar">
       <span>{{ c.dayName }} · {{ c.levelName }} · {{ c.label }}</span>
       @if (c.result(); as result) {
         <span class="clock" role="status">Solved in {{ time(result.time) }}</span>
@@ -23,6 +35,25 @@
         }
       } @else {
         <span class="clock" [attr.aria-label]="'Time ' + time(c.elapsed())">⏱ {{ time(c.elapsed()) }}</span>
+      }
+    </div>
+  } @else if (c.kind === 'clock') {
+    <div class="mode-bar">
+      @if (c.finished()) {
+        <span class="clock" role="status">Time's up! Solved: {{ c.solved() }}</span>
+        <button type="button" class="primary" (click)="c.playAgain()">Play again</button>
+        <p class="shared">
+          @if (c.solved() > c.record) {
+            A new record for {{ c.minutes }} minutes!
+          } @else {
+            Your record for {{ c.minutes }} minutes: {{ c.record }}
+          }
+        </p>
+      } @else {
+        <span>{{ c.label() }} · Solved: {{ c.solved() }}</span>
+        <span class="clock" [attr.aria-label]="'Time left ' + time(c.remaining() + 999)">
+          ⏱ {{ time(c.remaining() + 999) }}
+        </span>
       }
     </div>
   } @else {
@@ -92,6 +123,8 @@
   <button type="button" (click)="c.restart()" [disabled]="!c.canUndo()">Restart</button>
   @if (c.kind === 'free') {
     <button type="button" (click)="c.solve()" [disabled]="c.completed()">Solve</button>
+  } @else if (c.kind === 'clock') {
+    <button type="button" (click)="c.skip()" [disabled]="c.finished() || c.completed()">Skip</button>
   }
 </nav>
 

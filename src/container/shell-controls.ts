@@ -61,7 +61,28 @@ export interface DailyControls extends PlayControls {
   share(): Promise<string | null>;
 }
 
-export type ShellControls = FreePlayControls | DailyControls;
+/** Beat the clock: as many puzzles as possible in the time. */
+export interface ClockControls extends PlayControls {
+  readonly kind: 'clock';
+  /** The time limit, in minutes. */
+  readonly minutes: number;
+  /** The puzzle's size and difficulty: "7×7", "10×10 Easy". */
+  readonly label: Signal<string>;
+  /** Milliseconds left. */
+  readonly remaining: Signal<number>;
+  /** Puzzles solved so far. */
+  readonly solved: Signal<number>;
+  /** True once the time is up. */
+  readonly finished: Signal<boolean>;
+  /** The record for this time limit, before this run. */
+  readonly record: number;
+  /** A new puzzle, without counting this one. */
+  skip(): void;
+  /** Another run with the same time limit. */
+  playAgain(): void;
+}
+
+export type ShellControls = FreePlayControls | DailyControls | ClockControls;
 
 /** Formats a time on the clock: "0:42", "12:05", "1:02:03". */
 export function formatTime(ms: number): string {

@@ -11,6 +11,7 @@ import { App } from '@capacitor/app';
 import { DAILY_LEVELS, WEEKDAYS, availableDays, dailyPuzzle, localDay } from '../engine/daily';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { Tutorial } from '../engine/tutorial';
+import { ClockRecords, ClockStore } from './clock-store';
 import { DailyRecords, DayStatus } from './daily-records';
 import { DailyStore, paramsLabel } from './daily-store';
 import { hasSeenTutorial, markTutorialSeen } from './first-run';
@@ -20,7 +21,8 @@ import { TutorialStore } from './tutorial-store';
 export type Screen =
   | { readonly name: 'home' }
   | { readonly name: 'free' }
-  | { readonly name: 'daily'; readonly date: string; readonly level: number };
+  | { readonly name: 'daily'; readonly date: string; readonly level: number }
+  | { readonly name: 'clock'; readonly minutes: number };
 
 const HOME: Screen = { name: 'home' };
 
@@ -56,6 +58,20 @@ export interface LevelStreak {
   readonly days: number;
 }
 
+/** A Beat the clock record: the most puzzles solved in a time limit. */
+export interface ClockRecord {
+  readonly minutes: number;
+  readonly solved: number;
+}
+
+/** An unfinished Beat the clock run. */
+export interface ClockRunInfo {
+  readonly minutes: number;
+  readonly solved: number;
+  /** Milliseconds left. */
+  readonly left: number;
+}
+
 /** A day's status is the best of its levels'. */
 const STATUS_ORDER: readonly DayStatus[] = ['solved', 'late', 'started', 'new'];
 
@@ -70,13 +86,23 @@ export interface HomeControls {
   /** The current streak at each level that has one, Easy first. */
   readonly streaks: Signal<readonly LevelStreak[]>;
   openDaily(date: string, level: number): void;
+  /** Whether the game has Beat the clock. */
+  readonly hasClock: boolean;
+  /** Beat the clock records, shortest time limit first. */
+  readonly clockRecords: Signal<readonly ClockRecord[]>;
+  readonly clockRun: Signal<ClockRunInfo | null>;
+  /**
+   * Beat the clock with this time limit: continues the unfinished run, or
+   * with `fresh`, starts a new one (forgetting any unfinished run).
+   */
+  openClock(minutes: number, fresh?: boolean): void;
   openFreePlay(): void;
   startTutorial(): void;
 }
 
 /**
- * Which screen a game's app shows: the home page, free play, a daily
- * puzzle, or the tutorial over any of them (on first launch, over the
+ * Which screen a game's app shows: the home page, a daily puzzle, Beat
+ * the clock, free play, or the tutorial over any of them (on first launch, over the
  * home page). Each screen is a browser history entry, so Back (the
  * browser's, or Android's back button) returns to the home page.
  *
@@ -90,18 +116,25 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly session: SessionStore<Params, State, Move>;
   /** The daily puzzle last opened. */
   readonly daily = signal<DailyStore<Params, State, Move> | null>(null);
+  /** The Beat the clock run last opened. */
+  readonly clock = signal<ClockStore<Params, State, Move> | null>(null);
+  readonly hasClock: boolean;
   readonly screen = signal<Screen>(HOME);
   /** The tutorial in progress, if any. It runs automatically on first launch. */
   readonly tutorial: WritableSignal<TutorialStore<Params, State, Move, Hint> | null>;
   /** The puzzle on screen: free play or a daily puzzle; null on the home page. */
   readonly play = computed(() => {
     const screen = this.screen();
-    return screen.name === 'free' ? this.session : screen.name === 'daily' ? this.daily() : null;
+    if (screen.name === 'free') return this.session;
+    if (screen.name === 'daily') return this.daily();
+    if (screen.name === 'clock') return this.clock();
+    return null;
   });
 
   private readonly game: PuzzleGame<Params, State, Move>;
   private readonly tutorialSteps: Tutorial<Params, State, Move, Hint>;
   private readonly records: DailyRecords;
+  private readonly clockRecordsStore: ClockRecords;
   private readonly todayDate = signal(localDay());
   /** False while the app is in the background. */
   private readonly appActive = signal(true);
@@ -132,6 +165,17 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     });
   });
   readonly today = computed(() => this.days().find((day) => day?.isToday) ?? null);
+  readonly clockRecords = computed(() => {
+    this.screen();
+    return Object.entries(this.clockRecordsStore.records())
+      .map(([minutes, solved]) => ({ minutes: Number(minutes), solved }))
+      .sort((a, b) => a.minutes - b.minutes);
+  });
+  readonly clockRun = computed(() => {
+    this.screen();
+    const run = this.clockRecordsStore.run();
+    return run ? { minutes: run.minutes, solved: run.solved, left: run.left } : null;
+  });
   readonly streaks = computed(() => {
     this.screen();
     const today = this.todayDate();
@@ -152,6 +196,8 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.version = version;
     this.session = new SessionStore(game);
     this.records = new DailyRecords(game.id);
+    this.clockRecordsStore = new ClockRecords(game.id);
+    this.hasClock = !!game.beatTheClock;
     this.records.clearOldGames(this.todayDate());
     this.tutorial = signal(hasSeenTutorial(game.id) ? null : this.newTutorial());
 
@@ -161,12 +207,12 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       this.show((event.state as { screen?: Screen } | null)?.screen ?? HOME);
     window.addEventListener('popstate', onPopState);
 
-    // The daily puzzle's clock runs only while it's on screen.
-    effect(() =>
-      this.daily()?.setActive(
-        this.screen().name === 'daily' && !this.tutorial() && this.appActive(),
-      ),
-    );
+    // The daily puzzle's and Beat the clock's clocks run only while on screen.
+    effect(() => {
+      const shown = !this.tutorial() && this.appActive();
+      this.daily()?.setActive(shown && this.screen().name === 'daily');
+      this.clock()?.setActive(shown && this.screen().name === 'clock');
+    });
 
     const listeners = [
       App.addListener('backButton', () => this.back()),
@@ -181,6 +227,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       listeners.forEach((listener) => listener.then((l) => l.remove()));
       clearInterval(midnight);
       this.daily()?.setActive(false);
+      this.clock()?.setActive(false);
     });
   }
 
@@ -190,6 +237,16 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
 
   openDaily(date: string, level: number): void {
     if (this.available(date) && DAILY_LEVELS[level]) this.go({ name: 'daily', date, level });
+  }
+
+  openClock(minutes: number, fresh = false): void {
+    if (!this.hasClock || !Number.isInteger(minutes) || minutes < 1) return;
+    if (fresh) {
+      this.clockRecordsStore.clearRun();
+      this.clock()?.setActive(false);
+      this.clock.set(null);
+    }
+    this.go({ name: 'clock', minutes });
   }
 
   /** Back to the home page. */
@@ -227,6 +284,13 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       if (open?.date !== screen.date || open.level !== screen.level) {
         this.daily()?.setActive(false);
         this.daily.set(new DailyStore(this.game, puzzle, this.records, this.session.showMistakes));
+      }
+    }
+    if (screen.name === 'clock') {
+      if (!this.hasClock) return this.screen.set(HOME);
+      if (this.clock()?.minutes !== screen.minutes || this.clock()?.finished()) {
+        this.clock()?.setActive(false);
+        this.clock.set(new ClockStore(this.game, this.clockRecordsStore, screen.minutes, this.session.showMistakes));
       }
     }
     this.screen.set(screen);

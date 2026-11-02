@@ -38,8 +38,8 @@
   }
 }
 
-/* The daily puzzle's day and size, and its clock (or result). */
-.daily-bar {
+/* A daily puzzle's day and size and its clock (or result); Beat the clock's count and time left. */
+.mode-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
