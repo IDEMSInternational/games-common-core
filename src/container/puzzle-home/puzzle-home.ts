@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
 import { DayStatus } from '../daily-records';
 import { PuzzleMenu } from '../puzzle-menu/puzzle-menu';
-import { ClockRecord, DayInfo, HomeControls, LevelInfo } from '../puzzle-screens';
+import { DayInfo, HomeControls, LevelInfo } from '../puzzle-screens';
 import { formatTime } from '../shell-controls';
 
 /**
@@ -49,11 +49,6 @@ export class PuzzleHome {
     event.preventDefault();
     const minutes = Number(new FormData(event.target as HTMLFormElement).get('minutes'));
     if (Number.isInteger(minutes) && minutes >= 1 && minutes <= 60) this.startClock(minutes);
-  }
-
-  /** "Records: 5 min: 7 · 10 min: 12" */
-  protected recordsText(records: readonly ClockRecord[]): string {
-    return `Records: ${records.map((r) => `${r.minutes} min: ${r.solved}`).join(' · ')}`;
   }
 
   /** The day's levels played so far: "Easy: solved in 0:52 · Medium: 1:20 so far". */

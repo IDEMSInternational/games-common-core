@@ -16,6 +16,7 @@ import { DailyRecords, DayStatus } from './daily-records';
 import { DailyStore, paramsLabel } from './daily-store';
 import { hasSeenTutorial, markTutorialSeen } from './first-run';
 import { SessionStore } from './session-store';
+import { readStored, writeStored } from './stored-setting';
 import { TutorialStore } from './tutorial-store';
 
 export type Screen =
@@ -88,8 +89,8 @@ export interface HomeControls {
   openDaily(date: string, level: number): void;
   /** Whether the game has Beat the clock. */
   readonly hasClock: boolean;
-  /** Beat the clock records, shortest time limit first. */
-  readonly clockRecords: Signal<readonly ClockRecord[]>;
+  /** One of the Beat the clock records: the next one each time the home page opens. */
+  readonly clockRecord: Signal<ClockRecord | null>;
   readonly clockRun: Signal<ClockRunInfo | null>;
   /**
    * Beat the clock with this time limit: continues the unfinished run, or
@@ -102,8 +103,8 @@ export interface HomeControls {
 
 /**
  * Which screen a game's app shows: the home page, a daily puzzle, Beat
- * the clock, free play, or the tutorial over any of them (on first launch, over the
- * home page). Each screen is a browser history entry, so Back (the
+ * the clock, free play, or the tutorial over any of them (on first
+ * launch, over the home page). Each screen is a browser history entry, so Back (the
  * browser's, or Android's back button) returns to the home page.
  *
  * Create it in an injection context (e.g. a component field).
@@ -138,6 +139,8 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   private readonly todayDate = signal(localDay());
   /** False while the app is in the background. */
   private readonly appActive = signal(true);
+  /** How many times the home page has opened (remembered): picks the record shown. */
+  private readonly homeVisits: WritableSignal<number>;
 
   readonly days = computed(() => {
     this.screen(); // read the records again on coming back home
@@ -165,11 +168,12 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     });
   });
   readonly today = computed(() => this.days().find((day) => day?.isToday) ?? null);
-  readonly clockRecords = computed(() => {
-    this.screen();
-    return Object.entries(this.clockRecordsStore.records())
+  readonly clockRecord = computed(() => {
+    const visits = this.homeVisits(); // read first: it also brings in new records
+    const records = Object.entries(this.clockRecordsStore.records())
       .map(([minutes, solved]) => ({ minutes: Number(minutes), solved }))
       .sort((a, b) => a.minutes - b.minutes);
+    return records.length ? records[visits % records.length] : null;
   });
   readonly clockRun = computed(() => {
     this.screen();
@@ -197,6 +201,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.session = new SessionStore(game);
     this.records = new DailyRecords(game.id);
     this.clockRecordsStore = new ClockRecords(game.id);
+    this.homeVisits = signal(Number(readStored(`${game.id}.home.visits`)) || 0);
     this.hasClock = !!game.beatTheClock;
     this.records.clearOldGames(this.todayDate());
     this.tutorial = signal(hasSeenTutorial(game.id) ? null : this.newTutorial());
@@ -292,6 +297,10 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
         this.clock()?.setActive(false);
         this.clock.set(new ClockStore(this.game, this.clockRecordsStore, screen.minutes, this.session.showMistakes));
       }
+    }
+    if (screen.name === 'home') {
+      this.homeVisits.update((n) => n + 1);
+      writeStored(`${this.id}.home.visits`, String(this.homeVisits()));
     }
     this.screen.set(screen);
   }
