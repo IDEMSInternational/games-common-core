@@ -65,24 +65,19 @@ export class DailyRecords {
   }
 
   /**
-   * The most days in a row the player has had a daily puzzle solved on its
-   * day, at any level. Only the best is shown, so missing a day never
-   * takes anything away.
+   * Days in a row with the puzzle at `level` solved on its day, up to
+   * today (or up to yesterday while today's is still to do).
    */
-  bestStreak(): number {
-    const days = new Set(
-      Object.entries(this.results())
-        .filter(([, result]) => result.onDay)
-        .map(([key]) => key.slice(0, 10)),
-    );
-    let best = 0;
-    for (const day of days) {
-      if (days.has(addDays(day, -1))) continue; // not the start of a run
-      let length = 1;
-      while (days.has(addDays(day, length))) length++;
-      best = Math.max(best, length);
+  streak(today: string, level: number): number {
+    const results = this.results();
+    const onDay = (date: string) => results[key(date, level)]?.onDay === true;
+    let day = onDay(today) ? today : addDays(today, -1);
+    let streak = 0;
+    while (onDay(day)) {
+      streak++;
+      day = addDays(day, -1);
     }
-    return best;
+    return streak;
   }
 
   /** Forgets the games that can no longer be played (their results are kept). */

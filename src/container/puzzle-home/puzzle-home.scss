@@ -42,12 +42,16 @@ main {
 
 .card-head {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
 }
 
-.streak {
+.streaks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: right;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -67,7 +71,7 @@ h3 {
   color: var(--text-muted);
 }
 
-/* The last 7 days, a circle for each: green when solved on the day, a green ring when solved late. */
+/* The last 7 days, a circle for each, in thirds shaded by level (see PuzzleHome.thirds). */
 .days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -102,17 +106,6 @@ h3 {
 
   .started {
     border-color: var(--brand);
-  }
-
-  .solved {
-    border-color: var(--success);
-    background: var(--success);
-    color: #fff;
-  }
-
-  .late {
-    border-color: var(--success);
-    color: var(--success);
   }
 
   .today {
@@ -188,7 +181,7 @@ h3 {
 
     &.solved,
     &.late {
-      border-color: var(--success);
+      background: color-mix(in srgb, var(--brand) 12%, var(--surface));
     }
   }
 

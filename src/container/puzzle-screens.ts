@@ -49,6 +49,13 @@ export interface LevelInfo {
   readonly time: number;
 }
 
+/** A level's current streak: days in a row solved on the day. */
+export interface LevelStreak {
+  /** "Low" */
+  readonly name: string;
+  readonly days: number;
+}
+
 /** A day's status is the best of its levels'. */
 const STATUS_ORDER: readonly DayStatus[] = ['solved', 'late', 'started', 'new'];
 
@@ -60,8 +67,8 @@ export interface HomeControls {
   /** The daily puzzles that can be played, today's last (null before the first one); empty without daily puzzles. */
   readonly days: Signal<readonly (DayInfo | null)[]>;
   readonly today: Signal<DayInfo | null>;
-  /** The most days in a row with a daily puzzle solved on its day. */
-  readonly bestStreak: Signal<number>;
+  /** The current streak at each level that has one, Low first. */
+  readonly streaks: Signal<readonly LevelStreak[]>;
   openDaily(date: string, level: number): void;
   openFreePlay(): void;
   startTutorial(): void;
@@ -125,9 +132,12 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     });
   });
   readonly today = computed(() => this.days().find((day) => day?.isToday) ?? null);
-  readonly bestStreak = computed(() => {
+  readonly streaks = computed(() => {
     this.screen();
-    return this.records.bestStreak();
+    const today = this.todayDate();
+    return DAILY_LEVELS.map((name, level) => ({ name, days: this.records.streak(today, level) })).filter(
+      (streak) => streak.days > 0,
+    );
   });
 
   constructor(

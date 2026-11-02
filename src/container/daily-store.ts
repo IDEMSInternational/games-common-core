@@ -115,11 +115,11 @@ export class DailyStore<Params, State, Move> implements DailyControls {
   async share(): Promise<string | null> {
     const result = this.result();
     if (!result?.onDay) return null;
-    const streak = this.records.bestStreak();
+    const streak = this.records.streak(localDay(), this.puzzle.level);
     const lines = [
       `${this.title} daily puzzle #${this.number}, ${this.levelName} (${this.dayName}, ${this.label})`,
       `Solved in ${formatTime(result.time)}`,
-      ...(streak > 1 ? [`🔥 Best streak: ${streak} days`] : []),
+      ...(streak > 1 ? [`🔥 ${streak}-day streak at ${this.levelName}`] : []),
     ];
     return shareText(`${this.title} daily puzzle #${this.number}`, lines.join('\n'));
   }
