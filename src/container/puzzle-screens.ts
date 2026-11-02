@@ -33,14 +33,14 @@ export interface DayInfo {
   readonly isToday: boolean;
   /** The day as a whole: solved if any level was solved on the day, and so on. */
   readonly status: DayStatus;
-  /** Low, Medium and High. */
+  /** Easy, Medium and Hard. */
   readonly levels: readonly LevelInfo[];
 }
 
 /** One level of a day's daily puzzle. */
 export interface LevelInfo {
   readonly level: number;
-  /** "Low" */
+  /** "Easy" */
   readonly name: string;
   /** "9×9", "10×12 Hard" */
   readonly label: string;
@@ -51,7 +51,7 @@ export interface LevelInfo {
 
 /** A level's current streak: days in a row solved on the day. */
 export interface LevelStreak {
-  /** "Low" */
+  /** "Easy" */
   readonly name: string;
   readonly days: number;
 }
@@ -67,7 +67,7 @@ export interface HomeControls {
   /** The daily puzzles that can be played, today's last (null before the first one); empty without daily puzzles. */
   readonly days: Signal<readonly (DayInfo | null)[]>;
   readonly today: Signal<DayInfo | null>;
-  /** The current streak at each level that has one, Low first. */
+  /** The current streak at each level that has one, Easy first. */
   readonly streaks: Signal<readonly LevelStreak[]>;
   openDaily(date: string, level: number): void;
   openFreePlay(): void;

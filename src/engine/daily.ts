@@ -11,13 +11,19 @@
  */
 
 /** The levels of the daily puzzles, so every player finds one to enjoy. */
-export const DAILY_LEVELS = ['Low', 'Medium', 'High'];
+export const DAILY_LEVELS = ['Easy', 'Medium', 'Hard'];
+
+/**
+ * The levels in seeds and saved results, from their first names. These
+ * must never change: that would change the puzzles and lose results.
+ */
+export const DAILY_LEVEL_KEYS = ['low', 'medium', 'high'];
 
 /** The puzzles of a game's week: which puzzle settings on which day, at each level. */
 export interface DailySchedule<Params> {
   /** The day of puzzle #1. */
   readonly firstDay: string;
-  /** For each level (Low, Medium, High), the parameters for each day of the week, Monday first. */
+  /** For each level (Easy, Medium, Hard), the parameters for each day of the week, Monday first. */
   readonly levels: readonly (readonly Params[])[];
 }
 
@@ -27,7 +33,7 @@ export interface DailyPuzzle<Params> {
   readonly number: number;
   /** 0 is Monday, 6 is Sunday. */
   readonly weekday: number;
-  /** 0 is Low, 1 Medium, 2 High. */
+  /** 0 is Easy, 1 Medium, 2 Hard. */
   readonly level: number;
   readonly params: Params;
   readonly seed: string;
@@ -89,7 +95,7 @@ export function dailyPuzzle<Params>(
   if (number < 1) return null;
   const weekday = weekdayOf(date);
   const params = schedule.levels[level][weekday];
-  const seed = `${gameId} daily ${date} ${DAILY_LEVELS[level].toLowerCase()}`;
+  const seed = `${gameId} daily ${date} ${DAILY_LEVEL_KEYS[level]}`;
   return { date, number, weekday, level, params, seed };
 }
 

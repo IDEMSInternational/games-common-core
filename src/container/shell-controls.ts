@@ -47,7 +47,7 @@ export interface DailyControls extends PlayControls {
   readonly number: number;
   /** "Friday" */
   readonly dayName: string;
-  /** "Low", "Medium" or "High" */
+  /** "Easy", "Medium" or "Hard" */
   readonly levelName: string;
   /** The puzzle's size and difficulty: "9×9", "10×12 Hard". */
   readonly label: string;

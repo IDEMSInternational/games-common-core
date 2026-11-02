@@ -1,4 +1,4 @@
-import { DAILY_LEVELS, addDays, availableDays } from '../engine/daily';
+import { DAILY_LEVEL_KEYS, addDays, availableDays } from '../engine/daily';
 import { SessionSnapshot } from '../engine/game-session';
 import { readStoredJson, removeStored, writeStoredJson } from './stored-setting';
 
@@ -97,5 +97,5 @@ export class DailyRecords {
 
 /** "2026-10-30.low" */
 function key(date: string, level: number): string {
-  return `${date}.${DAILY_LEVELS[level].toLowerCase()}`;
+  return `${date}.${DAILY_LEVEL_KEYS[level]}`;
 }
