@@ -1,5 +1,5 @@
 import { Signal, WritableSignal, computed, signal } from '@angular/core';
-import { DailyPuzzle, WEEKDAYS, localDay } from '../engine/daily';
+import { DAILY_LEVELS, DailyPuzzle, WEEKDAYS, localDay } from '../engine/daily';
 import { GameSession } from '../engine/game-session';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { DailyRecords, DailyResult } from './daily-records';
@@ -7,7 +7,7 @@ import { shareText } from './share';
 import { DailyControls, formatTime } from './shell-controls';
 
 /**
- * One day's daily puzzle, made observable by Angular (as SessionStore is
+ * One day's daily puzzle at one level, made observable by Angular (as SessionStore is
  * for free play), with its clock.
  *
  * The clock starts at the first touch on the board, and runs only while
@@ -22,6 +22,7 @@ export class DailyStore<Params, State, Move> implements DailyControls {
   readonly title: string;
   readonly number: number;
   readonly dayName: string;
+  readonly levelName: string;
   readonly label: string;
   readonly canShowMistakes: boolean;
   readonly showMistakes: WritableSignal<boolean>;
@@ -61,17 +62,18 @@ export class DailyStore<Params, State, Move> implements DailyControls {
   ) {
     this.puzzle = puzzle;
     this.records = records;
-    const saved = records.game<Move>(puzzle.date);
+    const saved = records.game<Move>(puzzle.date, puzzle.level);
     const snapshot = saved?.snapshot.seed === puzzle.seed ? saved.snapshot : undefined;
     this.session = new GameSession(game, puzzle.params, puzzle.seed, snapshot);
     this.base = signal(snapshot ? saved!.elapsed : 0);
     this.started = snapshot ? saved!.started : false;
-    this.result = signal(records.results()[puzzle.date] ?? null);
+    this.result = signal(records.result(puzzle.date, puzzle.level));
 
     this.id = game.id;
     this.title = game.name;
     this.number = puzzle.number;
     this.dayName = WEEKDAYS[puzzle.weekday];
+    this.levelName = DAILY_LEVELS[puzzle.level];
     this.label = paramsLabel(game, puzzle.params);
     this.canShowMistakes = game.canShowMistakes ?? false;
     this.showMistakes = showMistakes;
@@ -113,11 +115,11 @@ export class DailyStore<Params, State, Move> implements DailyControls {
   async share(): Promise<string | null> {
     const result = this.result();
     if (!result?.onDay) return null;
-    const streak = this.records.streak(localDay());
+    const streak = this.records.bestStreak();
     const lines = [
-      `${this.title} daily puzzle #${this.number} (${this.dayName}, ${this.label})`,
+      `${this.title} daily puzzle #${this.number}, ${this.levelName} (${this.dayName}, ${this.label})`,
       `Solved in ${formatTime(result.time)}`,
-      ...(streak > 1 ? [`🔥 ${streak}-day streak`] : []),
+      ...(streak > 1 ? [`🔥 Best streak: ${streak} days`] : []),
     ];
     return shareText(`${this.title} daily puzzle #${this.number}`, lines.join('\n'));
   }
@@ -127,7 +129,7 @@ export class DailyStore<Params, State, Move> implements DailyControls {
     this.base.set(result.time);
     this.since.set(null);
     this.result.set(result);
-    this.records.addResult(this.puzzle.date, result);
+    this.records.addResult(this.puzzle.date, this.puzzle.level, result);
     this.celebrate.set(true);
     this.save();
   }
@@ -163,7 +165,7 @@ export class DailyStore<Params, State, Move> implements DailyControls {
   }
 
   private save(): void {
-    this.records.saveGame(this.puzzle.date, {
+    this.records.saveGame(this.puzzle.date, this.puzzle.level, {
       snapshot: this.session.snapshot(),
       elapsed: this.clock(),
       started: this.started,

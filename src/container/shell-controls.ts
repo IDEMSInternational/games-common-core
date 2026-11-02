@@ -41,12 +41,14 @@ export interface FreePlayControls extends PlayControls {
   solve(): void;
 }
 
-/** One day's daily puzzle, against the clock. */
+/** One day's daily puzzle at one level, against the clock. */
 export interface DailyControls extends PlayControls {
   readonly kind: 'daily';
   readonly number: number;
   /** "Friday" */
   readonly dayName: string;
+  /** "Low", "Medium" or "High" */
+  readonly levelName: string;
   /** The puzzle's size and difficulty: "9×9", "10×12 Hard". */
   readonly label: string;
   /** Milliseconds on the clock. */

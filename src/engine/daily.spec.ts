@@ -1,10 +1,8 @@
 import { addDays, availableDays, dailyPuzzle, daysBetween, localDay, weekdayOf } from './daily';
 
 describe('daily puzzles', () => {
-  const schedule = {
-    firstDay: '2026-10-26',
-    week: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
-  };
+  const week = (level: string) => ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((d) => `${level} ${d}`);
+  const schedule = { firstDay: '2026-10-26', levels: [week('low'), week('medium'), week('high')] };
 
   it('takes the day from the local calendar', () => {
     expect(localDay(new Date(2026, 9, 30, 23, 59))).toBe('2026-10-30');
@@ -36,17 +34,18 @@ describe('daily puzzles', () => {
     ]);
   });
 
-  it('numbers the puzzles from the first day, and follows the weekly schedule', () => {
-    expect(dailyPuzzle('slant', schedule, '2026-10-25')).toBeNull();
-    expect(dailyPuzzle('slant', schedule, '2026-10-26')).toEqual({
+  it('numbers the puzzles from the first day, and follows the weekly schedule at each level', () => {
+    expect(dailyPuzzle('slant', schedule, '2026-10-25', 0)).toBeNull();
+    expect(dailyPuzzle('slant', schedule, '2026-10-26', 0)).toEqual({
       date: '2026-10-26',
       number: 1,
       weekday: 0,
-      params: 'mon',
-      seed: 'slant daily 2026-10-26',
+      level: 0,
+      params: 'low mon',
+      seed: 'slant daily 2026-10-26 low',
     });
-    const later = dailyPuzzle('slant', schedule, '2027-01-03')!;
-    expect([later.number, later.params]).toEqual([70, 'sun']);
+    const later = dailyPuzzle('slant', schedule, '2027-01-03', 2)!;
+    expect([later.number, later.params, later.seed]).toEqual([70, 'high sun', 'slant daily 2027-01-03 high']);
   });
 
   it('rejects anything but a date', () => {

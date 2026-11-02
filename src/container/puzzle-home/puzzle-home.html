@@ -11,13 +11,13 @@
     <section class="card" aria-labelledby="daily-heading">
       <div class="card-head">
         <h2 id="daily-heading">Daily puzzle</h2>
-        @if (c.streak() > 0) {
-          <span class="streak">🔥 {{ c.streak() }}-day streak</span>
+        @if (c.bestStreak() > 0) {
+          <span class="streak">🔥 Best streak: {{ c.bestStreak() }} {{ c.bestStreak() === 1 ? 'day' : 'days' }}</span>
         }
       </div>
-      <p class="what">#{{ today.number }} · {{ today.dayName }} · {{ today.label }}</p>
-      <p class="status">{{ status(today) }}</p>
-      <button type="button" class="primary" (click)="c.openDaily(today.date)">{{ playLabel(today) }}</button>
+      <p class="what">#{{ today.number }} · {{ today.dayName }}</p>
+      <p class="status">{{ summary(today) }}</p>
+      <button type="button" class="primary" (click)="choosing.set(today)">Play</button>
 
       <h3>The last 7 days</h3>
       <ol class="days">
@@ -29,7 +29,7 @@
                 [class]="day.status"
                 [class.today]="day.isToday"
                 [attr.aria-label]="dayLabel(day)"
-                (click)="c.openDaily(day.date)"
+                (click)="choosing.set(day)"
               >
                 {{ day.dayName[0] }}
               </button>
@@ -50,3 +50,19 @@
 
   <button type="button" class="how" (click)="c.startTutorial()">How to play</button>
 </main>
+
+@if (choosing(); as day) {
+  <div class="backdrop" (click)="choosing.set(null)"></div>
+  <div class="chooser" role="dialog" aria-modal="true" aria-labelledby="chooser-heading">
+    <h2 id="chooser-heading">{{ day.isToday ? "Today's" : day.dayName + "'s" }} puzzle #{{ day.number }}</h2>
+    <p>Choose a level</p>
+    @for (level of day.levels; track level.level) {
+      <button type="button" class="level" [class]="level.status" (click)="open(day, level)">
+        <span class="name">{{ level.name }}</span>
+        <span class="size">{{ level.label }}</span>
+        <span class="state">{{ status(level.status, level.time) }}</span>
+      </button>
+    }
+    <button type="button" class="cancel" (click)="choosing.set(null)">Cancel</button>
+  </div>
+}

@@ -1,11 +1,13 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
+import { DayStatus } from '../daily-records';
 import { PuzzleMenu } from '../puzzle-menu/puzzle-menu';
-import { DayInfo, HomeControls } from '../puzzle-screens';
+import { DayInfo, HomeControls, LevelInfo } from '../puzzle-screens';
 import { formatTime } from '../shell-controls';
 
 /**
  * The home page: today's daily puzzle with the last 7 days', free play, and
- * how to play. The ☰ menu lives here.
+ * how to play. The ☰ menu lives here. Opening a day's puzzle asks for the
+ * level (Low, Medium or High) each time.
  */
 @Component({
   selector: 'puzzle-home',
@@ -13,29 +15,42 @@ import { formatTime } from '../shell-controls';
   templateUrl: './puzzle-home.html',
   styleUrl: './puzzle-home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown.escape)': 'choosing.set(null)',
+  },
 })
 export class PuzzleHome {
   readonly controls = input.required<HomeControls>();
 
-  protected status(day: DayInfo): string {
-    switch (day.status) {
+  /** The day whose level is being chosen, if any. */
+  protected readonly choosing = signal<DayInfo | null>(null);
+
+  protected open(day: DayInfo, level: LevelInfo): void {
+    this.choosing.set(null);
+    this.controls().openDaily(day.date, level.level);
+  }
+
+  /** The day's levels played so far: "Low: solved in 0:52 · Medium: 1:20 so far". */
+  protected summary(day: DayInfo): string {
+    const played = day.levels.filter((level) => level.status !== 'new');
+    if (played.length === 0) return 'Not played yet';
+    return played.map((level) => `${level.name}: ${this.status(level.status, level.time)}`).join(' · ');
+  }
+
+  protected status(status: DayStatus, time: number): string {
+    switch (status) {
       case 'solved':
-        return `Solved in ${formatTime(day.time)}`;
+        return `solved in ${formatTime(time)}`;
       case 'late':
-        return `Solved late, in ${formatTime(day.time)}`;
+        return `solved late, in ${formatTime(time)}`;
       case 'started':
-        return `In progress: ${formatTime(day.time)} so far`;
+        return `${formatTime(time)} so far`;
       default:
-        return 'Not played yet';
+        return 'not played yet';
     }
   }
 
-  protected playLabel(day: DayInfo): string {
-    if (day.status === 'solved' || day.status === 'late') return 'See your solution';
-    return day.status === 'started' ? 'Continue' : 'Play';
-  }
-
   protected dayLabel(day: DayInfo): string {
-    return `${day.dayName}${day.isToday ? ' (today)' : ''}, puzzle #${day.number}: ${this.status(day)}`;
+    return `${day.dayName}${day.isToday ? ' (today)' : ''}, puzzle #${day.number}: ${this.summary(day)}`;
   }
 }

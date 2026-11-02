@@ -1,21 +1,24 @@
 /*
- * Daily puzzles: one puzzle a day for each game, the same for everyone,
- * made from the date alone (no server, works offline). Days are the
- * player's own calendar days, written "2026-10-30"; a new puzzle comes at
- * their midnight.
+ * Daily puzzles: each day, a puzzle at each of three levels for each
+ * game, the same for everyone, made from the date alone (no server, works
+ * offline). Days are the player's own calendar days, written
+ * "2026-10-30"; new puzzles come at their midnight.
  *
- * The rule in dailyPuzzle (date → number, parameters and seed) is a
+ * The rule in dailyPuzzle (date and level → number, parameters and seed) is a
  * promise to players: changing it would change puzzles already played
  * and give players on different versions different puzzles. Each game
  * pins a few dates to their puzzles in its tests.
  */
 
-/** The puzzles of a game's week: which puzzle settings on which day. */
+/** The levels of the daily puzzles, so every player finds one to enjoy. */
+export const DAILY_LEVELS = ['Low', 'Medium', 'High'];
+
+/** The puzzles of a game's week: which puzzle settings on which day, at each level. */
 export interface DailySchedule<Params> {
   /** The day of puzzle #1. */
   readonly firstDay: string;
-  /** The parameters for each day of the week, Monday first (seven). */
-  readonly week: readonly Params[];
+  /** For each level (Low, Medium, High), the parameters for each day of the week, Monday first. */
+  readonly levels: readonly (readonly Params[])[];
 }
 
 export interface DailyPuzzle<Params> {
@@ -24,6 +27,8 @@ export interface DailyPuzzle<Params> {
   readonly number: number;
   /** 0 is Monday, 6 is Sunday. */
   readonly weekday: number;
+  /** 0 is Low, 1 Medium, 2 High. */
+  readonly level: number;
   readonly params: Params;
   readonly seed: string;
 }
@@ -70,18 +75,22 @@ export function availableDays(today: string): string[] {
 }
 
 /**
- * The daily puzzle of `gameId` on `date`, or null before the first one.
- * Its seed generates the same puzzle on every device.
+ * The daily puzzle of `gameId` on `date` at `level`, or null before the
+ * first day. Its seed generates the same puzzle on every device. All
+ * three levels of a day share its number.
  */
 export function dailyPuzzle<Params>(
   gameId: string,
   schedule: DailySchedule<Params>,
   date: string,
+  level: number,
 ): DailyPuzzle<Params> | null {
   const number = daysBetween(schedule.firstDay, date) + 1;
   if (number < 1) return null;
   const weekday = weekdayOf(date);
-  return { date, number, weekday, params: schedule.week[weekday], seed: `${gameId} daily ${date}` };
+  const params = schedule.levels[level][weekday];
+  const seed = `${gameId} daily ${date} ${DAILY_LEVELS[level].toLowerCase()}`;
+  return { date, number, weekday, level, params, seed };
 }
 
 /** Milliseconds since 1970 at the start of `date`, counted in UTC so every day is 24 hours. */

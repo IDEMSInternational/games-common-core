@@ -10,7 +10,7 @@
   </div>
   @if (c.kind === 'daily') {
     <div class="daily-bar">
-      <span>{{ c.dayName }} · {{ c.label }}</span>
+      <span>{{ c.dayName }} · {{ c.levelName }} · {{ c.label }}</span>
       @if (c.result(); as result) {
         <span class="clock" role="status">Solved in {{ time(result.time) }}</span>
         @if (c.canShare()) {

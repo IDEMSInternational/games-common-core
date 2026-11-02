@@ -17,7 +17,7 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `algorithms/dsf.ts`: disjoint set forest (union-find), as in `dsf.c`
   - `puzzle-game.ts`: the interface every game implements
   - `game-session.ts`: new game, undo/redo, restart, solve, game IDs
-  - `daily.ts`: daily puzzles: dates, the days that can be played, and the rule turning a date
+  - `daily.ts`: daily puzzles at three levels: dates, the days that can be played, and the rule turning a date and level
     into the day's puzzle (the same for everyone)
   - `tutorial.ts`: the interactive tutorial engine
 - `src/container/`: the Angular frame every game sits in:

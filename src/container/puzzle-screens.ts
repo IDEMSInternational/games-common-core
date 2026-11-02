@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { App } from '@capacitor/app';
-import { WEEKDAYS, availableDays, dailyPuzzle, localDay } from '../engine/daily';
+import { DAILY_LEVELS, WEEKDAYS, availableDays, dailyPuzzle, localDay } from '../engine/daily';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { Tutorial } from '../engine/tutorial';
 import { DailyRecords, DayStatus } from './daily-records';
@@ -20,23 +20,37 @@ import { TutorialStore } from './tutorial-store';
 export type Screen =
   | { readonly name: 'home' }
   | { readonly name: 'free' }
-  | { readonly name: 'daily'; readonly date: string };
+  | { readonly name: 'daily'; readonly date: string; readonly level: number };
 
 const HOME: Screen = { name: 'home' };
 
-/** A day whose daily puzzle can be played, for the home page. */
+/** A day whose daily puzzles can be played, for the home page. */
 export interface DayInfo {
   readonly date: string;
   readonly number: number;
   /** "Friday" */
   readonly dayName: string;
+  readonly isToday: boolean;
+  /** The day as a whole: solved if any level was solved on the day, and so on. */
+  readonly status: DayStatus;
+  /** Low, Medium and High. */
+  readonly levels: readonly LevelInfo[];
+}
+
+/** One level of a day's daily puzzle. */
+export interface LevelInfo {
+  readonly level: number;
+  /** "Low" */
+  readonly name: string;
   /** "9×9", "10×12 Hard" */
   readonly label: string;
   readonly status: DayStatus;
-  readonly isToday: boolean;
   /** Milliseconds on the clock: the result if solved, else the time so far. */
   readonly time: number;
 }
+
+/** A day's status is the best of its levels'. */
+const STATUS_ORDER: readonly DayStatus[] = ['solved', 'late', 'started', 'new'];
 
 /** What the home page needs, independent of the game's types. */
 export interface HomeControls {
@@ -46,9 +60,9 @@ export interface HomeControls {
   /** The daily puzzles that can be played, today's last (null before the first one); empty without daily puzzles. */
   readonly days: Signal<readonly (DayInfo | null)[]>;
   readonly today: Signal<DayInfo | null>;
-  /** Days in a row with the daily puzzle solved on its day. */
-  readonly streak: Signal<number>;
-  openDaily(date: string): void;
+  /** The most days in a row with a daily puzzle solved on its day. */
+  readonly bestStreak: Signal<number>;
+  openDaily(date: string, level: number): void;
   openFreePlay(): void;
   startTutorial(): void;
 }
@@ -90,25 +104,30 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     const today = this.todayDate();
     const schedule = this.game.daily;
     if (!schedule) return [];
-    const results = this.records.results();
     return availableDays(today).map((date): DayInfo | null => {
-      const puzzle = dailyPuzzle(this.id, schedule, date);
-      if (!puzzle) return null;
+      const puzzles = DAILY_LEVELS.map((_, level) => dailyPuzzle(this.id, schedule, date, level));
+      if (!puzzles[0]) return null;
+      const levels = puzzles.map((puzzle, level): LevelInfo => ({
+        level,
+        name: DAILY_LEVELS[level],
+        label: paramsLabel(this.game, puzzle!.params),
+        status: this.records.status(date, level),
+        time: this.records.result(date, level)?.time ?? this.records.game(date, level)?.elapsed ?? 0,
+      }));
       return {
         date,
-        number: puzzle.number,
-        dayName: WEEKDAYS[puzzle.weekday],
-        label: paramsLabel(this.game, puzzle.params),
-        status: this.records.status(date),
+        number: puzzles[0].number,
+        dayName: WEEKDAYS[puzzles[0].weekday],
         isToday: date === today,
-        time: results[date]?.time ?? this.records.game(date)?.elapsed ?? 0,
+        status: STATUS_ORDER.find((status) => levels.some((l) => l.status === status))!,
+        levels,
       };
     });
   });
   readonly today = computed(() => this.days().find((day) => day?.isToday) ?? null);
-  readonly streak = computed(() => {
+  readonly bestStreak = computed(() => {
     this.screen();
-    return this.records.streak(this.todayDate());
+    return this.records.bestStreak();
   });
 
   constructor(
@@ -159,8 +178,8 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.go({ name: 'free' });
   }
 
-  openDaily(date: string): void {
-    if (this.available(date)) this.go({ name: 'daily', date });
+  openDaily(date: string, level: number): void {
+    if (this.available(date) && DAILY_LEVELS[level]) this.go({ name: 'daily', date, level });
   }
 
   /** Back to the home page. */
@@ -191,9 +210,11 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
 
   private show(screen: Screen): void {
     if (screen.name === 'daily') {
-      const puzzle = this.game.daily && dailyPuzzle(this.id, this.game.daily, screen.date);
+      const puzzle =
+        this.game.daily && DAILY_LEVELS[screen.level] && dailyPuzzle(this.id, this.game.daily, screen.date, screen.level);
       if (!puzzle || !this.available(screen.date)) return this.screen.set(HOME);
-      if (this.daily()?.puzzle.date !== screen.date) {
+      const open = this.daily()?.puzzle;
+      if (open?.date !== screen.date || open.level !== screen.level) {
         this.daily()?.setActive(false);
         this.daily.set(new DailyStore(this.game, puzzle, this.records, this.session.showMistakes));
       }

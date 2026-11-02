@@ -125,3 +125,86 @@ h3 {
 .how {
   align-self: center;
 }
+
+/* Choosing the level: a sheet from the bottom of the screen. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgb(0 0 0 / 0.35);
+}
+
+.chooser {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 20px 16px max(16px, env(safe-area-inset-bottom));
+  border-radius: 20px 20px 0 0;
+  box-sizing: border-box;
+  background: var(--surface);
+  box-shadow: 0 -4px 24px rgb(0 0 0 / 0.18);
+  animation: chooser-up 200ms ease-out;
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  p {
+    margin: 0 0 4px;
+    color: var(--text-muted);
+  }
+
+  .level {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 2px 12px;
+    min-height: 64px;
+    padding: 10px 16px;
+    border: 2px solid var(--brand);
+    border-radius: 14px;
+    text-align: left;
+
+    .name {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .size {
+      justify-self: end;
+    }
+
+    .state {
+      grid-column: 1 / -1;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    &.solved,
+    &.late {
+      border-color: var(--success);
+    }
+  }
+
+  .cancel {
+    margin-top: 4px;
+  }
+}
+
+@keyframes chooser-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chooser {
+    animation: none;
+  }
+}
