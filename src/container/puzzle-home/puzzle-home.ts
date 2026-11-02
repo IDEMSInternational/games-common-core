@@ -51,18 +51,23 @@ export class PuzzleHome {
   }
 
   /**
-   * A day's circle, in thirds clockwise from the top: Easy, Medium, Hard,
-   * each shaded orange when solved (paler when solved after the day).
+   * A day's circle, in thirds clockwise from the top: Easy, Medium, Hard.
+   * A level solved on its day fills its third in orange; solved later, it
+   * colours only that third's edge, and in progress, the edge in pale orange.
    */
   protected thirds(day: DayInfo): string {
-    const [easy, medium, hard] = day.levels.map((level) =>
-      level.status === 'solved'
+    const pie = (colours: string[]) =>
+      `conic-gradient(${colours[0]} 0 120deg, ${colours[1]} 120deg 240deg, ${colours[2]} 240deg 360deg)`;
+    const fills = day.levels.map((l) => (l.status === 'solved' ? 'var(--brand)' : 'var(--surface)'));
+    const edges = day.levels.map((l) =>
+      l.status === 'solved' || l.status === 'late'
         ? 'var(--brand)'
-        : level.status === 'late'
-          ? 'color-mix(in srgb, var(--brand) 35%, var(--surface))'
-          : 'var(--surface)',
+        : l.status === 'started'
+          ? 'color-mix(in srgb, var(--brand) 40%, var(--surface))'
+          : 'var(--border)',
     );
-    return `conic-gradient(${easy} 0 120deg, ${medium} 120deg 240deg, ${hard} 240deg 360deg)`;
+    // The fill inside the (transparent) border, the edges under it.
+    return `${pie(fills)} padding-box, ${pie(edges)} border-box`;
   }
 
   protected dayLabel(day: DayInfo): string {

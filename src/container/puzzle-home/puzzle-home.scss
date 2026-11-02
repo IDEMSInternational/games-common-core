@@ -104,8 +104,8 @@ h3 {
     opacity: 0.35;
   }
 
-  .started {
-    border-color: var(--brand);
+  button {
+    border-color: transparent; // drawn by the background (see PuzzleHome.thirds)
   }
 
   .today {
