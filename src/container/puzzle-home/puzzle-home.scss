@@ -42,16 +42,12 @@ main {
 
 .card-head {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   justify-content: space-between;
   gap: 8px;
 }
 
-.streaks {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  text-align: right;
+.streak {
   font-weight: 600;
   white-space: nowrap;
 }

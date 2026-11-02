@@ -11,12 +11,8 @@
     <section class="card" aria-labelledby="daily-heading">
       <div class="card-head">
         <h2 id="daily-heading">Daily puzzles</h2>
-        @if (c.streaks().length > 0) {
-          <ul class="streaks" aria-label="Streaks">
-            @for (streak of c.streaks(); track streak.name) {
-              <li>🔥 {{ streak.name }}: {{ streak.days }} {{ streak.days === 1 ? 'day' : 'days' }}</li>
-            }
-          </ul>
+        @if (c.streak(); as streak) {
+          <span class="streak">🔥 {{ streak.name }}: {{ streak.days === 1 ? '1 day' : streak.days + ' days' }}</span>
         }
       </div>
       <p class="what">#{{ today.number }} · {{ today.dayName }}</p>

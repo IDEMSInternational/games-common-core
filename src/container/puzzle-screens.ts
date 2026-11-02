@@ -84,8 +84,8 @@ export interface HomeControls {
   /** The daily puzzles that can be played, today's last (null before the first one); empty without daily puzzles. */
   readonly days: Signal<readonly (DayInfo | null)[]>;
   readonly today: Signal<DayInfo | null>;
-  /** The current streak at each level that has one, Easy first. */
-  readonly streaks: Signal<readonly LevelStreak[]>;
+  /** One of the levels' current streaks: the next one each time the home page opens. */
+  readonly streak: Signal<LevelStreak | null>;
   openDaily(date: string, level: number): void;
   /** Whether the game has Beat the clock. */
   readonly hasClock: boolean;
@@ -139,7 +139,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   private readonly todayDate = signal(localDay());
   /** False while the app is in the background. */
   private readonly appActive = signal(true);
-  /** How many times the home page has opened (remembered): picks the record shown. */
+  /** How many times the home page has opened (remembered): picks the streak and record shown. */
   private readonly homeVisits: WritableSignal<number>;
 
   readonly days = computed(() => {
@@ -180,12 +180,13 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     const run = this.clockRecordsStore.run();
     return run ? { minutes: run.minutes, solved: run.solved, left: run.left } : null;
   });
-  readonly streaks = computed(() => {
-    this.screen();
+  readonly streak = computed(() => {
+    const visits = this.homeVisits(); // read first: it also brings in new results
     const today = this.todayDate();
-    return DAILY_LEVELS.map((name, level) => ({ name, days: this.records.streak(today, level) })).filter(
+    const streaks = DAILY_LEVELS.map((name, level) => ({ name, days: this.records.streak(today, level) })).filter(
       (streak) => streak.days > 0,
     );
+    return streaks.length ? streaks[visits % streaks.length] : null;
   });
 
   constructor(
