@@ -1,39 +1,38 @@
-/*
- * The home page fits the screen without scrolling, even on small phones:
- * compact cards, tighter still on short screens (see the end).
- */
+/* The page is the screen's height; on small screens its content zooms out to fit (see PuzzleHome.fit). */
 :host {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: block;
   height: 100dvh;
-  overflow-y: auto; // only if a screen is smaller than any phone we know
+  overflow: hidden;
   max-width: 560px;
   margin: 0 auto;
-  padding: max(12px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom));
+  padding: max(12px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
-main {
-  flex: 1;
+.content {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 12px;
+  gap: 16px;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .card {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 14px 16px;
+  gap: 6px;
+  padding: 18px;
   border-radius: 16px;
   background: var(--surface);
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
 
   h2 {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: 1.25rem;
   }
 
   p {
@@ -41,22 +40,9 @@ main {
   }
 
   > button.primary {
-    margin-top: 8px;
-    min-height: 44px;
+    margin-top: 10px;
+    min-height: 48px;
     font-size: 1.05rem;
-  }
-
-  /* Beat the clock and timed play: the text, with Play beside it. */
-  &.mode {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: 12px;
-
-    > button.primary {
-      margin: 0;
-      min-width: 84px;
-    }
   }
 }
 
@@ -73,16 +59,15 @@ main {
 }
 
 .what {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
 }
 
 .status {
   color: var(--text-muted);
-  font-size: 0.9rem;
 }
 
 h3 {
-  margin: 10px 0 2px;
+  margin: 14px 0 2px;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -107,8 +92,8 @@ h3 {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     min-height: 0;
     padding: 0;
     border: 2px solid var(--border);
@@ -129,66 +114,6 @@ h3 {
     box-shadow:
       0 0 0 2px var(--surface),
       0 0 0 4px var(--ink);
-  }
-}
-
-.how {
-  align-self: center;
-  min-height: 36px;
-  padding: 6px 14px;
-}
-
-/* Short screens (small phones): tighter still. */
-@media (max-height: 680px) {
-  :host,
-  main {
-    gap: 8px;
-  }
-
-  .card {
-    padding: 10px 14px;
-
-    > button.primary {
-      margin-top: 6px;
-      min-height: 40px;
-    }
-  }
-
-  h3 {
-    margin-top: 6px;
-  }
-
-  .days button,
-  .days .none {
-    width: 34px;
-    height: 34px;
-  }
-}
-
-/* The smallest phones (e.g. 320 × 568): smaller text, and no How to play button (the "?" at the top does the same). */
-@media (max-height: 600px) {
-  .card {
-    gap: 2px;
-
-    &.mode {
-      gap: 8px;
-
-      > button.primary {
-        min-width: 72px;
-      }
-    }
-  }
-
-  .what {
-    font-size: 0.85rem;
-  }
-
-  .status {
-    font-size: 0.8rem;
-  }
-
-  .how {
-    display: none;
   }
 }
 

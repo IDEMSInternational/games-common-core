@@ -38,8 +38,9 @@ The games are educational phone apps (Angular + Capacitor) built from
     its best times, the tutorial); `session-store.ts` is a puzzle session
     with its size menu, used by timed play; `shell-controls.ts` is what
     the shell needs from them
-  - Every screen fits the phone's screen without scrolling (the board
-    takes the space left); only the ☰ menu's pages scroll
+  - Every screen fits the phone's screen without scrolling: in a game
+    and the tutorial the board takes the space left, and the home page
+    zooms out on small screens; only the ☰ menu's pages scroll
   - `daily-records.ts`: daily results, streak and the last 7 days' games, kept
     on the device; `share.ts`: the device's share panel
   - `theme.scss`: design tokens, base styles and shared `.board-*` SVG
