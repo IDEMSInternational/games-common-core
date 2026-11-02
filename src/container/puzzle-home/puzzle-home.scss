@@ -1,23 +1,18 @@
-/* The page is the screen's height; on small screens its content zooms out to fit (see PuzzleHome.fit). */
+/* The stage's height (see PuzzleStage): on long screens, the cards spread out evenly. */
 :host {
-  display: block;
-  height: 100dvh;
-  overflow: hidden;
-  max-width: 560px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
   padding: max(12px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
 main {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: space-evenly;
   gap: 16px;
 }
 

@@ -3,9 +3,7 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  height: 100dvh; // fits the screen: the board takes what the rest leaves
-  max-width: 560px;
-  margin: 0 auto;
+  height: 100%; // the stage's: the board takes what the rest leaves
   padding: max(12px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
   box-sizing: border-box;
 }

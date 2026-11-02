@@ -38,9 +38,11 @@ The games are educational phone apps (Angular + Capacitor) built from
     its best times, the tutorial); `session-store.ts` is a puzzle session
     with its size menu, used by timed play; `shell-controls.ts` is what
     the shell needs from them
-  - Every screen fits the phone's screen without scrolling: in a game
-    and the tutorial the board takes the space left, and the home page
-    zooms out on small screens; only the ☰ menu's pages scroll
+  - `puzzle-stage/`: the app is laid out for a 393 × 852 screen (an
+    iPhone 16) and scaled to the real one, so it looks the same on every
+    phone; spare height or width is used (cards spread out, the board
+    grows, tablets get wider cards). Each game's app.html wraps everything
+    in it. Nothing scrolls except the ☰ menu's pages and the notice's text
   - `daily-records.ts`: daily results, streak and the last 7 days' games, kept
     on the device; `share.ts`: the device's share panel
   - `theme.scss`: design tokens, base styles and shared `.board-*` SVG

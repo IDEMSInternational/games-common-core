@@ -1,13 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  afterEveryRender,
-  inject,
-  input,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
 import { DayStatus } from '../daily-records';
 import { PuzzleMenu } from '../puzzle-menu/puzzle-menu';
 import { DayInfo, HomeControls, LevelInfo } from '../puzzle-screens';
@@ -15,8 +6,7 @@ import { formatTime } from '../shell-controls';
 
 /**
  * The home page: today's daily puzzles with the last 7 days', Beat the
- * clock and timed play. The ☰ menu lives here. On screens too small for
- * it all, the page zooms out to fit, so it never scrolls. Opening a
+ * clock and timed play. The ☰ menu lives here. Opening a
  * day's puzzle asks for the level (Easy, Medium or Hard) each time, and
  * Beat the clock for the time limit.
  */
@@ -28,16 +18,10 @@ import { formatTime } from '../shell-controls';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(document:keydown.escape)': 'choosing.set(null); choosingTime.set(false)',
-    '(window:resize)': 'fit()',
   },
 })
 export class PuzzleHome {
   readonly controls = input.required<HomeControls>();
-
-  /** How far the page is zoomed out to fit the screen (1: not at all). */
-  protected readonly zoom = signal(1);
-  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly content = viewChild.required<ElementRef<HTMLElement>>('content');
 
   /** The day whose level is being chosen, if any. */
   protected readonly choosing = signal<DayInfo | null>(null);
@@ -49,20 +33,6 @@ export class PuzzleHome {
   protected open(day: DayInfo, level: LevelInfo): void {
     this.choosing.set(null);
     this.controls().openDaily(day.date, level.level);
-  }
-
-  constructor() {
-    afterEveryRender(() => this.fit()); // the content changes height (e.g. a record appears)
-  }
-
-  /** Zooms the page out just enough for it all to fit the screen's height. */
-  protected fit(): void {
-    const host = this.host.nativeElement;
-    const style = getComputedStyle(host);
-    const room = host.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-    const needed = this.content().nativeElement.getBoundingClientRect().height / this.zoom();
-    const zoom = needed > 0 && room > 0 ? Math.min(1, Math.floor((room / needed) * 1000) / 1000) : 1;
-    if (Math.abs(zoom - this.zoom()) > 0.002) this.zoom.set(zoom);
   }
 
   protected startClock(minutes: number): void {
