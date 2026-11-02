@@ -16,6 +16,7 @@ import { DailyRecords, DayStatus } from './daily-records';
 import { DailyStore, paramsLabel } from './daily-store';
 import { hasSeenTutorial, markTutorialSeen } from './first-run';
 import { SessionStore } from './session-store';
+import { BestTime, TimedStore } from './timed-store';
 import { readStored, writeStored } from './stored-setting';
 import { TutorialStore } from './tutorial-store';
 
@@ -23,7 +24,8 @@ export type Screen =
   | { readonly name: 'home' }
   | { readonly name: 'free' }
   | { readonly name: 'daily'; readonly date: string; readonly level: number }
-  | { readonly name: 'clock'; readonly minutes: number };
+  | { readonly name: 'clock'; readonly minutes: number }
+  | { readonly name: 'timed' };
 
 const HOME: Screen = { name: 'home' };
 
@@ -98,12 +100,15 @@ export interface HomeControls {
    */
   openClock(minutes: number, fresh?: boolean): void;
   openFreePlay(): void;
+  /** One of timed play's best times: the next one each time the home page opens. */
+  readonly timedBest: Signal<BestTime | null>;
+  openTimed(): void;
   startTutorial(): void;
 }
 
 /**
  * Which screen a game's app shows: the home page, a daily puzzle, Beat
- * the clock, free play, or the tutorial over any of them (on first
+ * the clock, free play, timed play, or the tutorial over any of them (on first
  * launch, over the home page). Each screen is a browser history entry, so Back (the
  * browser's, or Android's back button) returns to the home page.
  *
@@ -115,6 +120,8 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly version: string;
   /** Free play, continuing where the player left off. */
   readonly session: SessionStore<Params, State, Move>;
+  /** Timed play, likewise. */
+  readonly timed: TimedStore<Params, State, Move>;
   /** The daily puzzle last opened. */
   readonly daily = signal<DailyStore<Params, State, Move> | null>(null);
   /** The Beat the clock run last opened. */
@@ -129,6 +136,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     if (screen.name === 'free') return this.session;
     if (screen.name === 'daily') return this.daily();
     if (screen.name === 'clock') return this.clock();
+    if (screen.name === 'timed') return this.timed;
     return null;
   });
 
@@ -139,7 +147,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   private readonly todayDate = signal(localDay());
   /** False while the app is in the background. */
   private readonly appActive = signal(true);
-  /** How many times the home page has opened (remembered): picks the streak and record shown. */
+  /** How many times the home page has opened (remembered): picks the streak, record and best time shown. */
   private readonly homeVisits: WritableSignal<number>;
 
   readonly days = computed(() => {
@@ -180,6 +188,13 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     const run = this.clockRecordsStore.run();
     return run ? { minutes: run.minutes, solved: run.solved, left: run.left } : null;
   });
+  readonly timedBest = computed(() => {
+    const visits = this.homeVisits(); // read first: it also brings in new best times
+    const times = Object.entries(this.timed.bestTimes())
+      .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
+      .map(([, best]) => best);
+    return times.length ? times[visits % times.length] : null;
+  });
   readonly streak = computed(() => {
     const visits = this.homeVisits(); // read first: it also brings in new results
     const today = this.todayDate();
@@ -200,6 +215,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.title = game.name;
     this.version = version;
     this.session = new SessionStore(game);
+    this.timed = new TimedStore(game);
     this.records = new DailyRecords(game.id);
     this.clockRecordsStore = new ClockRecords(game.id);
     this.homeVisits = signal(Number(readStored(`${game.id}.home.visits`)) || 0);
@@ -218,6 +234,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       const shown = !this.tutorial() && this.appActive();
       this.daily()?.setActive(shown && this.screen().name === 'daily');
       this.clock()?.setActive(shown && this.screen().name === 'clock');
+      this.timed.setActive(shown && this.screen().name === 'timed');
     });
 
     const listeners = [
@@ -234,11 +251,16 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       clearInterval(midnight);
       this.daily()?.setActive(false);
       this.clock()?.setActive(false);
+      this.timed.setActive(false);
     });
   }
 
   openFreePlay(): void {
     this.go({ name: 'free' });
+  }
+
+  openTimed(): void {
+    this.go({ name: 'timed' });
   }
 
   openDaily(date: string, level: number): void {

@@ -1,6 +1,7 @@
 import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { GameSession, SessionSnapshot } from '../engine/game-session';
 import { PuzzleGame } from '../engine/puzzle-game';
+import { paramsLabel } from './daily-store';
 import { FreePlayControls } from './shell-controls';
 import {
   readStored,
@@ -41,6 +42,8 @@ export class SessionStore<Params, State, Move> implements FreePlayControls {
 
   readonly state = this.read(() => this.session.state);
   readonly gameId = this.read(() => this.session.gameId);
+  /** The puzzle's size and difficulty: "7×7", "10×10 Hard". */
+  readonly label = this.read(() => paramsLabel(this.game, this.session.params));
   readonly canUndo = this.read(() => this.session.canUndo);
   readonly canRedo = this.read(() => this.session.canRedo);
   readonly completed = this.read(() => this.session.isCompleted);
@@ -51,10 +54,11 @@ export class SessionStore<Params, State, Move> implements FreePlayControls {
     return this.game.presets().findIndex((p) => this.game.encodeParams(this.atCurrentDifficulty(p.params)) === current);
   });
 
-  constructor(game: PuzzleGame<Params, State, Move>) {
+  /** `key` keeps this store's size and game apart from others' (e.g. "slant.timed"). */
+  constructor(game: PuzzleGame<Params, State, Move>, key = game.id) {
     this.game = game;
-    this.paramsKey = `${game.id}.size`;
-    this.savedGameKey = `${game.id}.game`;
+    this.paramsKey = `${key}.size`;
+    this.savedGameKey = `${key}.game`;
     this.session = new GameSession(game, this.rememberedParams());
     const saved = readStoredJson<SessionSnapshot<Move>>(this.savedGameKey);
     if (saved && this.session.restore(saved) && this.session.isCompleted) {

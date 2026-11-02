@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { PuzzleSwitch } from '../puzzle-switch/puzzle-switch';
-import { DailyControls, FreePlayControls, ShellControls, formatTime } from '../shell-controls';
+import { DailyControls, ShellControls, SizeControls, formatTime } from '../shell-controls';
 
 /** Value of the size menu's "Custom…" option. */
 const CUSTOM = 'custom';
@@ -40,19 +40,19 @@ export class PuzzleShell {
       this.customOpen.set(true);
     } else {
       this.customOpen.set(false);
-      this.freePlay()?.newGame(Number(value));
+      this.sizes()?.newGame(Number(value));
     }
   }
 
   protected chooseDifficulty(event: Event): void {
-    this.freePlay()?.setDifficulty(Number((event.target as HTMLSelectElement).value));
+    this.sizes()?.setDifficulty(Number((event.target as HTMLSelectElement).value));
   }
 
   protected submitCustom(event: Event): void {
     event.preventDefault();
     const form = new FormData(event.target as HTMLFormElement);
     const values: Record<string, number> = {};
-    const controls = this.freePlay();
+    const controls = this.sizes();
     if (!controls) return;
     for (const field of controls.customFields()) values[field.key] = Number(form.get(field.key));
 
@@ -74,7 +74,7 @@ export class PuzzleShell {
       controls.undo();
     } else if ((command && (key === 'y' || (key === 'z' && event.shiftKey))) || (!command && key === 'r')) {
       controls.redo();
-    } else if (!command && key === 'n' && controls.kind === 'free') {
+    } else if (!command && key === 'n' && (controls.kind === 'free' || controls.kind === 'timed')) {
       controls.newGame();
     } else {
       return;
@@ -82,8 +82,9 @@ export class PuzzleShell {
     event.preventDefault();
   }
 
-  private freePlay(): FreePlayControls | null {
+  /** The size menu's controls, in free and timed play. */
+  private sizes(): SizeControls | null {
     const controls = this.controls();
-    return controls.kind === 'free' ? controls : null;
+    return controls.kind === 'free' || controls.kind === 'timed' ? controls : null;
   }
 }

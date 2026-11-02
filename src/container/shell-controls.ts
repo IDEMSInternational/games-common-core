@@ -22,15 +22,13 @@ export interface PlayControls {
   touch(): void;
 }
 
-/** Free play: any size, a new puzzle whenever the player likes. */
-export interface FreePlayControls extends PlayControls {
-  readonly kind: 'free';
+/** Choosing the puzzle's size and difficulty, and a new puzzle (free play and timed play). */
+export interface SizeControls extends PlayControls {
   readonly presetNames: readonly string[];
   readonly presetIndex: Signal<number>;
   /** Difficulty level names; empty if the game has no difficulty levels. */
   readonly difficulties: readonly string[];
   readonly difficulty: Signal<number>;
-  readonly gameId: Signal<string>;
   /** Custom-puzzle settings, filled in from the current puzzle. */
   readonly customFields: Signal<readonly CustomField[]>;
   newGame(presetIndex?: number): void;
@@ -38,7 +36,26 @@ export interface FreePlayControls extends PlayControls {
   setDifficulty(difficulty: number): void;
   /** Starts a custom puzzle. Returns an error message, or null on success. */
   newCustomGame(values: Readonly<Record<string, number>>): string | null;
+}
+
+/** Free play: any size, a new puzzle whenever the player likes. */
+export interface FreePlayControls extends SizeControls {
+  readonly kind: 'free';
+  readonly gameId: Signal<string>;
   solve(): void;
+}
+
+/** Timed play: free play against the clock, with the best time for each size. */
+export interface TimedControls extends SizeControls {
+  readonly kind: 'timed';
+  /** The puzzle's size and difficulty: "7×7", "10×10 Hard". */
+  readonly label: Signal<string>;
+  /** Milliseconds on the clock. */
+  readonly elapsed: Signal<number>;
+  /** The time taken, once the puzzle is solved. */
+  readonly result: Signal<number | null>;
+  /** The best time for this size before this puzzle, if any. */
+  readonly best: Signal<number | null>;
 }
 
 /** One day's daily puzzle at one level, against the clock. */
@@ -82,7 +99,7 @@ export interface ClockControls extends PlayControls {
   playAgain(): void;
 }
 
-export type ShellControls = FreePlayControls | DailyControls | ClockControls;
+export type ShellControls = FreePlayControls | DailyControls | ClockControls | TimedControls;
 
 /** Formats a time on the clock: "0:42", "12:05", "1:02:03". */
 export function formatTime(ms: number): string {

@@ -60,6 +60,15 @@
     <button type="button" class="primary" (click)="c.openFreePlay()">Play</button>
   </section>
 
+  <section class="card" aria-labelledby="timed-heading">
+    <h2 id="timed-heading">Timed play</h2>
+    <p class="what">Any size, against the clock: beat your best time.</p>
+    @if (c.timedBest(); as best) {
+      <p class="status">Your best time for {{ best.label }}: {{ time(best.time) }}</p>
+    }
+    <button type="button" class="primary" (click)="c.openTimed()">Play</button>
+  </section>
+
   <button type="button" class="how" (click)="c.startTutorial()">How to play</button>
 </main>
 
