@@ -2,6 +2,7 @@ import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { GameSession, SessionSnapshot } from '../engine/game-session';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { paramsLabel } from './daily-store';
+import { CelebrationSize } from './puzzle-fireworks/puzzle-fireworks';
 import { SizeControls } from './shell-controls';
 import {
   readStored,
@@ -31,6 +32,7 @@ export class SessionStore<Params, State, Move> implements SizeControls {
   private readonly paramsKey: string;
   private readonly savedGameKey: string;
   readonly celebrate = signal(false);
+  readonly celebration = signal<CelebrationSize>('normal').asReadonly();
 
   readonly id: string;
   readonly title: string;

@@ -1,6 +1,7 @@
 import { Signal, WritableSignal } from '@angular/core';
 import { CustomField } from '../engine/puzzle-game';
 import { DailyResult } from './daily-records';
+import { CelebrationSize } from './puzzle-fireworks/puzzle-fireworks';
 
 /** What the puzzle shell needs from any puzzle being played, independent of the game's types. */
 export interface PlayControls {
@@ -12,6 +13,8 @@ export interface PlayControls {
   readonly completed: Signal<boolean>;
   /** True right after the player solves the puzzle themselves (not with Solve). */
   readonly celebrate: Signal<boolean>;
+  /** How big the fireworks are when celebrating. */
+  readonly celebration: Signal<CelebrationSize>;
   /** Whether the game supports "Show mistakes", and the player's setting for it. */
   readonly canShowMistakes: boolean;
   readonly showMistakes: WritableSignal<boolean>;

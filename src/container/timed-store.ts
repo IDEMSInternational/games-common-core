@@ -1,5 +1,6 @@
 import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { PuzzleGame } from '../engine/puzzle-game';
+import { CelebrationSize } from './puzzle-fireworks/puzzle-fireworks';
 import { SessionStore } from './session-store';
 import { shareText } from './share';
 import { TimedControls, formatTime } from './shell-controls';
@@ -40,6 +41,8 @@ export class TimedStore<Params, State, Move> implements TimedControls {
   readonly result = signal<number | null>(null);
   readonly best = signal<number | null>(null);
   readonly newBest = signal(false);
+  /** Normal; big for a new best time. */
+  readonly celebration = computed<CelebrationSize>(() => (this.newBest() ? 'big' : 'normal'));
   /** Undo and redo, until the puzzle is solved: the solved board then stays. */
   readonly canUndo: Signal<boolean>;
   readonly canRedo: Signal<boolean>;

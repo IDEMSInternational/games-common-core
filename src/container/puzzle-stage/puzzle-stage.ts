@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, isDevMode, signal } from '@angular/core';
+import { CelebrationSize, PuzzleFireworks } from '../puzzle-fireworks/puzzle-fireworks';
 import { ThemeStore } from '../theme-store';
 
 /** The screen the apps are designed for (an iPhone 16), in CSS pixels. */
@@ -18,9 +19,13 @@ const MAX_WIDTH = 700;
  *
  * Place it once around everything in a game's app.html. Positions inside
  * it ("position: fixed" included) are relative to the stage.
+ *
+ * In development builds, fireworks('small' | 'normal' | 'big') in the
+ * browser console plays a celebration over the whole stage, for testing.
  */
 @Component({
   selector: 'puzzle-stage',
+  imports: [PuzzleFireworks],
   template: `<div
     class="stage"
     [style.width.px]="size().width"
@@ -29,6 +34,9 @@ const MAX_WIDTH = 700;
     [style.transform]="'scale(' + size().scale + ')'"
   >
     <ng-content />
+    @if (demo(); as demo) {
+      <puzzle-fireworks [size]="demo" [style.z-index]="2000" (done)="this.demo.set(null)" />
+    }
   </div>`,
   styleUrl: './puzzle-stage.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +48,17 @@ export class PuzzleStage {
   /** Created here, so the light or dark theme applies from the start. */
   private readonly theme = inject(ThemeStore);
   private readonly screen = signal({ width: innerWidth, height: innerHeight });
+  /** A celebration playing for testing (see above). */
+  protected readonly demo = signal<CelebrationSize | null>(null);
+
+  constructor() {
+    if (isDevMode()) {
+      (globalThis as { fireworks?: (size?: CelebrationSize) => void }).fireworks = (size = 'normal') => {
+        this.demo.set(null);
+        setTimeout(() => this.demo.set(size));
+      };
+    }
+  }
 
   /** The stage's size in design pixels, its scale, and its left edge on screen. */
   protected readonly size = computed(() => {

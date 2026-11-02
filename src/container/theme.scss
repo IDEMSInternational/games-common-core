@@ -123,9 +123,9 @@ select {
  */
 .puzzle-well-done {
   position: absolute;
-  inset: 0;
+  inset: auto 0 14%; // low on the board, below the fireworks
   z-index: 1;
-  margin: auto;
+  margin: 0 auto;
   width: fit-content;
   height: fit-content;
   padding: 12px 28px;
@@ -168,7 +168,7 @@ select {
  * shape, centred). Its container is a .board-area in the shell and the
  * tutorial.
  */
-.board-area > :not(.puzzle-well-done) {
+.board-area > :not(.puzzle-well-done, puzzle-fireworks) {
   display: block;
   width: 100%;
   height: 100%;

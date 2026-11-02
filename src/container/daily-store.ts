@@ -1,5 +1,6 @@
 import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { DAILY_LEVELS, DailyPuzzle, WEEKDAYS, localDay } from '../engine/daily';
+import { CelebrationSize } from './puzzle-fireworks/puzzle-fireworks';
 import { GameSession } from '../engine/game-session';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { DailyRecords, DailyResult } from './daily-records';
@@ -27,6 +28,8 @@ export class DailyStore<Params, State, Move> implements DailyControls {
   readonly canShowMistakes: boolean;
   readonly showMistakes: WritableSignal<boolean>;
   readonly celebrate = signal(false);
+  /** Normal; big when this solve completes all three of the day's levels. */
+  readonly celebration = signal<CelebrationSize>('normal');
   readonly result: WritableSignal<DailyResult | null>;
 
   readonly puzzle: DailyPuzzle<Params>;
@@ -130,6 +133,8 @@ export class DailyStore<Params, State, Move> implements DailyControls {
     this.since.set(null);
     this.result.set(result);
     this.records.addResult(this.puzzle.date, this.puzzle.level, result);
+    const allLevels = DAILY_LEVELS.every((_, level) => this.records.result(this.puzzle.date, level));
+    this.celebration.set(allLevels ? 'big' : 'normal');
     this.celebrate.set(true);
     this.save();
   }

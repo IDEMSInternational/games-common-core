@@ -7,6 +7,7 @@ import {
   output,
   viewChild,
 } from '@angular/core';
+import { PuzzleFireworks } from '../puzzle-fireworks/puzzle-fireworks';
 import { TutorialControls } from '../tutorial-store';
 
 /**
@@ -15,6 +16,7 @@ import { TutorialControls } from '../tutorial-store';
  */
 @Component({
   selector: 'puzzle-tutorial',
+  imports: [PuzzleFireworks],
   templateUrl: './puzzle-tutorial.html',
   styleUrl: './puzzle-tutorial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

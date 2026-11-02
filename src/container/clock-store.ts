@@ -2,6 +2,7 @@ import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { GameSession, SessionSnapshot } from '../engine/game-session';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { paramsLabel } from './daily-store';
+import { CelebrationSize } from './puzzle-fireworks/puzzle-fireworks';
 import { shareText } from './share';
 import { ClockControls } from './shell-controls';
 import { readStoredJson, removeStored, writeStoredJson } from './stored-setting';
@@ -73,6 +74,8 @@ export class ClockStore<Params, State, Move> implements ClockControls {
   readonly canShowMistakes: boolean;
   readonly showMistakes: WritableSignal<boolean>;
   readonly celebrate = signal(false);
+  /** A quick burst between puzzles; a big show for a new record when the time is up. */
+  readonly celebration = signal<CelebrationSize>('small');
   readonly solved: WritableSignal<number>;
   readonly finished = signal(false);
   readonly newRecord = signal(false);
@@ -154,6 +157,7 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     this.change(() => this.session.move(move));
     if (this.session.isCompleted) {
       this.solved.update((n) => n + 1);
+      this.celebration.set('small');
       this.celebrate.set(true);
       this.between = true;
       this.nextPuzzle = setTimeout(() => this.next(), NEXT_PUZZLE_MS);
@@ -212,6 +216,8 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     if (this.solved() > (this.records.records()[this.minutes] ?? 0)) {
       this.records.setRecord(this.minutes, this.solved());
       this.newRecord.set(true);
+      this.celebration.set('big');
+      this.celebrate.set(true);
     }
     this.records.clearRun();
     this.sync();

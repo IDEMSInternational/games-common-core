@@ -49,6 +49,8 @@ The games are educational phone apps (Angular + Capacitor) built from
     player chooses with the switch in the ☰ menu)
   - `theme.scss`: design tokens, base styles and shared `.board-*` SVG
     styles, light and dark (each game defines its own piece colours for both)
+  - `puzzle-fireworks/`: the orange fireworks when a puzzle is solved
+    (small, normal or big, chosen by each mode)
   - `puzzle-splash/`: the IDEMS Games opening screen (logo in `assets/`)
   - `puzzle-notice/`: the welcome notice with the terms and privacy policy
   - `puzzle-switch/`: an on/off switch for game modes and settings
