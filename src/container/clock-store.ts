@@ -18,6 +18,8 @@ export interface ClockRun<Move> {
   /** The clock started (at the first touch on the board). */
   readonly started: boolean;
   readonly snapshot: SessionSnapshot<Move>;
+  /** The puzzle settings still to come in this set (indexes into the game's beatTheClock). */
+  readonly bag?: readonly number[];
 }
 
 /** The player's Beat the clock records and unfinished run, remembered on this device. */
@@ -91,6 +93,8 @@ export class ClockStore<Params, State, Move> implements ClockControls {
   private active = false;
   /** A solved puzzle on show before the next one. */
   private between = false;
+  /** The rest of the current set of puzzle settings (see nextParams). */
+  private bag: number[];
   private nextPuzzle: ReturnType<typeof setTimeout> | undefined;
 
   readonly state = this.read(() => this.session.state);
@@ -113,8 +117,12 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     this.records = records;
     const saved = records.run<Move>();
     const run = saved?.minutes === minutes ? saved : null;
-    this.session = new GameSession(game, this.randomParams(), undefined, run?.snapshot);
-    if (run && this.session.isCompleted) this.session.newGame(this.randomParams());
+    this.bag = run?.bag ? [...run.bag] : [];
+    const continued = run && new GameSession(game, game.defaultParams(), undefined, run.snapshot);
+    this.session =
+      continued && continued.seed === run.snapshot.seed && !continued.isCompleted
+        ? continued
+        : new GameSession(game, this.nextParams());
     this.minutes = minutes;
     this.left = signal(run ? run.left : minutes * 60_000);
     this.solved = signal(run ? run.solved : 0);
@@ -175,7 +183,8 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     this.left.set(this.minutes * 60_000);
     this.finished.set(false);
     this.newRecord.set(false);
-    this.change(() => this.session.newGame(this.randomParams()));
+    this.bag = []; // a fresh set of puzzles
+    this.change(() => this.session.newGame(this.nextParams()));
   }
 
   async share(): Promise<string | null> {
@@ -189,7 +198,7 @@ export class ClockStore<Params, State, Move> implements ClockControls {
 
   private next(): void {
     this.between = false;
-    this.change(() => this.session.newGame(this.randomParams()));
+    this.change(() => this.session.newGame(this.nextParams()));
     this.sync();
   }
 
@@ -238,9 +247,21 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     return Math.max(0, this.left() - (since === null ? 0 : Date.now() - since));
   }
 
-  private randomParams(): Params {
+  /**
+   * The next puzzle's settings, dealt like cards for a fair mix: each set
+   * has every one of the game's beatTheClock settings once, in random
+   * order, so no run can be all big puzzles or all small ones.
+   */
+  private nextParams(): Params {
     const choices = this.game.beatTheClock ?? [this.game.defaultParams()];
-    return choices[Math.floor(Math.random() * choices.length)];
+    if (this.bag.length === 0) {
+      this.bag = choices.map((_, i) => i);
+      for (let i = this.bag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [this.bag[i], this.bag[j]] = [this.bag[j], this.bag[i]];
+      }
+    }
+    return choices[this.bag.shift()!] ?? choices[0];
   }
 
   private change(action: () => void): void {
@@ -258,6 +279,7 @@ export class ClockStore<Params, State, Move> implements ClockControls {
       solved: this.solved(),
       started: this.started,
       snapshot: this.session.snapshot(),
+      bag: this.bag,
     });
   }
 
