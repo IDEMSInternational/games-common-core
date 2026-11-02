@@ -59,6 +59,19 @@
     color: var(--text-muted);
     font-size: 0.9rem;
   }
+
+  /* A message with its Share button beside it. */
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-basis: 100%;
+
+    .shared {
+      flex-basis: auto;
+    }
+  }
 }
 
 /* Size, difficulty and New. */

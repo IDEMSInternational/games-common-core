@@ -1,7 +1,8 @@
 import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { SessionStore } from './session-store';
-import { TimedControls } from './shell-controls';
+import { shareText } from './share';
+import { TimedControls, formatTime } from './shell-controls';
 import { readStoredJson, writeStoredJson } from './stored-setting';
 
 /** A best time, for one size and difficulty. */
@@ -39,6 +40,7 @@ export class TimedStore<Params, State, Move> implements TimedControls {
   readonly showMistakes: WritableSignal<boolean>;
   readonly result = signal<number | null>(null);
   readonly best = signal<number | null>(null);
+  readonly newBest = signal(false);
   /** Undo and redo, until the puzzle is solved: the solved board then stays. */
   readonly canUndo: Signal<boolean>;
   readonly canRedo: Signal<boolean>;
@@ -158,6 +160,15 @@ export class TimedStore<Params, State, Move> implements TimedControls {
     return error;
   }
 
+  async share(): Promise<string | null> {
+    const time = this.result();
+    if (time === null || !this.newBest()) return null;
+    return shareText(
+      `${this.title}: timed play`,
+      `${this.title}, timed play: ${this.session.label()} solved in ${formatTime(time)}, a new best time!`,
+    );
+  }
+
   /** A new puzzle, with the clock back to zero. */
   private fresh(start: () => void): void {
     const before = this.session.gameId();
@@ -167,6 +178,7 @@ export class TimedStore<Params, State, Move> implements TimedControls {
     this.base.set(0);
     this.started = false;
     this.result.set(null);
+    this.newBest.set(false);
     this.best.set(this.bestTimes()[this.sizeKey()]?.time ?? null);
     this.sync();
     this.save();
@@ -179,6 +191,7 @@ export class TimedStore<Params, State, Move> implements TimedControls {
     this.result.set(time);
     const best = this.best();
     if (best === null || time < best) {
+      this.newBest.set(true);
       writeStoredJson(this.bestKey, {
         ...this.bestTimes(),
         [this.sizeKey()]: { label: this.session.label(), time },

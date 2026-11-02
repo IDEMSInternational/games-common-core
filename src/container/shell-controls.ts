@@ -56,6 +56,10 @@ export interface TimedControls extends SizeControls {
   readonly result: Signal<number | null>;
   /** The best time for this size before this puzzle, if any. */
   readonly best: Signal<number | null>;
+  /** True when the puzzle was solved in a new best time. */
+  readonly newBest: Signal<boolean>;
+  /** Shares a new best time through the device's share panel. Returns a message to show, if any. */
+  share(): Promise<string | null>;
 }
 
 /** One day's daily puzzle at one level, against the clock. */
@@ -93,10 +97,12 @@ export interface ClockControls extends PlayControls {
   readonly finished: Signal<boolean>;
   /** The record for this time limit, before this run. */
   readonly record: number;
-  /** A new puzzle, without counting this one. */
-  skip(): void;
+  /** True when the time is up with a new record. */
+  readonly newRecord: Signal<boolean>;
   /** Another run with the same time limit. */
   playAgain(): void;
+  /** Shares a new record through the device's share panel. Returns a message to show, if any. */
+  share(): Promise<string | null>;
 }
 
 export type ShellControls = FreePlayControls | DailyControls | ClockControls | TimedControls;

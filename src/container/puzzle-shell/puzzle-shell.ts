@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { PuzzleSwitch } from '../puzzle-switch/puzzle-switch';
-import { DailyControls, ShellControls, SizeControls, formatTime } from '../shell-controls';
+import { ShellControls, SizeControls, formatTime } from '../shell-controls';
 
 /** Value of the size menu's "Custom…" option. */
 const CUSTOM = 'custom';
@@ -61,7 +61,7 @@ export class PuzzleShell {
     if (!error) this.customOpen.set(false);
   }
 
-  protected async share(controls: DailyControls): Promise<void> {
+  protected async share(controls: { share(): Promise<string | null> }): Promise<void> {
     this.shareMessage.set(await controls.share());
   }
 

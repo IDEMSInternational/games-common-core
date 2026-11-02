@@ -2,6 +2,7 @@ import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { GameSession, SessionSnapshot } from '../engine/game-session';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { paramsLabel } from './daily-store';
+import { shareText } from './share';
 import { ClockControls } from './shell-controls';
 import { readStoredJson, removeStored, writeStoredJson } from './stored-setting';
 
@@ -58,7 +59,7 @@ export class ClockRecords {
  *
  * The clock counts down from the first touch on the board, and runs only
  * while the puzzle is on screen (see setActive), and not while a solved
- * puzzle is shown before the next. The run is saved after every change,
+ * puzzle is shown before the next. There's no skipping a puzzle. The run is saved after every change,
  * so it can be continued; when the time is up the record is kept and the
  * run forgotten.
  */
@@ -72,6 +73,7 @@ export class ClockStore<Params, State, Move> implements ClockControls {
   readonly celebrate = signal(false);
   readonly solved: WritableSignal<number>;
   readonly finished = signal(false);
+  readonly newRecord = signal(false);
   record: number;
 
   private readonly game: PuzzleGame<Params, State, Move>;
@@ -164,10 +166,6 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     if (!this.finished() && !this.between) this.change(() => this.session.restart());
   }
 
-  skip(): void {
-    if (!this.finished() && !this.between) this.next();
-  }
-
   playAgain(): void {
     clearTimeout(this.nextPuzzle);
     this.between = false;
@@ -176,7 +174,17 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     this.solved.set(0);
     this.left.set(this.minutes * 60_000);
     this.finished.set(false);
+    this.newRecord.set(false);
     this.change(() => this.session.newGame(this.randomParams()));
+  }
+
+  async share(): Promise<string | null> {
+    if (!this.newRecord()) return null;
+    const puzzles = this.solved() === 1 ? '1 puzzle' : `${this.solved()} puzzles`;
+    return shareText(
+      `${this.title}: Beat the clock`,
+      `${this.title}, Beat the clock: ${puzzles} solved in ${this.minutes} minutes, a new record!`,
+    );
   }
 
   private next(): void {
@@ -194,6 +202,7 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     this.celebrate.set(false);
     if (this.solved() > (this.records.records()[this.minutes] ?? 0)) {
       this.records.setRecord(this.minutes, this.solved());
+      this.newRecord.set(true);
     }
     this.records.clearRun();
     this.sync();

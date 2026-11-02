@@ -45,13 +45,21 @@
       @if (c.finished()) {
         <span class="clock" role="status">Time's up! Solved: {{ c.solved() }}</span>
         <button type="button" class="primary" (click)="c.playAgain()">Play again</button>
-        <p class="shared">
-          @if (c.solved() > c.record) {
-            A new record for {{ c.minutes }} minutes!
-          } @else {
-            Your record for {{ c.minutes }} minutes: {{ c.record }}
+        <div class="row">
+          <p class="shared">
+            @if (c.newRecord()) {
+              A new record for {{ c.minutes }} minutes!
+            } @else {
+              Your record for {{ c.minutes }} minutes: {{ c.record }}
+            }
+          </p>
+          @if (c.newRecord()) {
+            <button type="button" class="primary" (click)="share(c)">Share</button>
           }
-        </p>
+        </div>
+        @if (shareMessage(); as message) {
+          <p class="shared" role="status">{{ message }}</p>
+        }
       } @else {
         <span>{{ c.label() }} · Solved: {{ c.solved() }}</span>
         <span class="clock" [attr.aria-label]="'Time left ' + time(c.remaining() + 999)">
@@ -80,13 +88,21 @@
       <div class="mode-bar">
         @if (c.result(); as result) {
           <span class="clock" role="status">Solved in {{ time(result) }}</span>
-          <p class="shared">
-            @if (c.best() === null || result < c.best()!) {
-              A new best time for {{ c.label() }}!
-            } @else {
-              Your best time: {{ time(c.best()!) }}
+          <div class="row">
+            <p class="shared">
+              @if (c.newBest()) {
+                A new best time for {{ c.label() }}!
+              } @else {
+                Your best time: {{ time(c.best()!) }}
+              }
+            </p>
+            @if (c.newBest()) {
+              <button type="button" class="primary" (click)="share(c)">Share</button>
             }
-          </p>
+          </div>
+          @if (shareMessage(); as message) {
+            <p class="shared" role="status">{{ message }}</p>
+          }
         } @else {
           <span>{{ c.best() === null ? 'No best time yet' : 'Best: ' + time(c.best()!) }}</span>
           <span class="clock" [attr.aria-label]="'Time ' + time(c.elapsed())">⏱ {{ time(c.elapsed()) }}</span>
@@ -137,14 +153,12 @@
   }
 </div>
 
-<nav class="action-bar" [class.three]="c.kind === 'daily' || c.kind === 'timed'" aria-label="Game actions">
+<nav class="action-bar" [class.three]="c.kind !== 'free'" aria-label="Game actions">
   <button type="button" (click)="c.undo()" [disabled]="!c.canUndo()">Undo</button>
   <button type="button" (click)="c.redo()" [disabled]="!c.canRedo()">Redo</button>
   <button type="button" (click)="c.restart()" [disabled]="!c.canUndo()">Restart</button>
   @if (c.kind === 'free') {
     <button type="button" (click)="c.solve()" [disabled]="c.completed()">Solve</button>
-  } @else if (c.kind === 'clock') {
-    <button type="button" (click)="c.skip()" [disabled]="c.finished() || c.completed()">Skip</button>
   }
 </nav>
 

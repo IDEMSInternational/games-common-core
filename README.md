@@ -25,8 +25,8 @@ The games are educational phone apps (Angular + Capacitor) built from
     the clock, free play, timed play, the tutorial), as browser history so
     Back works
   - `puzzle-home/`: the home page: today's daily puzzles and the last 7
-    days', a streak, Beat the clock with a record, free play, timed play
-    with a best time, how to play, and the ☰ menu
+    days', a streak, Beat the clock with a record, timed play with a best
+    time, free play, how to play, and the ☰ menu
   - `puzzle-shell/`: the frame around a puzzle: title, size and difficulty
     menus and custom size (free and timed play), day and clock (daily
     puzzle), count and time left (Beat the clock), or clock and best time
