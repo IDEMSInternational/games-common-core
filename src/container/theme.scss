@@ -60,7 +60,7 @@ select {
   &.primary {
     background: var(--brand);
     border-color: var(--brand);
-    color: #fff;
+    color: var(--ink); // dark text: white on this orange is too faint to read easily
     font-weight: 600;
   }
 }
