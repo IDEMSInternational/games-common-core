@@ -137,11 +137,22 @@ select {
  * the paper and grid, tutorial hints with the animated finger, and the
  * pill-shaped labels placed by container/board-label.ts.
  */
+/*
+ * Every screen fits the phone's screen, without scrolling: the board
+ * takes the space the rest leaves, as large as fits (the SVG keeps its
+ * shape, centred). Its container is a .board-area in the shell and the
+ * tutorial.
+ */
+.board-area > :not(.puzzle-well-done) {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .board-svg {
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 70dvh;
+  height: 100%;
   touch-action: none; // the board handles all touch gestures itself
   user-select: none;
   -webkit-user-select: none;

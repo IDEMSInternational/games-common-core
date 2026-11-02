@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  min-height: 100dvh;
+  gap: 10px;
+  height: 100dvh; // fits the screen: the board takes what the rest leaves
   max-width: 560px;
   margin: 0 auto;
   padding: max(12px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
@@ -122,7 +122,8 @@
 .board-area {
   position: relative; // for the "Well done!" pill
   width: 100%;
-  flex: 1;
+  flex: 1 1 0;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -149,11 +150,7 @@
 
 .action-bar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   width: 100%;
-
-  &.three {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }

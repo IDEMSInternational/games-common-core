@@ -22,21 +22,24 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `tutorial.ts`: the interactive tutorial engine
 - `src/container/`: the Angular frame every game sits in:
   - `puzzle-screens.ts`: which screen shows (home, a daily puzzle, Beat
-    the clock, free play, timed play, the tutorial), as browser history so
-    Back works
+    the clock, timed play, the tutorial), as browser history so Back works
   - `puzzle-home/`: the home page: today's daily puzzles and the last 7
     days', a streak, Beat the clock with a record, timed play with a best
-    time, free play, how to play, and the ☰ menu
-  - `puzzle-shell/`: the frame around a puzzle: title, size and difficulty
-    menus and custom size (free and timed play), day and clock (daily
-    puzzle), count and time left (Beat the clock), or clock and best time
-    (timed play); undo/redo bar
+    time, and the ☰ menu
+  - `puzzle-shell/`: the frame around a puzzle: title, day and clock
+    (daily puzzle), count and time left (Beat the clock), or size and
+    difficulty menus, custom size, clock and best time (timed play);
+    undo/redo bar
   - `puzzle-menu/`: the ☰ menu of studio pages; their text is in `menu-pages.ts`
   - `puzzle-tutorial/`: the tutorial frame (captions, progress dots, Skip)
-  - `session-store.ts`, `daily-store.ts`, `clock-store.ts`,
-    `timed-store.ts`, `tutorial-store.ts`: connect the engine to Angular
-    (free play, a daily puzzle with its clock, a Beat the clock run with
-    its records, timed play with its best times, the tutorial); `shell-controls.ts` is what the shell needs from them
+  - `daily-store.ts`, `clock-store.ts`, `timed-store.ts`,
+    `tutorial-store.ts`: connect the engine to Angular (a daily puzzle
+    with its clock, a Beat the clock run with its records, timed play with
+    its best times, the tutorial); `session-store.ts` is a puzzle session
+    with its size menu, used by timed play; `shell-controls.ts` is what
+    the shell needs from them
+  - Every screen fits the phone's screen without scrolling (the board
+    takes the space left); only the ☰ menu's pages scroll
   - `daily-records.ts`: daily results, streak and the last 7 days' games, kept
     on the device; `share.ts`: the device's share panel
   - `theme.scss`: design tokens, base styles and shared `.board-*` SVG

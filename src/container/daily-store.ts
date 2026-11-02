@@ -8,7 +8,7 @@ import { DailyControls, formatTime } from './shell-controls';
 
 /**
  * One day's daily puzzle at one level, made observable by Angular (as SessionStore is
- * for free play), with its clock.
+ * for any puzzle), with its clock.
  *
  * The clock starts at the first touch on the board, and runs only while
  * the puzzle is on screen (see setActive). Restart doesn't reset it. When

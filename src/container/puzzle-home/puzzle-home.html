@@ -44,29 +44,27 @@
   }
 
   @if (c.hasClock) {
-    <section class="card" aria-labelledby="clock-heading">
-      <h2 id="clock-heading">Beat the clock</h2>
-      <p class="what">As many puzzles as you can solve in the time given.</p>
-      @if (c.clockRecord(); as record) {
-        <p class="status">Your record for {{ record.minutes }} min: {{ record.solved === 1 ? '1 puzzle' : record.solved + ' puzzles' }}</p>
-      }
+    <section class="card mode" aria-labelledby="clock-heading">
+      <div>
+        <h2 id="clock-heading">Beat the clock</h2>
+        <p class="what">As many puzzles as you can solve in the time given.</p>
+        @if (c.clockRecord(); as record) {
+          <p class="status">Your record for {{ record.minutes }} min: {{ record.solved === 1 ? '1 puzzle' : record.solved + ' puzzles' }}</p>
+        }
+      </div>
       <button type="button" class="primary" (click)="choosingTime.set(true)">Play</button>
     </section>
   }
 
-  <section class="card" aria-labelledby="timed-heading">
-    <h2 id="timed-heading">Timed play</h2>
-    <p class="what">Any size, against the clock: beat your best time.</p>
-    @if (c.timedBest(); as best) {
-      <p class="status">Your best time for {{ best.label }}: {{ time(best.time) }}</p>
-    }
+  <section class="card mode" aria-labelledby="timed-heading">
+    <div>
+      <h2 id="timed-heading">Timed play</h2>
+      <p class="what">Any size, against the clock: beat your best time.</p>
+      @if (c.timedBest(); as best) {
+        <p class="status">Your best time for {{ best.label }}: {{ time(best.time) }}</p>
+      }
+    </div>
     <button type="button" class="primary" (click)="c.openTimed()">Play</button>
-  </section>
-
-  <section class="card" aria-labelledby="free-heading">
-    <h2 id="free-heading">Free play</h2>
-    <p class="what">Any size, and as many puzzles as you like.</p>
-    <button type="button" class="primary" (click)="c.openFreePlay()">Play</button>
   </section>
 
   <button type="button" class="how" (click)="c.startTutorial()">How to play</button>

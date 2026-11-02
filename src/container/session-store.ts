@@ -2,7 +2,7 @@ import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { GameSession, SessionSnapshot } from '../engine/game-session';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { paramsLabel } from './daily-store';
-import { FreePlayControls } from './shell-controls';
+import { SizeControls } from './shell-controls';
 import {
   readStored,
   readStoredJson,
@@ -24,8 +24,7 @@ import {
  * Create it in an injection context (e.g. a component field), since the
  * "Show mistakes" setting is remembered too.
  */
-export class SessionStore<Params, State, Move> implements FreePlayControls {
-  readonly kind = 'free';
+export class SessionStore<Params, State, Move> implements SizeControls {
   private readonly session: GameSession<Params, State, Move>;
   private readonly game: PuzzleGame<Params, State, Move>;
   private readonly version = signal(0);
@@ -119,7 +118,7 @@ export class SessionStore<Params, State, Move> implements FreePlayControls {
   }
 
   touch(): void {
-    // Free play has no clock.
+    // No clock here (timed play adds one).
   }
 
   /** A new puzzle (with new parameters, if given). */

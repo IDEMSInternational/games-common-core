@@ -6,7 +6,7 @@ import { ShellControls, SizeControls, formatTime } from '../shell-controls';
 const CUSTOM = 'custom';
 
 /**
- * The common frame every game sits in: title, game menu (free play) or
+ * The common frame every game sits in: title, game menu (timed play) or
  * day and clock (daily puzzle), the board, and the undo/redo bar. The game's board is projected into the middle;
  * game-specific tools can be projected with the `puzzleTools` attribute.
  */
@@ -74,7 +74,7 @@ export class PuzzleShell {
       controls.undo();
     } else if ((command && (key === 'y' || (key === 'z' && event.shiftKey))) || (!command && key === 'r')) {
       controls.redo();
-    } else if (!command && key === 'n' && (controls.kind === 'free' || controls.kind === 'timed')) {
+    } else if (!command && key === 'n' && controls.kind === 'timed') {
       controls.newGame();
     } else {
       return;
@@ -82,9 +82,9 @@ export class PuzzleShell {
     event.preventDefault();
   }
 
-  /** The size menu's controls, in free and timed play. */
+  /** The size menu's controls, in timed play. */
   private sizes(): SizeControls | null {
     const controls = this.controls();
-    return controls.kind === 'free' || controls.kind === 'timed' ? controls : null;
+    return controls.kind === 'timed' ? controls : null;
   }
 }

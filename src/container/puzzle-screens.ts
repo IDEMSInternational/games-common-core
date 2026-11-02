@@ -15,14 +15,12 @@ import { ClockRecords, ClockStore } from './clock-store';
 import { DailyRecords, DayStatus } from './daily-records';
 import { DailyStore, paramsLabel } from './daily-store';
 import { hasSeenTutorial, markTutorialSeen } from './first-run';
-import { SessionStore } from './session-store';
 import { BestTime, TimedStore } from './timed-store';
 import { readStored, writeStored } from './stored-setting';
 import { TutorialStore } from './tutorial-store';
 
 export type Screen =
   | { readonly name: 'home' }
-  | { readonly name: 'free' }
   | { readonly name: 'daily'; readonly date: string; readonly level: number }
   | { readonly name: 'clock'; readonly minutes: number }
   | { readonly name: 'timed' };
@@ -99,7 +97,6 @@ export interface HomeControls {
    * with `fresh`, starts a new one (forgetting any unfinished run).
    */
   openClock(minutes: number, fresh?: boolean): void;
-  openFreePlay(): void;
   /** One of timed play's best times: the next one each time the home page opens. */
   readonly timedBest: Signal<BestTime | null>;
   openTimed(): void;
@@ -108,7 +105,7 @@ export interface HomeControls {
 
 /**
  * Which screen a game's app shows: the home page, a daily puzzle, Beat
- * the clock, free play, timed play, or the tutorial over any of them (on first
+ * the clock, timed play, or the tutorial over any of them (on first
  * launch, over the home page). Each screen is a browser history entry, so Back (the
  * browser's, or Android's back button) returns to the home page.
  *
@@ -118,9 +115,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly id: string;
   readonly title: string;
   readonly version: string;
-  /** Free play, continuing where the player left off. */
-  readonly session: SessionStore<Params, State, Move>;
-  /** Timed play, likewise. */
+  /** Timed play, continuing where the player left off. */
   readonly timed: TimedStore<Params, State, Move>;
   /** The daily puzzle last opened. */
   readonly daily = signal<DailyStore<Params, State, Move> | null>(null);
@@ -130,10 +125,9 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly screen = signal<Screen>(HOME);
   /** The tutorial in progress, if any. It runs automatically on first launch. */
   readonly tutorial: WritableSignal<TutorialStore<Params, State, Move, Hint> | null>;
-  /** The puzzle on screen: free play or a daily puzzle; null on the home page. */
+  /** The puzzle on screen: a daily puzzle, Beat the clock or timed play; null on the home page. */
   readonly play = computed(() => {
     const screen = this.screen();
-    if (screen.name === 'free') return this.session;
     if (screen.name === 'daily') return this.daily();
     if (screen.name === 'clock') return this.clock();
     if (screen.name === 'timed') return this.timed;
@@ -214,7 +208,6 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.id = game.id;
     this.title = game.name;
     this.version = version;
-    this.session = new SessionStore(game);
     this.timed = new TimedStore(game);
     this.records = new DailyRecords(game.id);
     this.clockRecordsStore = new ClockRecords(game.id);
@@ -253,10 +246,6 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       this.clock()?.setActive(false);
       this.timed.setActive(false);
     });
-  }
-
-  openFreePlay(): void {
-    this.go({ name: 'free' });
   }
 
   openTimed(): void {
@@ -311,14 +300,14 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       const open = this.daily()?.puzzle;
       if (open?.date !== screen.date || open.level !== screen.level) {
         this.daily()?.setActive(false);
-        this.daily.set(new DailyStore(this.game, puzzle, this.records, this.session.showMistakes));
+        this.daily.set(new DailyStore(this.game, puzzle, this.records, this.timed.showMistakes));
       }
     }
     if (screen.name === 'clock') {
       if (!this.hasClock) return this.screen.set(HOME);
       if (this.clock()?.minutes !== screen.minutes || this.clock()?.finished()) {
         this.clock()?.setActive(false);
-        this.clock.set(new ClockStore(this.game, this.clockRecordsStore, screen.minutes, this.session.showMistakes));
+        this.clock.set(new ClockStore(this.game, this.clockRecordsStore, screen.minutes, this.timed.showMistakes));
       }
     }
     if (screen.name === 'home') {

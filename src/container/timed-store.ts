@@ -22,9 +22,8 @@ interface TimedClock {
 }
 
 /**
- * Timed play: free play (its own puzzle, size and difficulty, apart from
- * free play's) against the clock, keeping the best time for each size and
- * difficulty.
+ * Timed play: any size and difficulty against the clock, keeping the
+ * best time for each size and difficulty.
  *
  * The clock starts at the first touch on the board, and runs only while
  * the puzzle is on screen (see setActive). Restart doesn't reset it; a new

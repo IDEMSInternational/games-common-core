@@ -16,9 +16,6 @@
         @case ('timed') {
           Timed play
         }
-        @default {
-          {{ c.title }}
-        }
       }
     </h1>
     <button type="button" class="help" aria-label="How to play" (click)="help.emit()">?</button>
@@ -112,7 +109,7 @@
   }
 </header>
 
-@if (customOpen() && (c.kind === 'free' || c.kind === 'timed')) {
+@if (customOpen() && c.kind === 'timed') {
   <form class="custom-form" (submit)="submitCustom($event)">
     @for (field of c.customFields(); track field.key) {
       <label>
@@ -153,12 +150,9 @@
   }
 </div>
 
-<nav class="action-bar" [class.three]="c.kind !== 'free'" aria-label="Game actions">
+<nav class="action-bar" aria-label="Game actions">
   <button type="button" (click)="c.undo()" [disabled]="!c.canUndo()">Undo</button>
   <button type="button" (click)="c.redo()" [disabled]="!c.canRedo()">Redo</button>
   <button type="button" (click)="c.restart()" [disabled]="!c.canUndo()">Restart</button>
-  @if (c.kind === 'free') {
-    <button type="button" (click)="c.solve()" [disabled]="c.completed()">Solve</button>
-  }
 </nav>
 

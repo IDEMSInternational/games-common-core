@@ -6,7 +6,7 @@ import { formatTime } from '../shell-controls';
 
 /**
  * The home page: today's daily puzzles with the last 7 days', Beat the
- * clock, timed play, free play, and how to play. The ☰ menu lives here. Opening a
+ * clock, timed play, and how to play. The ☰ menu lives here. Opening a
  * day's puzzle asks for the level (Easy, Medium or Hard) each time, and
  * Beat the clock for the time limit.
  */
