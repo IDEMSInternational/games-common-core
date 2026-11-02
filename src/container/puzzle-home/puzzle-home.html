@@ -46,7 +46,7 @@
   @if (c.hasClock) {
     <section class="card" aria-labelledby="clock-heading">
       <h2 id="clock-heading">Beat the clock</h2>
-      <p class="what">As many puzzles as you can solve in the time.</p>
+      <p class="what">As many puzzles as you can solve in the time given.</p>
       @if (c.clockRecord(); as record) {
         <p class="status">Your record for {{ record.minutes }} min: {{ record.solved === 1 ? '1 puzzle' : record.solved + ' puzzles' }}</p>
       }
