@@ -121,6 +121,9 @@
           }
         </ul>
       </nav>
+      <div class="settings">
+        <puzzle-switch [checked]="theme.dark()" (checkedChange)="theme.setDark($event)">Dark theme</puzzle-switch>
+      </div>
       <p class="version">{{ game().name }} version {{ game().version }}</p>
     }
   </aside>

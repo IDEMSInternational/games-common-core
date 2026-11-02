@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ThemeStore } from '../theme-store';
 
 /** The screen the apps are designed for (an iPhone 16), in CSS pixels. */
 export const DESIGN_WIDTH = 393;
@@ -36,6 +37,8 @@ const MAX_WIDTH = 700;
   },
 })
 export class PuzzleStage {
+  /** Created here, so the light or dark theme applies from the start. */
+  private readonly theme = inject(ThemeStore);
   private readonly screen = signal({ width: innerWidth, height: innerHeight });
 
   /** The stage's size in design pixels, its scale, and its left edge on screen. */

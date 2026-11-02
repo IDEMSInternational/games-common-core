@@ -1,22 +1,34 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, computed, input, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { PuzzleSwitch } from '../puzzle-switch/puzzle-switch';
+import { ThemeStore } from '../theme-store';
 import { MenuGame, MenuLink, MenuPage, QuoteItem, menuPages } from './menu-pages';
 
 /**
  * The ☰ button and the menu it opens: a panel sliding in from the left
  * listing the studio's pages (see menu-pages.ts), each opening in the
- * panel. Closes with ×, a tap outside the panel, or Escape. Used by the
- * puzzle shell, so every game has it.
+ * panel, and the Dark theme switch. Closes with ×, a tap outside the
+ * panel, or Escape. On the home page, so every game has it.
  */
 @Component({
   selector: 'puzzle-menu',
-  imports: [NgTemplateOutlet],
+  imports: [NgTemplateOutlet, PuzzleSwitch],
   templateUrl: './puzzle-menu.html',
   styleUrl: './puzzle-menu.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PuzzleMenu {
   readonly game = input.required<MenuGame>();
+  protected readonly theme = inject(ThemeStore);
 
   protected readonly pages = computed(() => menuPages(this.game()));
   protected readonly open = signal(false);

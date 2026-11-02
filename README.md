@@ -45,8 +45,10 @@ The games are educational phone apps (Angular + Capacitor) built from
     in it. Nothing scrolls except the ☰ menu's pages and the notice's text
   - `daily-records.ts`: daily results, streak and the last 7 days' games, kept
     on the device; `share.ts`: the device's share panel
+  - `theme-store.ts`: light or dark theme (follows the phone until the
+    player chooses with the switch in the ☰ menu)
   - `theme.scss`: design tokens, base styles and shared `.board-*` SVG
-    styles (each game defines its own piece colours)
+    styles, light and dark (each game defines its own piece colours for both)
   - `puzzle-splash/`: the IDEMS Games opening screen (logo in `assets/`)
   - `puzzle-notice/`: the welcome notice with the terms and privacy policy
   - `puzzle-switch/`: an on/off switch for game modes and settings

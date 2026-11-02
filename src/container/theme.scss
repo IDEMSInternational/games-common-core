@@ -1,7 +1,8 @@
 /*
- * Shared theme for every game: design tokens and base styles. A placeholder palette
- * until the studio's visual design is chosen. One theme only: the apps
- * look the same whatever the device's light/dark setting.
+ * Shared theme for every game: design tokens and base styles. Light and
+ * dark: data-theme="dark" on the root element (set by ThemeStore) swaps
+ * the colours below for the dark ones further down; games do the same
+ * for their own piece colours.
  */
 :root {
   color-scheme: light;
@@ -16,6 +17,10 @@
 
   /* The IDEMS Games logo's orange: main buttons and switches. */
   --brand: #f37021;
+  /* Text on orange: dark in both themes (white on this orange is too faint). */
+  --on-brand: #22252b;
+  /* A switch's knob. */
+  --knob: #ffffff;
 
   /*
    * Games define their own piece colours; red (--danger) is kept for
@@ -29,6 +34,26 @@
   --danger-soft: rgb(192 71 58 / 0.14);
   --success: #2f8a4c;
   --border: #d9d3c5;
+}
+
+/* The dark theme: warm dark greys, off-white text; the orange stays. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #1c1d20;
+  --surface: #27292d;
+  --surface-sunken: #202124;
+  --text: #ebe8e2;
+  --text-muted: #a4a8b0;
+  --ink: #ebe8e2;
+  --board: #24262a;
+  --grid: #45484e;
+  --knob: #ebe8e2;
+  --accent: #4fb3ba;
+  --accent-soft: rgb(79 179 186 / 0.2);
+  --danger: #e2735f;
+  --danger-soft: rgb(226 115 95 / 0.22);
+  --success: #4caf6e;
+  --border: #3d4046;
 }
 
 html,
@@ -60,7 +85,7 @@ select {
   &.primary {
     background: var(--brand);
     border-color: var(--brand);
-    color: var(--ink); // dark text: white on this orange is too faint to read easily
+    color: var(--on-brand);
     font-weight: 600;
   }
 }
