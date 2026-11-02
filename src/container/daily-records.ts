@@ -1,6 +1,6 @@
 import { DAILY_LEVEL_KEYS, addDays, availableDays } from '../engine/daily';
 import { SessionSnapshot } from '../engine/game-session';
-import { readStoredJson, removeStored, writeStoredJson } from './stored-setting';
+import { readStoredJson, removeStored, storedKeys, writeStoredJson } from './stored-setting';
 
 /** A solved daily puzzle. */
 export interface DailyResult {
@@ -83,15 +83,13 @@ export class DailyRecords {
   /** Forgets the games that can no longer be played (their results are kept). */
   clearOldGames(today: string): void {
     const oldest = availableDays(today)[0];
-    try {
-      const old = Object.keys(localStorage).filter((key) => {
-        const date = key.startsWith(this.savePrefix) ? key.slice(this.savePrefix.length, this.savePrefix.length + 10) : '';
-        return /^\d{4}-\d{2}-\d{2}$/.test(date) && date < oldest;
-      });
-      old.forEach(removeStored);
-    } catch {
-      // No storage: nothing to clear.
-    }
+    const old = storedKeys().filter((key) => {
+      const date = key.startsWith(this.savePrefix)
+        ? key.slice(this.savePrefix.length, this.savePrefix.length + 10)
+        : '';
+      return /^\d{4}-\d{2}-\d{2}$/.test(date) && date < oldest;
+    });
+    old.forEach(removeStored);
   }
 }
 

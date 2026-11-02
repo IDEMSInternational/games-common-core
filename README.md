@@ -83,7 +83,7 @@ and its `angular.json` serves the shared images by adding to the build's
 ```
 
 The game also installs the Capacitor plugins the shared code uses (peer
-dependencies): `npm install @capacitor/app @capacitor/share`.
+dependencies): `npm install @capacitor/app @capacitor/preferences @capacitor/share`.
 
 **Important: one copy of Angular.** This repository deliberately has no
 Angular in its dependencies (only as a peer dependency). Inside a game, the
