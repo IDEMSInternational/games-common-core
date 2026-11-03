@@ -1,8 +1,8 @@
 # Terms and Conditions
 
-Last updated: 28 October 2026
+Last updated: 3 November 2026
 
-These terms are for the IDEMS Games puzzle apps, such as Rectangles and Slant. We have tried to make them easy to read. If you are young, you might like to read them with a parent, carer or teacher.
+These terms are for the IDEMS Games puzzle apps, such as Rectangles and Slant. We have tried to make them easy to read. The apps are made for people aged 13 and over. If you're under 18, you might like to read these terms with a parent or carer.
 
 ## Who we are
 

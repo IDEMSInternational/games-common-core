@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 28 October 2026
+Last updated: 3 November 2026
 
 This policy explains what the IDEMS Games puzzle apps, such as Rectangles and Slant, do with information. The apps are made by IDEMS International Community Interest Company ("IDEMS", "we" or "us"), registered in the United Kingdom.
 
@@ -10,11 +10,17 @@ At the moment, the apps do not collect any personal information. You don't need 
 
 ## What stays on your device
 
-So that you can carry on where you left off, the app saves the puzzle you are playing, the puzzle size you chose, your settings, and whether you have seen the tutorial and the welcome notice. This is stored only on your device, and we cannot see it. Deleting the app, or clearing its data, removes it.
+So that you can carry on where you left off, the app saves the puzzles you are playing, your daily puzzle results and streaks, your records and best times, the puzzle sizes you chose, your game options, and whether you have seen the tutorial and the welcome notice. This is stored only on your device, and we cannot see it.
 
-## Children
+You can delete any record from the records page (🏆), or all of them with "Reset my records" in Game options, in the ☰ menu. Deleting the app, or clearing its data, removes everything.
 
-We would like the apps to be enjoyed by children as well as adults. Because the apps don't currently collect personal information, they don't collect any from children either. If that changes, we will ask a parent or carer for permission before collecting any information from children.
+## Sharing
+
+When you share a result or a record, the app puts together a line of text, such as your time, and opens your device's share panel. You choose whether to send it, and where: it goes only to the app or person you pick, and nothing is sent to IDEMS.
+
+## Who the apps are for
+
+The apps are made for people aged 13 and over. They are not designed for younger children. Because the apps don't currently collect personal information, they don't collect any from anyone, whatever their age.
 
 ## App stores
 
@@ -26,7 +32,7 @@ Some pages in the apps link to other websites, such as the original puzzle colle
 
 ## Changes, including future research
 
-In the future we may want to use the apps for research, to understand how people learn with puzzles. If the apps ever need to collect information, for research or for any other reason, we will update this policy first and the app will tell you about the change. Where the law requires it, we will ask for permission before collecting anything, from a parent or carer in the case of children. It will not happen without you knowing.
+In the future we may want to use the apps for research, to understand how people learn with puzzles. If the apps ever need to collect information, for research or for any other reason, we will update this policy first and the app will tell you about the change. Where the law requires it, we will ask for permission before collecting anything, including from a parent or carer for anyone under 18 where that is needed. It will not happen without you knowing.
 
 ## Contact
 
