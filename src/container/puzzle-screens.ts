@@ -25,6 +25,7 @@ import {
 import { DailyRecords, DayStatus } from './daily-records';
 import { DailyStore, paramsLabel } from './daily-store';
 import { hasSeenTutorial, markTutorialSeen } from './first-run';
+import { LadderRecords, LadderStore } from './ladder-store';
 import { SessionStore } from './session-store';
 import { BestTime, TimedStore } from './timed-store';
 import { readStored, writeStored } from './stored-setting';
@@ -36,7 +37,8 @@ export type Screen =
   | { readonly name: 'free' }
   | { readonly name: 'daily'; readonly date: string; readonly level: number }
   | { readonly name: 'clock'; readonly minutes: number; readonly choice: ClockChoice }
-  | { readonly name: 'timed' };
+  | { readonly name: 'timed' }
+  | { readonly name: 'ladder'; readonly difficulty: number };
 
 const HOME: Screen = { name: 'home' };
 
@@ -91,6 +93,26 @@ export interface ClockRunInfo {
   readonly left: number;
 }
 
+/** A ladder best time. */
+export interface LadderBest {
+  /** "Easy"; null if the game has no difficulties. */
+  readonly difficulty: string | null;
+  /** Milliseconds. */
+  readonly time: number;
+}
+
+/** An unfinished ladder. */
+export interface LadderRunInfo {
+  readonly difficulty: number;
+  /** "Easy"; null if the game has no difficulties. */
+  readonly difficultyName: string | null;
+  /** The rung being played, from 0, of rungCount. */
+  readonly rung: number;
+  readonly rungCount: number;
+  /** Milliseconds on the clock. */
+  readonly elapsed: number;
+}
+
 /** A day's status is the best of its levels'. */
 const STATUS_ORDER: readonly DayStatus[] = ['solved', 'late', 'started', 'new'];
 
@@ -129,6 +151,17 @@ export interface HomeControls {
   /** One of timed play's best times: the next one each time the Challenges page opens. */
   readonly timedBest: Signal<BestTime | null>;
   openTimed(): void;
+  /** One of the ladder's best times (by difficulty): the next one each time the Challenges page opens. */
+  readonly ladderBest: Signal<LadderBest | null>;
+  readonly ladderRun: Signal<LadderRunInfo | null>;
+  /** The best time for each difficulty (index), for the ladder's sheet. */
+  ladderBestTimes(): Readonly<Record<string, number>>;
+  /**
+   * The ladder at a difficulty (0 if the game has none): continues the
+   * unfinished ladder, or with `fresh`, starts a new one (forgetting any
+   * unfinished ladder).
+   */
+  openLadder(difficulty: number, fresh?: boolean): void;
   openFreePlay(): void;
   openChallenges(): void;
   /** Back a page (see PuzzleScreens.goHome). */
@@ -158,6 +191,8 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly daily = signal<DailyStore<Params, State, Move> | null>(null);
   /** The Beat the clock run last opened. */
   readonly clock = signal<ClockStore<Params, State, Move> | null>(null);
+  /** The ladder last opened. */
+  readonly ladder = signal<LadderStore<Params, State, Move> | null>(null);
   readonly hasClock: boolean;
   readonly screen = signal<Screen>(HOME);
   /** The tutorial in progress, if any. It runs automatically on first launch. */
@@ -170,6 +205,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     if (screen.name === 'daily') return this.daily();
     if (screen.name === 'clock') return this.clock();
     if (screen.name === 'timed') return this.timed;
+    if (screen.name === 'ladder') return this.ladder();
     return null;
   });
 
@@ -177,6 +213,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   private readonly tutorialSteps: Tutorial<Params, State, Move, Hint>;
   private readonly records: DailyRecords;
   private readonly clockRecordsStore: ClockRecords;
+  private readonly ladderRecords: LadderRecords;
   private readonly todayDate = signal(localDay());
   /** False while the app is in the background. */
   private readonly appActive = signal(true);
@@ -239,6 +276,25 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   });
   readonly clockChoice: WritableSignal<ClockChoice>;
   readonly difficulties: readonly string[];
+  readonly ladderBest = computed((): LadderBest | null => {
+    const visits = this.challengeVisits(); // read first: it also brings in new best times
+    const times = Object.entries(this.ladderRecords.bestTimes())
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([difficulty, time]) => ({ difficulty: this.game.difficulties?.[Number(difficulty)] ?? null, time }));
+    return times.length ? times[visits % times.length] : null;
+  });
+  readonly ladderRun = computed((): LadderRunInfo | null => {
+    this.screen();
+    const run = this.ladderRecords.run();
+    if (!run) return null;
+    return {
+      difficulty: run.difficulty,
+      difficultyName: this.game.difficulties?.[run.difficulty] ?? null,
+      rung: run.rung,
+      rungCount: this.game.presets().length,
+      elapsed: run.elapsed,
+    };
+  });
   readonly timedBest = computed(() => {
     const visits = this.challengeVisits(); // read first: it also brings in new best times
     const times = Object.entries(this.timed.bestTimes())
@@ -269,6 +325,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.timed = new TimedStore(game);
     this.records = new DailyRecords(game.id);
     this.clockRecordsStore = new ClockRecords(game.id);
+    this.ladderRecords = new LadderRecords(game.id);
     this.homeVisits = signal(Number(readStored(`${game.id}.home.visits`)) || 0);
     this.challengeVisits = signal(Number(readStored(`${game.id}.challenges.visits`)) || 0);
     this.hasClock = !!game.daily;
@@ -290,6 +347,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       this.daily()?.setActive(shown && this.screen().name === 'daily');
       this.clock()?.setActive(shown && this.screen().name === 'clock');
       this.timed.setActive(shown && this.screen().name === 'timed');
+      this.ladder()?.setActive(shown && this.screen().name === 'ladder');
     });
 
     const listeners = [
@@ -307,6 +365,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       this.daily()?.setActive(false);
       this.clock()?.setActive(false);
       this.timed.setActive(false);
+      this.ladder()?.setActive(false);
     });
   }
 
@@ -320,6 +379,20 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
 
   openTimed(): void {
     this.go({ name: 'timed' });
+  }
+
+  ladderBestTimes(): Readonly<Record<string, number>> {
+    return this.ladderRecords.bestTimes();
+  }
+
+  openLadder(difficulty: number, fresh = false): void {
+    if (!this.validDifficulty(difficulty)) return;
+    if (fresh) {
+      this.ladderRecords.clearRun();
+      this.ladder()?.setActive(false);
+      this.ladder.set(null);
+    }
+    this.go({ name: 'ladder', difficulty });
   }
 
   openDaily(date: string, level: number): void {
@@ -411,6 +484,14 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
         );
       }
     }
+    if (screen.name === 'ladder') {
+      if (!this.validDifficulty(screen.difficulty)) return this.screen.set(HOME);
+      const open = this.ladder();
+      if (open?.difficulty !== screen.difficulty || open.result() !== null) {
+        open?.setActive(false);
+        this.ladder.set(new LadderStore(this.game, this.ladderRecords, screen.difficulty, this.session.showMistakes));
+      }
+    }
     if (screen.name === 'home') {
       this.homeVisits.update((n) => n + 1);
       writeStored(`${this.id}.home.visits`, String(this.homeVisits()));
@@ -420,6 +501,11 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       writeStored(`${this.id}.challenges.visits`, String(this.challengeVisits()));
     }
     this.screen.set(screen);
+  }
+
+  /** A difficulty of the game's (0 if it has none). */
+  private validDifficulty(difficulty: number): boolean {
+    return Number.isInteger(difficulty) && difficulty >= 0 && difficulty < Math.max(1, this.difficulties.length);
   }
 
   private available(date: string): boolean {

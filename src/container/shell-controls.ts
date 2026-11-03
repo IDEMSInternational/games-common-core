@@ -110,7 +110,32 @@ export interface ClockControls extends PlayControls {
   share(): Promise<string | null>;
 }
 
-export type ShellControls = FreePlayControls | DailyControls | ClockControls | TimedControls;
+/** The ladder: one puzzle of each size, smallest to largest, against the clock. */
+export interface LadderControls extends PlayControls {
+  readonly kind: 'ladder';
+  /** "Easy", "Hard"; null if the game has no difficulties. */
+  readonly difficultyName: string | null;
+  /** How many sizes the ladder has. */
+  readonly rungCount: number;
+  /** The rung being played, from 0. */
+  readonly rung: Signal<number>;
+  /** The puzzle's size and difficulty: "7×7", "10×10 Easy". */
+  readonly label: Signal<string>;
+  /** Milliseconds on the clock. */
+  readonly elapsed: Signal<number>;
+  /** The total time, once the last size is solved. */
+  readonly result: Signal<number | null>;
+  /** The best time at this difficulty before this ladder, if any. */
+  readonly best: Signal<number | null>;
+  /** True when the ladder was climbed in a new best time. */
+  readonly newBest: Signal<boolean>;
+  /** Back to the bottom, the clock at zero. */
+  playAgain(): void;
+  /** Shares a new best time through the device's share panel. Returns a message to show, if any. */
+  share(): Promise<string | null>;
+}
+
+export type ShellControls = FreePlayControls | DailyControls | ClockControls | TimedControls | LadderControls;
 
 /** Formats a time on the clock: "0:42", "12:05", "1:02:03". */
 export function formatTime(ms: number): string {

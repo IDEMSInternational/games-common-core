@@ -19,6 +19,9 @@
         @case ('free') {
           Free play
         }
+        @case ('ladder') {
+          Ladder
+        }
       }
     </h1>
     <button type="button" class="help" aria-label="How to play" (click)="help.emit()">?</button>
@@ -65,6 +68,38 @@
         <span class="clock" [attr.aria-label]="'Time left ' + time(c.remaining() + 999)">
           ⏱ {{ time(c.remaining() + 999) }}
         </span>
+      }
+    </div>
+  } @else if (c.kind === 'ladder') {
+    <div class="mode-bar">
+      @if (c.result(); as result) {
+        <span class="clock" role="status">Climbed in {{ time(result) }}</span>
+        <button type="button" class="primary" (click)="c.playAgain()">Play again</button>
+        <div class="row">
+          <p class="shared">
+            @if (c.newBest()) {
+              A new best time{{ c.difficultyName ? ' for ' + c.difficultyName : '' }}!
+            } @else {
+              Your best time: {{ time(c.best()!) }}
+            }
+          </p>
+          @if (c.newBest()) {
+            <button type="button" class="primary" (click)="share(c)">Share</button>
+          }
+        </div>
+        @if (shareMessage(); as message) {
+          <p class="shared" role="status">{{ message }}</p>
+        }
+      } @else {
+        <span class="rungs">
+          <ol [attr.aria-label]="'Size ' + (c.rung() + 1) + ' of ' + c.rungCount">
+            @for (i of rungs(c.rungCount); track i) {
+              <li [class.done]="i < c.rung() || (i === c.rung() && c.completed())" [class.current]="i === c.rung()"></li>
+            }
+          </ol>
+          {{ c.label() }}
+        </span>
+        <span class="clock" [attr.aria-label]="'Time ' + time(c.elapsed())">⏱ {{ time(c.elapsed()) }}</span>
       }
     </div>
   } @else {

@@ -7,9 +7,11 @@ import { ShellControls, SizeControls, formatTime } from '../shell-controls';
 const CUSTOM = 'custom';
 
 /**
- * The common frame every game sits in: title, game menu (free and timed play) or
- * day and clock (daily puzzle), the board, and the undo/redo bar. The game's board is projected into the middle;
- * game-specific tools can be projected with the `puzzleTools` attribute.
+ * The common frame every game sits in: title, game menu (free and timed
+ * play), day and clock (daily puzzle), count and time left (Beat the
+ * clock) or rungs and clock (ladder), the board, and the undo/redo bar.
+ * The game's board is projected into the middle; game-specific tools can
+ * be projected with the `puzzleTools` attribute.
  */
 @Component({
   selector: 'puzzle-shell',
@@ -33,6 +35,8 @@ export class PuzzleShell {
   protected readonly customError = signal<string | null>(null);
   protected readonly shareMessage = signal<string | null>(null);
   protected readonly time = formatTime;
+  /** The ladder's rungs, 0 to count - 1. */
+  protected readonly rungs = (count: number) => Array.from({ length: count }, (_, i) => i);
 
   protected choosePreset(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;

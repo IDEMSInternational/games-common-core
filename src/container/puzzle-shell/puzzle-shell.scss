@@ -37,6 +37,38 @@
     font-size: 0.9rem;
   }
 
+  /* The ladder's rungs: a circle for each size, filled once solved; the current one ringed. */
+  .rungs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    ol {
+      display: flex;
+      gap: 5px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      box-sizing: border-box;
+
+      &.current {
+        border-color: var(--brand);
+      }
+
+      &.done {
+        border-color: var(--brand);
+        background: var(--brand);
+      }
+    }
+  }
+
   /* A message with its Share button beside it. */
   .row {
     display: flex;

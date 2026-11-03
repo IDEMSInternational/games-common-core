@@ -16,7 +16,8 @@ const CUSTOM = 'custom';
  *
  * Also the Challenges page (see HomeControls.page), in the same style:
  * Beat the clock, which asks for the difficulty (Easy, Medium, Hard or a
- * custom size) and the time limit, and timed play.
+ * custom size) and the time limit, timed play, and the ladder, which
+ * asks for the difficulty (if the game has them) or whether to continue.
  */
 @Component({
   selector: 'puzzle-home',
@@ -25,7 +26,7 @@ const CUSTOM = 'custom';
   styleUrl: './puzzle-home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '(document:keydown.escape)': 'choosing.set(null); choosingTime.set(false)',
+    '(document:keydown.escape)': 'choosing.set(null); choosingTime.set(false); choosingLadder.set(false)',
   },
 })
 export class PuzzleHome {
@@ -54,6 +55,32 @@ export class PuzzleHome {
     this.customFields.set(c.clockCustomFields());
     this.customError.set(null);
     this.choosingTime.set(true);
+  }
+
+  /** Choosing the ladder's difficulty, or whether to continue the unfinished one. */
+  protected readonly choosingLadder = signal(false);
+  /** The ladder's best times by difficulty, as the sheet opened. */
+  protected readonly ladderBests = signal<Readonly<Record<string, number>>>({});
+
+  /** The ladder: straight up it if there's nothing to choose, else the sheet. */
+  protected playLadder(): void {
+    const c = this.controls();
+    if (c.difficulties.length === 0 && !c.ladderRun()) {
+      c.openLadder(0, true);
+      return;
+    }
+    this.ladderBests.set(c.ladderBestTimes());
+    this.choosingLadder.set(true);
+  }
+
+  protected startLadder(difficulty: number): void {
+    this.choosingLadder.set(false);
+    this.controls().openLadder(difficulty, true);
+  }
+
+  protected continueLadder(difficulty: number): void {
+    this.choosingLadder.set(false);
+    this.controls().openLadder(difficulty);
   }
 
   protected chooseCustomSize(): void {

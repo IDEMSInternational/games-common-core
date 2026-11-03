@@ -82,6 +82,15 @@
       }
       <button type="button" class="primary" (click)="c.openTimed()">Play</button>
     </section>
+
+    <section class="card" aria-labelledby="ladder-heading">
+      <h2 id="ladder-heading">Ladder</h2>
+      <p class="what">Every size, smallest to largest: climb as fast as you can.</p>
+      @if (c.ladderBest(); as best) {
+        <p class="status">Your best time{{ best.difficulty ? ' for ' + best.difficulty : '' }}: {{ time(best.time) }}</p>
+      }
+      <button type="button" class="primary" (click)="playLadder()">Play</button>
+    </section>
   }
 </main>
 
@@ -98,6 +107,36 @@
       </button>
     }
     <button type="button" class="cancel" (click)="choosing.set(null)">Cancel</button>
+  </div>
+}
+
+@if (choosingLadder()) {
+  <div class="backdrop" (click)="choosingLadder.set(false)"></div>
+  <div class="chooser" role="dialog" aria-modal="true" aria-labelledby="ladder-sheet-heading">
+    <h2 id="ladder-sheet-heading">Ladder</h2>
+    @if (c.ladderRun(); as run) {
+      <button type="button" class="level started" (click)="continueLadder(run.difficulty)">
+        <span class="name">Continue</span>
+        <span class="size">{{ run.difficultyName ? run.difficultyName + ' · ' : '' }}Size {{ run.rung + 1 }} of {{ run.rungCount }}</span>
+        <span class="state">{{ time(run.elapsed) }} so far</span>
+      </button>
+      @if (c.difficulties.length > 0) {
+        <p>Or start again</p>
+      }
+    } @else {
+      <p>Choose a difficulty</p>
+    }
+    @if (c.difficulties.length > 0) {
+      @for (name of c.difficulties; track $index) {
+        <button type="button" class="level" (click)="startLadder($index)">
+          <span class="name">{{ name }}</span>
+          <span class="state">{{ ladderBests()[$index] ? 'Your best time: ' + time(ladderBests()[$index]) : 'No best time yet' }}</span>
+        </button>
+      }
+    } @else {
+      <button type="button" class="primary" (click)="startLadder(0)">Start again</button>
+    }
+    <button type="button" class="cancel" (click)="choosingLadder.set(false)">Cancel</button>
   </div>
 }
 
