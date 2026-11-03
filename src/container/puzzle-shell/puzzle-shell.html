@@ -2,7 +2,7 @@
 
 <header class="top-bar">
   <div class="puzzle-title-row">
-    <button type="button" class="back" aria-label="Home" (click)="back.emit()">
+    <button type="button" class="back" aria-label="Back" (click)="back.emit()">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
     </button>
     <h1>
@@ -15,6 +15,9 @@
         }
         @case ('timed') {
           Timed play
+        }
+        @case ('free') {
+          Free play
         }
       }
     </h1>
@@ -109,7 +112,7 @@
   }
 </header>
 
-@if (customOpen() && c.kind === 'timed') {
+@if (customOpen() && (c.kind === 'free' || c.kind === 'timed')) {
   <form class="custom-form" (submit)="submitCustom($event)">
     @for (field of c.customFields(); track field.key) {
       <label>
@@ -155,5 +158,8 @@
   <button type="button" (click)="c.undo()" [disabled]="!c.canUndo()">Undo</button>
   <button type="button" (click)="c.redo()" [disabled]="!c.canRedo()">Redo</button>
   <button type="button" (click)="c.restart()" [disabled]="!c.canUndo()">Restart</button>
+  @if (c.kind === 'free') {
+    <button type="button" (click)="c.solve()" [disabled]="c.completed()">Solve</button>
+  }
 </nav>
 

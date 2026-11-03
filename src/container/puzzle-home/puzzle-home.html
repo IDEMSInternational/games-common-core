@@ -1,67 +1,88 @@
 @let c = controls();
 
 <header class="puzzle-title-row">
-  <puzzle-menu [game]="{ id: c.id, name: c.title, version: c.version }" />
-  <h1>{{ c.title }}</h1>
+  @if (c.page() === 'home') {
+    <puzzle-menu [game]="{ id: c.id, name: c.title, version: c.version }" />
+    <h1>{{ c.title }}</h1>
+  } @else {
+    <button type="button" class="back" aria-label="Back" (click)="c.goHome()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+    </button>
+    <h1>Challenges</h1>
+  }
   <button type="button" class="help" aria-label="How to play" (click)="c.startTutorial()">?</button>
 </header>
 
 <main>
-  @if (c.today(); as today) {
-    <section class="card" aria-labelledby="daily-heading">
-      <div class="card-head">
-        <h2 id="daily-heading">Daily puzzles</h2>
-        @if (c.streak(); as streak) {
-          <span class="streak">🔥 {{ streak.name }}: {{ streak.days === 1 ? '1 day' : streak.days + ' days' }}</span>
-        }
-      </div>
-      <p class="what">#{{ today.number }} · {{ today.dayName }}</p>
-      <p class="status">{{ summary(today) }}</p>
-      <button type="button" class="primary" (click)="choosing.set(today)">Play</button>
+  @if (c.page() === 'home') {
+    @if (c.today(); as today) {
+      <section class="card" aria-labelledby="daily-heading">
+        <div class="card-head">
+          <h2 id="daily-heading">Daily puzzles</h2>
+          @if (c.streak(); as streak) {
+            <span class="streak">🔥 {{ streak.name }}: {{ streak.days === 1 ? '1 day' : streak.days + ' days' }}</span>
+          }
+        </div>
+        <p class="what">#{{ today.number }} · {{ today.dayName }}</p>
+        <p class="status">{{ summary(today) }}</p>
+        <button type="button" class="primary" (click)="choosing.set(today)">Play</button>
 
-      <h3>The last 7 days</h3>
-      <ol class="days">
-        @for (day of c.days(); track $index) {
-          <li>
-            @if (day) {
-              <button
-                type="button"
-                [class]="day.status"
-                [class.today]="day.isToday"
-                [style.background]="thirds(day)"
-                [attr.aria-label]="dayLabel(day)"
-                (click)="choosing.set(day)"
-              >
-                {{ day.dayName[0] }}
-              </button>
-            } @else {
-              <span class="none" aria-hidden="true"></span>
-            }
-          </li>
-        }
-      </ol>
-    </section>
-  }
-
-  @if (c.hasClock) {
-    <section class="card" aria-labelledby="clock-heading">
-      <h2 id="clock-heading">Beat the clock</h2>
-      <p class="what">As many puzzles as you can solve in the time given.</p>
-      @if (c.clockRecord(); as record) {
-        <p class="status">Your record for {{ record.minutes }} min: {{ record.solved === 1 ? '1 puzzle' : record.solved + ' puzzles' }}</p>
-      }
-      <button type="button" class="primary" (click)="choosingTime.set(true)">Play</button>
-    </section>
-  }
-
-  <section class="card" aria-labelledby="timed-heading">
-    <h2 id="timed-heading">Timed play</h2>
-    <p class="what">Any size, against the clock: beat your best time.</p>
-    @if (c.timedBest(); as best) {
-      <p class="status">Your best time for {{ best.label }}: {{ time(best.time) }}</p>
+        <h3>The last 7 days</h3>
+        <ol class="days">
+          @for (day of c.days(); track $index) {
+            <li>
+              @if (day) {
+                <button
+                  type="button"
+                  [class]="day.status"
+                  [class.today]="day.isToday"
+                  [style.background]="thirds(day)"
+                  [attr.aria-label]="dayLabel(day)"
+                  (click)="choosing.set(day)"
+                >
+                  {{ day.dayName[0] }}
+                </button>
+              } @else {
+                <span class="none" aria-hidden="true"></span>
+              }
+            </li>
+          }
+        </ol>
+      </section>
     }
-    <button type="button" class="primary" (click)="c.openTimed()">Play</button>
-  </section>
+
+    <section class="card" aria-labelledby="free-heading">
+      <h2 id="free-heading">Free play</h2>
+      <p class="what">Any size, and as many puzzles as you like.</p>
+      <button type="button" class="primary" (click)="c.openFreePlay()">Play</button>
+    </section>
+
+    <section class="card" aria-labelledby="challenges-heading">
+      <h2 id="challenges-heading">Challenges</h2>
+      <p class="what">Race the clock: beat your records and best times.</p>
+      <button type="button" class="primary" (click)="c.openChallenges()">Play</button>
+    </section>
+  } @else {
+    @if (c.hasClock) {
+      <section class="card" aria-labelledby="clock-heading">
+        <h2 id="clock-heading">Beat the clock</h2>
+        <p class="what">As many puzzles as you can solve in the time given.</p>
+        @if (c.clockRecord(); as record) {
+          <p class="status">Your record for {{ record.minutes }} min: {{ record.solved === 1 ? '1 puzzle' : record.solved + ' puzzles' }}</p>
+        }
+        <button type="button" class="primary" (click)="choosingTime.set(true)">Play</button>
+      </section>
+    }
+
+    <section class="card" aria-labelledby="timed-heading">
+      <h2 id="timed-heading">Timed play</h2>
+      <p class="what">Any size, against the clock: beat your best time.</p>
+      @if (c.timedBest(); as best) {
+        <p class="status">Your best time for {{ best.label }}: {{ time(best.time) }}</p>
+      }
+      <button type="button" class="primary" (click)="c.openTimed()">Play</button>
+    </section>
+  }
 </main>
 
 @if (choosing(); as day) {

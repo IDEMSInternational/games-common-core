@@ -15,12 +15,15 @@ import { ClockRecords, ClockStore } from './clock-store';
 import { DailyRecords, DayStatus } from './daily-records';
 import { DailyStore, paramsLabel } from './daily-store';
 import { hasSeenTutorial, markTutorialSeen } from './first-run';
+import { SessionStore } from './session-store';
 import { BestTime, TimedStore } from './timed-store';
 import { readStored, writeStored } from './stored-setting';
 import { TutorialStore } from './tutorial-store';
 
 export type Screen =
   | { readonly name: 'home' }
+  | { readonly name: 'challenges' }
+  | { readonly name: 'free' }
   | { readonly name: 'daily'; readonly date: string; readonly level: number }
   | { readonly name: 'clock'; readonly minutes: number }
   | { readonly name: 'timed' };
@@ -81,6 +84,8 @@ export interface HomeControls {
   readonly id: string;
   readonly title: string;
   readonly version: string;
+  /** The home page, or the Challenges page (Beat the clock and timed play). */
+  readonly page: Signal<'home' | 'challenges'>;
   /** The daily puzzles that can be played, today's last (null before the first one); empty without daily puzzles. */
   readonly days: Signal<readonly (DayInfo | null)[]>;
   readonly today: Signal<DayInfo | null>;
@@ -89,7 +94,7 @@ export interface HomeControls {
   openDaily(date: string, level: number): void;
   /** Whether the game has Beat the clock. */
   readonly hasClock: boolean;
-  /** One of the Beat the clock records: the next one each time the home page opens. */
+  /** One of the Beat the clock records: the next one each time the Challenges page opens. */
   readonly clockRecord: Signal<ClockRecord | null>;
   readonly clockRun: Signal<ClockRunInfo | null>;
   /**
@@ -97,17 +102,23 @@ export interface HomeControls {
    * with `fresh`, starts a new one (forgetting any unfinished run).
    */
   openClock(minutes: number, fresh?: boolean): void;
-  /** One of timed play's best times: the next one each time the home page opens. */
+  /** One of timed play's best times: the next one each time the Challenges page opens. */
   readonly timedBest: Signal<BestTime | null>;
   openTimed(): void;
+  openFreePlay(): void;
+  openChallenges(): void;
+  /** Back a page (see PuzzleScreens.goHome). */
+  goHome(): void;
   startTutorial(): void;
 }
 
 /**
- * Which screen a game's app shows: the home page, a daily puzzle, Beat
- * the clock, timed play, or the tutorial over any of them (on first
- * launch, over the home page). Each screen is a browser history entry, so Back (the
- * browser's, or Android's back button) returns to the home page.
+ * Which screen a game's app shows: the home page, a daily puzzle, free
+ * play, the Challenges page, Beat the clock, timed play, or the tutorial
+ * over any of them (on first launch, over the home page). Each screen is
+ * a browser history entry, so Back (the browser's, or Android's back
+ * button) returns to the page it was opened from: the home page, or the
+ * Challenges page for Beat the clock and timed play.
  *
  * Create it in an injection context (e.g. a component field).
  */
@@ -115,7 +126,9 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly id: string;
   readonly title: string;
   readonly version: string;
-  /** Timed play, continuing where the player left off. */
+  /** Free play, continuing where the player left off. */
+  readonly session: SessionStore<Params, State, Move>;
+  /** Timed play, likewise. */
   readonly timed: TimedStore<Params, State, Move>;
   /** The daily puzzle last opened. */
   readonly daily = signal<DailyStore<Params, State, Move> | null>(null);
@@ -125,9 +138,11 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly screen = signal<Screen>(HOME);
   /** The tutorial in progress, if any. It runs automatically on first launch. */
   readonly tutorial: WritableSignal<TutorialStore<Params, State, Move, Hint> | null>;
-  /** The puzzle on screen: a daily puzzle, Beat the clock or timed play; null on the home page. */
+  readonly page = computed(() => (this.screen().name === 'challenges' ? 'challenges' : 'home'));
+  /** The puzzle on screen: a daily puzzle, free play, Beat the clock or timed play; null on the home and Challenges pages. */
   readonly play = computed(() => {
     const screen = this.screen();
+    if (screen.name === 'free') return this.session;
     if (screen.name === 'daily') return this.daily();
     if (screen.name === 'clock') return this.clock();
     if (screen.name === 'timed') return this.timed;
@@ -141,8 +156,10 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   private readonly todayDate = signal(localDay());
   /** False while the app is in the background. */
   private readonly appActive = signal(true);
-  /** How many times the home page has opened (remembered): picks the streak, record and best time shown. */
+  /** How many times the home page has opened (remembered): picks the streak shown. */
   private readonly homeVisits: WritableSignal<number>;
+  /** Likewise for the Challenges page: picks the record and best time shown. */
+  private readonly challengeVisits: WritableSignal<number>;
 
   readonly days = computed(() => {
     this.screen(); // read the records again on coming back home
@@ -171,7 +188,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   });
   readonly today = computed(() => this.days().find((day) => day?.isToday) ?? null);
   readonly clockRecord = computed(() => {
-    const visits = this.homeVisits(); // read first: it also brings in new records
+    const visits = this.challengeVisits(); // read first: it also brings in new records
     const records = Object.entries(this.clockRecordsStore.records())
       .map(([minutes, solved]) => ({ minutes: Number(minutes), solved }))
       .sort((a, b) => a.minutes - b.minutes);
@@ -183,7 +200,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     return run ? { minutes: run.minutes, solved: run.solved, left: run.left } : null;
   });
   readonly timedBest = computed(() => {
-    const visits = this.homeVisits(); // read first: it also brings in new best times
+    const visits = this.challengeVisits(); // read first: it also brings in new best times
     const times = Object.entries(this.timed.bestTimes())
       .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
       .map(([, best]) => best);
@@ -208,10 +225,12 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.id = game.id;
     this.title = game.name;
     this.version = version;
+    this.session = new SessionStore(game);
     this.timed = new TimedStore(game);
     this.records = new DailyRecords(game.id);
     this.clockRecordsStore = new ClockRecords(game.id);
     this.homeVisits = signal(Number(readStored(`${game.id}.home.visits`)) || 0);
+    this.challengeVisits = signal(Number(readStored(`${game.id}.challenges.visits`)) || 0);
     this.hasClock = !!game.beatTheClock;
     this.records.clearOldGames(this.todayDate());
     this.tutorial = signal(hasSeenTutorial(game.id) ? null : this.newTutorial());
@@ -248,6 +267,14 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     });
   }
 
+  openFreePlay(): void {
+    this.go({ name: 'free' });
+  }
+
+  openChallenges(): void {
+    this.go({ name: 'challenges' });
+  }
+
   openTimed(): void {
     this.go({ name: 'timed' });
   }
@@ -266,7 +293,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.go({ name: 'clock', minutes });
   }
 
-  /** Back to the home page. */
+  /** Back a page: to the home page, or from Beat the clock or timed play to the Challenges page (if opened from it). */
   goHome(): void {
     if (this.screen().name !== 'home') history.back();
   }
@@ -280,7 +307,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.tutorial.set(null);
   }
 
-  /** Android's back button: closes the tutorial, then goes home, then leaves the app. */
+  /** Android's back button: closes the tutorial, then goes back a page, then (on the home page) leaves the app. */
   private back(): void {
     if (this.tutorial()) this.endTutorial();
     else if (this.screen().name !== 'home') this.goHome();
@@ -300,19 +327,23 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       const open = this.daily()?.puzzle;
       if (open?.date !== screen.date || open.level !== screen.level) {
         this.daily()?.setActive(false);
-        this.daily.set(new DailyStore(this.game, puzzle, this.records, this.timed.showMistakes));
+        this.daily.set(new DailyStore(this.game, puzzle, this.records, this.session.showMistakes));
       }
     }
     if (screen.name === 'clock') {
       if (!this.hasClock) return this.screen.set(HOME);
       if (this.clock()?.minutes !== screen.minutes || this.clock()?.finished()) {
         this.clock()?.setActive(false);
-        this.clock.set(new ClockStore(this.game, this.clockRecordsStore, screen.minutes, this.timed.showMistakes));
+        this.clock.set(new ClockStore(this.game, this.clockRecordsStore, screen.minutes, this.session.showMistakes));
       }
     }
     if (screen.name === 'home') {
       this.homeVisits.update((n) => n + 1);
       writeStored(`${this.id}.home.visits`, String(this.homeVisits()));
+    }
+    if (screen.name === 'challenges') {
+      this.challengeVisits.update((n) => n + 1);
+      writeStored(`${this.id}.challenges.visits`, String(this.challengeVisits()));
     }
     this.screen.set(screen);
   }

@@ -3,7 +3,7 @@ import { GameSession, SessionSnapshot } from '../engine/game-session';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { paramsLabel } from './daily-store';
 import { CelebrationSize } from './puzzle-fireworks/puzzle-fireworks';
-import { SizeControls } from './shell-controls';
+import { FreePlayControls } from './shell-controls';
 import {
   readStored,
   readStoredJson,
@@ -14,7 +14,7 @@ import {
 } from './stored-setting';
 
 /**
- * Makes a GameSession observable by Angular: every change bumps a version
+ * Free play: makes a GameSession observable by Angular: every change bumps a version
  * signal, and the computed signals below re-read the session.
  *
  * Saves the game in progress on the device after every change, so after
@@ -25,7 +25,8 @@ import {
  * Create it in an injection context (e.g. a component field), since the
  * "Show mistakes" setting is remembered too.
  */
-export class SessionStore<Params, State, Move> implements SizeControls {
+export class SessionStore<Params, State, Move> implements FreePlayControls {
+  readonly kind = 'free';
   private readonly session: GameSession<Params, State, Move>;
   private readonly game: PuzzleGame<Params, State, Move>;
   private readonly version = signal(0);
@@ -120,7 +121,7 @@ export class SessionStore<Params, State, Move> implements SizeControls {
   }
 
   touch(): void {
-    // No clock here (timed play adds one).
+    // Free play has no clock (timed play adds one).
   }
 
   /** A new puzzle (with new parameters, if given). */

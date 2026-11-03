@@ -5,10 +5,12 @@ import { DayInfo, HomeControls, LevelInfo } from '../puzzle-screens';
 import { formatTime } from '../shell-controls';
 
 /**
- * The home page: today's daily puzzles with the last 7 days', Beat the
- * clock and timed play. The ☰ menu lives here. Opening a
- * day's puzzle asks for the level (Easy, Medium or Hard) each time, and
- * Beat the clock for the time limit.
+ * The home page: today's daily puzzles with the last 7 days', free play
+ * and Challenges. The ☰ menu lives here. Opening a day's puzzle asks for
+ * the level (Easy, Medium or Hard) each time.
+ *
+ * Also the Challenges page (see HomeControls.page), in the same style:
+ * Beat the clock, which asks for the time limit, and timed play.
  */
 @Component({
   selector: 'puzzle-home',

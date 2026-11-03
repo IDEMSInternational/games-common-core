@@ -25,7 +25,7 @@ export interface PlayControls {
   touch(): void;
 }
 
-/** Choosing the puzzle's size and difficulty, and a new puzzle (timed play). */
+/** Choosing the puzzle's size and difficulty, and a new puzzle (free play and timed play). */
 export interface SizeControls extends PlayControls {
   readonly presetNames: readonly string[];
   readonly presetIndex: Signal<number>;
@@ -39,6 +39,13 @@ export interface SizeControls extends PlayControls {
   setDifficulty(difficulty: number): void;
   /** Starts a custom puzzle. Returns an error message, or null on success. */
   newCustomGame(values: Readonly<Record<string, number>>): string | null;
+}
+
+/** Free play: any size, a new puzzle whenever the player likes. */
+export interface FreePlayControls extends SizeControls {
+  readonly kind: 'free';
+  readonly gameId: Signal<string>;
+  solve(): void;
 }
 
 /** Timed play: any size, against the clock, with the best time for each size. */
@@ -101,7 +108,7 @@ export interface ClockControls extends PlayControls {
   share(): Promise<string | null>;
 }
 
-export type ShellControls = DailyControls | ClockControls | TimedControls;
+export type ShellControls = FreePlayControls | DailyControls | ClockControls | TimedControls;
 
 /** Formats a time on the clock: "0:42", "12:05", "1:02:03". */
 export function formatTime(ms: number): string {

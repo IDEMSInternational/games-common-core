@@ -21,23 +21,25 @@ The games are educational phone apps (Angular + Capacitor) built from
     into the day's puzzle (the same for everyone)
   - `tutorial.ts`: the interactive tutorial engine
 - `src/container/`: the Angular frame every game sits in:
-  - `puzzle-screens.ts`: which screen shows (home, a daily puzzle, Beat
-    the clock, timed play, the tutorial), as browser history so Back works
+  - `puzzle-screens.ts`: which screen shows (home, a daily puzzle, free
+    play, Challenges, Beat the clock, timed play, the tutorial), as
+    browser history so Back works
   - `puzzle-home/`: the home page: today's daily puzzles and the last 7
-    days', a streak, Beat the clock with a record, timed play with a best
-    time, and the ☰ menu
+    days' with a streak, free play, Challenges, and the ☰ menu; and the
+    Challenges page: Beat the clock with a record, timed play with a best
+    time
   - `puzzle-shell/`: the frame around a puzzle: title, day and clock
     (daily puzzle), count and time left (Beat the clock), or size and
-    difficulty menus, custom size, clock and best time (timed play);
-    undo/redo bar
+    difficulty menus and custom size (free play, with Solve; timed play,
+    with its clock and best time); undo/redo bar
   - `puzzle-menu/`: the ☰ menu of studio pages; their text is in `menu-pages.ts`
   - `puzzle-tutorial/`: the tutorial frame (captions, progress dots, Skip)
   - `daily-store.ts`, `clock-store.ts`, `timed-store.ts`,
     `tutorial-store.ts`: connect the engine to Angular (a daily puzzle
     with its clock, a Beat the clock run with its records, timed play with
-    its best times, the tutorial); `session-store.ts` is a puzzle session
-    with its size menu, used by timed play; `shell-controls.ts` is what
-    the shell needs from them
+    its best times, the tutorial); `session-store.ts` is free play: a
+    puzzle session with its size menu, also used by timed play;
+    `shell-controls.ts` is what the shell needs from them
   - `puzzle-stage/`: the app is laid out for a 393 × 852 screen (an
     iPhone 16) and scaled to the real one, so it looks the same on every
     phone; spare height or width is used (cards spread out, the board

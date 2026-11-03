@@ -15,27 +15,6 @@
   gap: 10px;
 }
 
-.back {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--brand);
-
-  svg {
-    width: 24px;
-    height: 24px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.75;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-}
-
 /* A daily puzzle's day and size and its clock (or result); Beat the clock's count and time left. */
 .mode-bar {
   display: flex;
@@ -148,7 +127,8 @@
 
 .action-bar {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column; // three buttons, or four with Solve
   gap: 8px;
   width: 100%;
 }
