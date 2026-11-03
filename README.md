@@ -33,10 +33,9 @@ The games are educational phone apps (Angular + Capacitor) built from
     (daily puzzle), count and time left (Beat the clock), rungs and clock
     (ladder), or size and difficulty menus and custom size (free play,
     with Solve; timed play, with its clock and best time); undo/redo bar
-  - `puzzle-menu/`: the ☰ menu: Game options (dark theme, settings for
-    playing such as Show mistakes and the game's own, which daily levels
-    to play, resetting the records), then the studio pages, whose text is
-    in `menu-pages.ts`
+  - `puzzle-menu/`: the ☰ menu: Game options (dark theme, Show mistakes,
+    which daily levels to play, resetting the records), then the studio
+    pages, whose text is in `menu-pages.ts`
   - `puzzle-tutorial/`: the tutorial frame (captions, progress dots, Skip)
   - `daily-store.ts`, `clock-store.ts`, `timed-store.ts`, `ladder-store.ts`,
     `tutorial-store.ts`: connect the engine to Angular (a daily puzzle

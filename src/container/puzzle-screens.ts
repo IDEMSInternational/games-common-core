@@ -134,7 +134,11 @@ export interface OptionSwitch {
 
 /** The game options in the ☰ menu that belong to the game (the theme is the app's). */
 export interface GameOptions {
-  /** Settings for playing: Show mistakes (if the game has it), then the game's own. */
+  /**
+   * Settings for playing, shared by every game: Show mistakes, if the
+   * game has it (the same setting as the switch on the game screens).
+   * A game's own switches, like Rectangles' Lock, stay on its screens.
+   */
   readonly switches: readonly OptionSwitch[];
   /**
    * Deletes the player's records on this device: daily results and
@@ -370,12 +374,10 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     return streaks.length ? streaks[visits % streaks.length] : null;
   });
 
-  /** `options.switches`: the game's own settings for Game options (e.g. Rectangles' Lock). */
   constructor(
     game: PuzzleGame<Params, State, Move>,
     tutorial: Tutorial<Params, State, Move, Hint>,
     version: string,
-    options: { readonly switches?: readonly OptionSwitch[] } = {},
   ) {
     this.game = game;
     this.tutorialSteps = tutorial;
@@ -383,12 +385,9 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.title = game.name;
     this.version = version;
     this.showMistakes = storedSetting(`${game.id}.showMistakes`);
-    this.switches = [
-      ...(game.canShowMistakes
-        ? [{ label: 'Show mistakes', description: 'Rule-breaking pieces are shown in red', checked: this.showMistakes }]
-        : []),
-      ...(options.switches ?? []),
-    ];
+    this.switches = game.canShowMistakes
+      ? [{ label: 'Show mistakes', description: 'Rule-breaking pieces are shown in red', checked: this.showMistakes }]
+      : [];
     this.session = new SessionStore(game, game.id, this.showMistakes);
     this.timed = new TimedStore(game, this.showMistakes);
     this.records = new DailyRecords(game.id);
