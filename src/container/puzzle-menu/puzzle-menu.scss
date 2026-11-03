@@ -83,6 +83,31 @@ header {
     line-height: 1.4;
   }
 
+  .setting + .setting {
+    margin-top: 8px;
+  }
+
+  .setting .hint {
+    margin: 2px 0 0 56px; // under the label, beside the switch
+  }
+
+  .reset {
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  .confirm {
+    display: flex;
+    gap: 8px;
+  }
+
+  .danger {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+    font-weight: 600;
+  }
+
   .tick {
     display: flex;
     align-items: center;

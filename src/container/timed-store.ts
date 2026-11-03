@@ -4,7 +4,7 @@ import { CelebrationSize } from './puzzle-fireworks/puzzle-fireworks';
 import { SessionStore } from './session-store';
 import { shareText } from './share';
 import { TimedControls, formatTime } from './shell-controls';
-import { readStoredJson, writeStoredJson } from './stored-setting';
+import { readStoredJson, removeStored, writeStoredJson } from './stored-setting';
 
 /** A best time, for one size and difficulty. */
 export interface BestTime {
@@ -66,8 +66,8 @@ export class TimedStore<Params, State, Move> implements TimedControls {
   });
 
   /** Create it in an injection context (e.g. a component field), as SessionStore. */
-  constructor(game: PuzzleGame<Params, State, Move>) {
-    this.session = new SessionStore(game, `${game.id}.timed`);
+  constructor(game: PuzzleGame<Params, State, Move>, showMistakes?: WritableSignal<boolean>) {
+    this.session = new SessionStore(game, `${game.id}.timed`, showMistakes);
     this.canUndo = computed(() => this.result() === null && this.session.canUndo());
     this.canRedo = computed(() => this.result() === null && this.session.canRedo());
     this.bestKey = `${game.id}.timed.best`;
@@ -108,6 +108,13 @@ export class TimedStore<Params, State, Move> implements TimedControls {
   }
   get label(): Signal<string> {
     return this.session.label;
+  }
+
+  /** Forgets the best times (see PuzzleScreens.resetRecords); the puzzle in progress stays. */
+  forgetBestTimes(): void {
+    removeStored(this.bestKey);
+    this.best.set(null);
+    this.newBest.set(false);
   }
 
   /** Every best time, by size and difficulty in the game's text form ("7x7", "10x10dh"). */

@@ -28,7 +28,15 @@ import { hasSeenTutorial, markTutorialSeen } from './first-run';
 import { LadderRecords, LadderStore } from './ladder-store';
 import { SessionStore } from './session-store';
 import { BestTime, TimedStore } from './timed-store';
-import { readStored, readStoredJson, writeStored, writeStoredJson } from './stored-setting';
+import {
+  readStored,
+  readStoredJson,
+  removeStored,
+  storedKeys,
+  storedSetting,
+  writeStored,
+  writeStoredJson,
+} from './stored-setting';
 import { TutorialStore } from './tutorial-store';
 
 export type Screen =
@@ -116,8 +124,26 @@ export interface LadderRunInfo {
 /** A day's status is the best of its levels'. */
 const STATUS_ORDER: readonly DayStatus[] = ['solved', 'late', 'started', 'new'];
 
+/** An on/off setting in Game options, remembered on the device. */
+export interface OptionSwitch {
+  readonly label: string;
+  /** One line on what it does. */
+  readonly description: string;
+  readonly checked: WritableSignal<boolean>;
+}
+
 /** The game options in the ☰ menu that belong to the game (the theme is the app's). */
 export interface GameOptions {
+  /** Settings for playing: Show mistakes (if the game has it), then the game's own. */
+  readonly switches: readonly OptionSwitch[];
+  /**
+   * Deletes the player's records on this device: daily results and
+   * streaks (and daily puzzles in progress), Beat the clock records and
+   * its unfinished run, timed play's best times, and the ladder's best
+   * times and unfinished ladder. Settings, and free and timed play's
+   * puzzles in progress, stay.
+   */
+  resetRecords(): void;
   /** Whether the game has daily puzzles. */
   readonly hasDaily: boolean;
   /** The daily levels the player plays, Easy, Medium and Hard: at least one. */
@@ -238,8 +264,14 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
 
   readonly dailyLevels: WritableSignal<readonly boolean[]>;
   readonly hasDaily: boolean;
+  /** The app's "Show mistakes" setting, shared by every mode. */
+  readonly showMistakes: WritableSignal<boolean>;
+  readonly switches: readonly OptionSwitch[];
+  /** Bumped when the records are reset, so what's shown is read again. */
+  private readonly resets = signal(0);
   readonly days = computed(() => {
     this.screen(); // read the records again on coming back home
+    this.resets();
     const today = this.todayDate();
     const schedule = this.game.daily;
     const played = this.dailyLevels();
@@ -269,6 +301,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly today = computed(() => this.days().find((day) => day?.isToday) ?? null);
   readonly clockRecord = computed(() => {
     const visits = this.challengeVisits(); // read first: it also brings in new records
+    this.resets();
     // Easy, Medium and Hard, then custom sizes; each by time limit.
     const order = (choice: ClockChoice) => {
       const level = CLOCK_LEVELS.indexOf(choice);
@@ -288,6 +321,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   });
   readonly clockRun = computed((): ClockRunInfo | null => {
     this.screen();
+    this.resets();
     const run = this.clockRecordsStore.run();
     if (!run?.choice) return null;
     const { choice, minutes, solved, left } = run;
@@ -297,6 +331,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly difficulties: readonly string[];
   readonly ladderBest = computed((): LadderBest | null => {
     const visits = this.challengeVisits(); // read first: it also brings in new best times
+    this.resets();
     const times = Object.entries(this.ladderRecords.bestTimes())
       .sort(([a], [b]) => Number(a) - Number(b))
       .map(([difficulty, time]) => ({ difficulty: this.game.difficulties?.[Number(difficulty)] ?? null, time }));
@@ -304,6 +339,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   });
   readonly ladderRun = computed((): LadderRunInfo | null => {
     this.screen();
+    this.resets();
     const run = this.ladderRecords.run();
     if (!run) return null;
     return {
@@ -316,6 +352,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   });
   readonly timedBest = computed(() => {
     const visits = this.challengeVisits(); // read first: it also brings in new best times
+    this.resets();
     const times = Object.entries(this.timed.bestTimes())
       .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
       .map(([, best]) => best);
@@ -325,6 +362,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     const visits = this.homeVisits(); // read first: it also brings in new results
     const today = this.todayDate();
     const played = this.dailyLevels();
+    this.resets();
     const streaks = DAILY_LEVELS.map((name, level) => ({
       name,
       days: played[level] ? this.records.streak(today, level) : 0,
@@ -332,18 +370,27 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     return streaks.length ? streaks[visits % streaks.length] : null;
   });
 
+  /** `options.switches`: the game's own settings for Game options (e.g. Rectangles' Lock). */
   constructor(
     game: PuzzleGame<Params, State, Move>,
     tutorial: Tutorial<Params, State, Move, Hint>,
     version: string,
+    options: { readonly switches?: readonly OptionSwitch[] } = {},
   ) {
     this.game = game;
     this.tutorialSteps = tutorial;
     this.id = game.id;
     this.title = game.name;
     this.version = version;
-    this.session = new SessionStore(game);
-    this.timed = new TimedStore(game);
+    this.showMistakes = storedSetting(`${game.id}.showMistakes`);
+    this.switches = [
+      ...(game.canShowMistakes
+        ? [{ label: 'Show mistakes', description: 'Rule-breaking pieces are shown in red', checked: this.showMistakes }]
+        : []),
+      ...(options.switches ?? []),
+    ];
+    this.session = new SessionStore(game, game.id, this.showMistakes);
+    this.timed = new TimedStore(game, this.showMistakes);
     this.records = new DailyRecords(game.id);
     this.clockRecordsStore = new ClockRecords(game.id);
     this.ladderRecords = new LadderRecords(game.id);
@@ -416,6 +463,23 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     if (!levels.some(Boolean)) return; // at least one
     this.dailyLevels.set(levels);
     writeStoredJson(`${this.id}.daily.levels`, levels);
+  }
+
+  resetRecords(): void {
+    const kept = new Set([`${this.id}.daily.levels`, `${this.id}.clock.choice`, `${this.id}.clock.custom`]);
+    const prefixes = ['daily.', 'clock.', 'ladder.', 'timed.best'].map((p) => `${this.id}.${p}`);
+    for (const key of storedKeys()) {
+      if (!kept.has(key) && prefixes.some((prefix) => key.startsWith(prefix))) removeStored(key);
+    }
+    // Puzzles opened before are forgotten too: they'd save their old results again.
+    this.daily()?.setActive(false);
+    this.daily.set(null);
+    this.clock()?.setActive(false);
+    this.clock.set(null);
+    this.ladder()?.setActive(false);
+    this.ladder.set(null);
+    this.timed.forgetBestTimes();
+    this.resets.update((n) => n + 1);
   }
 
   ladderBestTimes(): Readonly<Record<string, number>> {
@@ -507,7 +571,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       const open = this.daily()?.puzzle;
       if (open?.date !== screen.date || open.level !== screen.level) {
         this.daily()?.setActive(false);
-        this.daily.set(new DailyStore(this.game, puzzle, this.records, this.session.showMistakes, this.dailyLevels));
+        this.daily.set(new DailyStore(this.game, puzzle, this.records, this.showMistakes, this.dailyLevels));
       }
     }
     if (screen.name === 'clock') {
@@ -517,7 +581,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       if (open?.minutes !== screen.minutes || open.choice !== choice || open.finished()) {
         open?.setActive(false);
         this.clock.set(
-          new ClockStore(this.game, this.clockRecordsStore, screen.minutes, choice, this.session.showMistakes),
+          new ClockStore(this.game, this.clockRecordsStore, screen.minutes, choice, this.showMistakes),
         );
       }
     }
@@ -526,7 +590,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       const open = this.ladder();
       if (open?.difficulty !== screen.difficulty || open.result() !== null) {
         open?.setActive(false);
-        this.ladder.set(new LadderStore(this.game, this.ladderRecords, screen.difficulty, this.session.showMistakes));
+        this.ladder.set(new LadderStore(this.game, this.ladderRecords, screen.difficulty, this.showMistakes));
       }
     }
     if (screen.name === 'home') {

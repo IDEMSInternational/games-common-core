@@ -44,6 +44,19 @@
           <puzzle-switch [checked]="theme.dark()" (checkedChange)="theme.setDark($event)">Dark theme</puzzle-switch>
         </section>
         @if (options(); as o) {
+          @if (o.switches.length > 0) {
+            <section>
+              <h3>Playing</h3>
+              @for (setting of o.switches; track setting.label) {
+                <div class="setting">
+                  <puzzle-switch [checked]="setting.checked()" (checkedChange)="setting.checked.set($event)">
+                    {{ setting.label }}
+                  </puzzle-switch>
+                  <p class="hint">{{ setting.description }}</p>
+                </div>
+              }
+            </section>
+          }
           @if (o.hasDaily) {
             <section>
               <h3 id="daily-levels-heading">Daily puzzles</h3>
@@ -63,6 +76,22 @@
               </div>
             </section>
           }
+          <section>
+            <h3>Your progress</h3>
+            @if (confirmingReset()) {
+              <p class="hint" role="alert">
+                This deletes your daily results and streaks, records and best times on this phone. It can't be undone.
+              </p>
+              <div class="confirm">
+                <button type="button" class="danger" (click)="reset(o)">Delete my records</button>
+                <button type="button" (click)="confirmingReset.set(false)">Cancel</button>
+              </div>
+            } @else if (resetDone()) {
+              <p class="hint" role="status">Your records have been deleted.</p>
+            } @else {
+              <button type="button" class="reset" (click)="confirmingReset.set(true)">Reset my records…</button>
+            }
+          </section>
         }
       </div>
     } @else if (page(); as p) {

@@ -59,6 +59,16 @@ export class PuzzleMenu {
     this.opener().nativeElement.focus();
   }
 
+  /** Asking "are you sure?" before resetting the records; then, done. */
+  protected readonly confirmingReset = signal(false);
+  protected readonly resetDone = signal(false);
+
+  protected reset(options: GameOptions): void {
+    options.resetRecords();
+    this.confirmingReset.set(false);
+    this.resetDone.set(true);
+  }
+
   /** Ticks or unticks a daily level (the last one ticked stays). */
   protected setDailyLevel(options: GameOptions, level: number, event: Event): void {
     const box = event.target as HTMLInputElement;
@@ -72,6 +82,8 @@ export class PuzzleMenu {
   }
 
   protected read(page: MenuPage | null): void {
+    this.confirmingReset.set(false);
+    this.resetDone.set(false);
     this.page.set(page);
     this.panel()?.nativeElement.focus();
   }

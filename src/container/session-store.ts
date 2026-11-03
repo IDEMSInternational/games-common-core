@@ -56,8 +56,15 @@ export class SessionStore<Params, State, Move> implements FreePlayControls {
     return this.game.presets().findIndex((p) => this.game.encodeParams(this.atCurrentDifficulty(p.params)) === current);
   });
 
-  /** `key` keeps this store's size and game apart from others' (e.g. "slant.timed"). */
-  constructor(game: PuzzleGame<Params, State, Move>, key = game.id) {
+  /**
+   * `key` keeps this store's size and game apart from others' (e.g.
+   * "slant.timed"); `showMistakes`, if given, is the app's shared setting.
+   */
+  constructor(
+    game: PuzzleGame<Params, State, Move>,
+    key = game.id,
+    showMistakes: WritableSignal<boolean> = storedSetting(`${game.id}.showMistakes`),
+  ) {
     this.game = game;
     this.paramsKey = `${key}.size`;
     this.savedGameKey = `${key}.game`;
@@ -72,7 +79,7 @@ export class SessionStore<Params, State, Move> implements FreePlayControls {
     this.presetNames = game.presets().map((p) => p.name);
     this.difficulties = game.difficulties ?? [];
     this.canShowMistakes = game.canShowMistakes ?? false;
-    this.showMistakes = storedSetting(`${game.id}.showMistakes`);
+    this.showMistakes = showMistakes;
   }
 
   newGame(presetIndex?: number): void {
