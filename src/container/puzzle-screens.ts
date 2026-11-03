@@ -11,7 +11,17 @@ import { App } from '@capacitor/app';
 import { DAILY_LEVELS, WEEKDAYS, availableDays, dailyPuzzle, localDay } from '../engine/daily';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { Tutorial } from '../engine/tutorial';
-import { ClockRecords, ClockStore } from './clock-store';
+import { CustomField } from '../engine/puzzle-game';
+import {
+  CLOCK_LEVELS,
+  ClockChoice,
+  ClockRecords,
+  ClockStore,
+  clockChoiceLabel,
+  clockChoiceParams,
+  customClockChoice,
+  customClockParams,
+} from './clock-store';
 import { DailyRecords, DayStatus } from './daily-records';
 import { DailyStore, paramsLabel } from './daily-store';
 import { hasSeenTutorial, markTutorialSeen } from './first-run';
@@ -25,7 +35,7 @@ export type Screen =
   | { readonly name: 'challenges' }
   | { readonly name: 'free' }
   | { readonly name: 'daily'; readonly date: string; readonly level: number }
-  | { readonly name: 'clock'; readonly minutes: number }
+  | { readonly name: 'clock'; readonly minutes: number; readonly choice: ClockChoice }
   | { readonly name: 'timed' };
 
 const HOME: Screen = { name: 'home' };
@@ -62,14 +72,19 @@ export interface LevelStreak {
   readonly days: number;
 }
 
-/** A Beat the clock record: the most puzzles solved in a time limit. */
-export interface ClockRecord {
+/** A Beat the clock record: the most puzzles solved at a difficulty (or size) in a time limit. */
+export interface ClockRecordInfo {
+  /** "Medium", "7×9" */
+  readonly label: string;
   readonly minutes: number;
   readonly solved: number;
 }
 
 /** An unfinished Beat the clock run. */
 export interface ClockRunInfo {
+  readonly choice: ClockChoice;
+  /** "Medium", "7×9" */
+  readonly label: string;
   readonly minutes: number;
   readonly solved: number;
   /** Milliseconds left. */
@@ -95,13 +110,22 @@ export interface HomeControls {
   /** Whether the game has Beat the clock. */
   readonly hasClock: boolean;
   /** One of the Beat the clock records: the next one each time the Challenges page opens. */
-  readonly clockRecord: Signal<ClockRecord | null>;
+  readonly clockRecord: Signal<ClockRecordInfo | null>;
   readonly clockRun: Signal<ClockRunInfo | null>;
+  /** Beat the clock's difficulty (or custom size) last played, remembered. */
+  readonly clockChoice: Signal<ClockChoice>;
+  /** The game's difficulty names for a custom size ("Easy", "Hard"); empty if it has none. */
+  readonly difficulties: readonly string[];
+  /** The custom size's settings for Beat the clock, filled in from the last custom size played. */
+  clockCustomFields(): { readonly fields: readonly CustomField[]; readonly difficulty: number };
+  /** Beat the clock's choice for a custom size; or what's wrong with it. */
+  customClock(values: Readonly<Record<string, number>>, difficulty: number): { choice: ClockChoice } | { error: string };
   /**
-   * Beat the clock with this time limit: continues the unfinished run, or
-   * with `fresh`, starts a new one (forgetting any unfinished run).
+   * Beat the clock at a difficulty (or custom size) with this time limit:
+   * continues the unfinished run, or with `fresh`, starts a new one
+   * (forgetting any unfinished run).
    */
-  openClock(minutes: number, fresh?: boolean): void;
+  openClock(minutes: number, choice: ClockChoice, fresh?: boolean): void;
   /** One of timed play's best times: the next one each time the Challenges page opens. */
   readonly timedBest: Signal<BestTime | null>;
   openTimed(): void;
@@ -189,16 +213,32 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly today = computed(() => this.days().find((day) => day?.isToday) ?? null);
   readonly clockRecord = computed(() => {
     const visits = this.challengeVisits(); // read first: it also brings in new records
-    const records = Object.entries(this.clockRecordsStore.records())
-      .map(([minutes, solved]) => ({ minutes: Number(minutes), solved }))
-      .sort((a, b) => a.minutes - b.minutes);
+    // Easy, Medium and Hard, then custom sizes; each by time limit.
+    const order = (choice: ClockChoice) => {
+      const level = CLOCK_LEVELS.indexOf(choice);
+      return level >= 0 ? level : CLOCK_LEVELS.length;
+    };
+    const records = this.clockRecordsStore
+      .records()
+      .map((record) => ({ ...record, label: clockChoiceLabel(this.game, record.choice) }))
+      .sort(
+        (a, b) =>
+          order(a.choice) - order(b.choice) ||
+          a.label.localeCompare(b.label, undefined, { numeric: true }) ||
+          a.minutes - b.minutes,
+      )
+      .map(({ label, minutes, solved }): ClockRecordInfo => ({ label, minutes, solved }));
     return records.length ? records[visits % records.length] : null;
   });
-  readonly clockRun = computed(() => {
+  readonly clockRun = computed((): ClockRunInfo | null => {
     this.screen();
     const run = this.clockRecordsStore.run();
-    return run ? { minutes: run.minutes, solved: run.solved, left: run.left } : null;
+    if (!run?.choice) return null;
+    const { choice, minutes, solved, left } = run;
+    return { choice, label: clockChoiceLabel(this.game, choice), minutes, solved, left };
   });
+  readonly clockChoice: WritableSignal<ClockChoice>;
+  readonly difficulties: readonly string[];
   readonly timedBest = computed(() => {
     const visits = this.challengeVisits(); // read first: it also brings in new best times
     const times = Object.entries(this.timed.bestTimes())
@@ -231,7 +271,10 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.clockRecordsStore = new ClockRecords(game.id);
     this.homeVisits = signal(Number(readStored(`${game.id}.home.visits`)) || 0);
     this.challengeVisits = signal(Number(readStored(`${game.id}.challenges.visits`)) || 0);
-    this.hasClock = !!game.beatTheClock;
+    this.hasClock = !!game.daily;
+    this.difficulties = game.difficulties ?? [];
+    const choice = readStored(`${game.id}.clock.choice`);
+    this.clockChoice = signal(choice && clockChoiceParams(game, choice).length ? choice : 'medium');
     this.records.clearOldGames(this.todayDate());
     this.tutorial = signal(hasSeenTutorial(game.id) ? null : this.newTutorial());
 
@@ -283,14 +326,41 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     if (this.available(date) && DAILY_LEVELS[level]) this.go({ name: 'daily', date, level });
   }
 
-  openClock(minutes: number, fresh = false): void {
+  clockCustomFields(): { readonly fields: readonly CustomField[]; readonly difficulty: number } {
+    const custom = readStored(`${this.id}.clock.custom`);
+    const params =
+      (custom && customClockParams(this.game, custom)) ||
+      clockChoiceParams(this.game, 'medium')[0] ||
+      this.game.defaultParams();
+    return { fields: this.game.customFields(params), difficulty: this.game.difficultyOf?.(params) ?? 0 };
+  }
+
+  customClock(values: Readonly<Record<string, number>>, difficulty: number): { choice: ClockChoice } | { error: string } {
+    const game = this.game;
+    for (const field of game.customFields(game.defaultParams())) {
+      const value = values[field.key];
+      if (!Number.isInteger(value) || value < field.min || value > field.max) {
+        return { error: `${field.label} must be a whole number from ${field.min} to ${field.max}` };
+      }
+    }
+    let params = game.customParams(values);
+    if (game.withDifficulty) params = game.withDifficulty(params, difficulty);
+    const error = game.validateParams(params);
+    return error ? { error } : { choice: customClockChoice(game, params) };
+  }
+
+  openClock(minutes: number, choice: ClockChoice, fresh = false): void {
     if (!this.hasClock || !Number.isInteger(minutes) || minutes < 1) return;
+    if (!clockChoiceParams(this.game, choice).length) return;
+    this.clockChoice.set(choice);
+    writeStored(`${this.id}.clock.choice`, choice);
+    if (customClockParams(this.game, choice)) writeStored(`${this.id}.clock.custom`, choice);
     if (fresh) {
       this.clockRecordsStore.clearRun();
       this.clock()?.setActive(false);
       this.clock.set(null);
     }
-    this.go({ name: 'clock', minutes });
+    this.go({ name: 'clock', minutes, choice });
   }
 
   /** Back a page: to the home page, or from Beat the clock or timed play to the Challenges page (if opened from it). */
@@ -331,10 +401,14 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       }
     }
     if (screen.name === 'clock') {
-      if (!this.hasClock) return this.screen.set(HOME);
-      if (this.clock()?.minutes !== screen.minutes || this.clock()?.finished()) {
-        this.clock()?.setActive(false);
-        this.clock.set(new ClockStore(this.game, this.clockRecordsStore, screen.minutes, this.session.showMistakes));
+      const choice = screen.choice ?? 'medium'; // history from before difficulties
+      if (!this.hasClock || !clockChoiceParams(this.game, choice).length) return this.screen.set(HOME);
+      const open = this.clock();
+      if (open?.minutes !== screen.minutes || open.choice !== choice || open.finished()) {
+        open?.setActive(false);
+        this.clock.set(
+          new ClockStore(this.game, this.clockRecordsStore, screen.minutes, choice, this.session.showMistakes),
+        );
       }
     }
     if (screen.name === 'home') {

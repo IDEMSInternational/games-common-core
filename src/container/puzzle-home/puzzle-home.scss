@@ -183,6 +183,59 @@ h3 {
     margin-top: 4px;
   }
 
+  /* Beat the clock's difficulty: Easy, Medium, Hard, and a custom size underneath. */
+  .difficulty {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .difficulty button,
+  .custom-toggle {
+    min-height: 48px;
+    font-size: 1.05rem;
+
+    &.chosen {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: var(--on-brand);
+      font-weight: 600;
+    }
+  }
+
+  .custom-size {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    input {
+      width: 4em;
+      min-height: 40px;
+      padding: 0 10px;
+      font: inherit;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+
+    select {
+      margin-left: auto;
+    }
+  }
+
+  .error {
+    color: var(--danger);
+    font-size: 0.9rem;
+  }
+
   .times {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

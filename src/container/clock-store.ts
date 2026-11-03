@@ -1,4 +1,5 @@
 import { Signal, WritableSignal, computed, signal } from '@angular/core';
+import { DAILY_LEVELS, DAILY_LEVEL_KEYS } from '../engine/daily';
 import { GameSession, SessionSnapshot } from '../engine/game-session';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { paramsLabel } from './daily-store';
@@ -10,8 +11,67 @@ import { readStoredJson, removeStored, writeStoredJson } from './stored-setting'
 /** How long a solved puzzle stays on screen (with the clock stopped) before the next. */
 export const NEXT_PUZZLE_MS = 900;
 
+/**
+ * What a run's puzzles are: a difficulty, as the daily puzzles' levels
+ * ("low", "medium", "high": Easy, Medium, Hard), or one custom size
+ * ("custom:" and its settings, e.g. "custom:7x9").
+ */
+export type ClockChoice = string;
+
+/** The difficulties, Easy to Hard. */
+export const CLOCK_LEVELS: readonly ClockChoice[] = DAILY_LEVEL_KEYS;
+
+const CUSTOM = 'custom:';
+
+/** A custom size's choice. */
+export function customClockChoice<Params>(game: PuzzleGame<Params, unknown, unknown>, params: Params): ClockChoice {
+  return CUSTOM + game.encodeParams(params);
+}
+
+/** A custom choice's settings; null for a difficulty, or settings no longer valid. */
+export function customClockParams<Params>(game: PuzzleGame<Params, unknown, unknown>, choice: ClockChoice): Params | null {
+  if (!choice.startsWith(CUSTOM)) return null;
+  const params = game.decodeParams(choice.slice(CUSTOM.length));
+  return game.validateParams(params) ? null : params;
+}
+
+/**
+ * The puzzle settings a choice's runs are dealt from: a difficulty's are
+ * that daily level's sizes (each once); a custom choice's, its one size.
+ * Empty if the choice can't be played.
+ */
+export function clockChoiceParams<Params>(game: PuzzleGame<Params, unknown, unknown>, choice: ClockChoice): Params[] {
+  const level = CLOCK_LEVELS.indexOf(choice);
+  if (level >= 0) {
+    const sizes = new Map((game.daily?.levels[level] ?? []).map((p) => [game.encodeParams(p), p]));
+    return [...sizes.values()];
+  }
+  const custom = customClockParams(game, choice);
+  return custom ? [custom] : [];
+}
+
+/** "Medium", "7×9", "7×9 Hard". */
+export function clockChoiceLabel<Params>(game: PuzzleGame<Params, unknown, unknown>, choice: ClockChoice): string {
+  const level = CLOCK_LEVELS.indexOf(choice);
+  if (level >= 0) return DAILY_LEVELS[level];
+  const custom = customClockParams(game, choice);
+  return custom ? paramsLabel(game, custom) : choice;
+}
+
+/** A record: the most puzzles solved with a choice in a time limit. */
+export interface ClockRecord {
+  readonly choice: ClockChoice;
+  readonly minutes: number;
+  readonly solved: number;
+}
+
+/** Before difficulties, runs were medium puzzles. */
+const OLD_CHOICE = 'medium';
+
 /** A run of Beat the clock in progress, saved so it can be continued. */
 export interface ClockRun<Move> {
+  /** Missing in runs saved before difficulties (then Medium). */
+  readonly choice?: ClockChoice;
   readonly minutes: number;
   /** Milliseconds left. */
   readonly left: number;
@@ -19,7 +79,7 @@ export interface ClockRun<Move> {
   /** The clock started (at the first touch on the board). */
   readonly started: boolean;
   readonly snapshot: SessionSnapshot<Move>;
-  /** The puzzle settings still to come in this set (indexes into the game's beatTheClock). */
+  /** The puzzle settings still to come in this set (indexes into the choice's, see clockChoiceParams). */
   readonly bag?: readonly number[];
 }
 
@@ -33,17 +93,34 @@ export class ClockRecords {
     this.runKey = `${gameId}.clock.run`;
   }
 
-  /** The most puzzles solved, by time limit in minutes. */
-  records(): Readonly<Record<string, number>> {
-    return readStoredJson<Record<string, number>>(this.recordsKey) ?? {};
+  /** All the records, as saved: the most puzzles solved, keyed "medium/5" (choice/minutes). */
+  private saved(): Record<string, number> {
+    const saved = readStoredJson<Record<string, number>>(this.recordsKey) ?? {};
+    // Records from before difficulties are keyed by minutes alone.
+    return Object.fromEntries(
+      Object.entries(saved).map(([key, solved]) => [key.includes('/') ? key : `${OLD_CHOICE}/${key}`, solved]),
+    );
   }
 
-  setRecord(minutes: number, solved: number): void {
-    writeStoredJson(this.recordsKey, { ...this.records(), [minutes]: solved });
+  records(): ClockRecord[] {
+    return Object.entries(this.saved()).map(([key, solved]) => {
+      const slash = key.lastIndexOf('/');
+      return { choice: key.slice(0, slash), minutes: Number(key.slice(slash + 1)), solved };
+    });
+  }
+
+  /** The record for a choice and time limit; 0 if none yet. */
+  record(choice: ClockChoice, minutes: number): number {
+    return this.saved()[`${choice}/${minutes}`] ?? 0;
+  }
+
+  setRecord(choice: ClockChoice, minutes: number, solved: number): void {
+    writeStoredJson(this.recordsKey, { ...this.saved(), [`${choice}/${minutes}`]: solved });
   }
 
   run<Move>(): ClockRun<Move> | null {
-    return readStoredJson<ClockRun<Move>>(this.runKey);
+    const run = readStoredJson<ClockRun<Move>>(this.runKey);
+    return run && { ...run, choice: run.choice ?? OLD_CHOICE };
   }
 
   saveRun<Move>(run: ClockRun<Move>): void {
@@ -56,9 +133,9 @@ export class ClockRecords {
 }
 
 /**
- * A run of Beat the clock, made observable by Angular: random puzzles,
- * picked from the game's beatTheClock settings, one after another until
- * the time is up.
+ * A run of Beat the clock, made observable by Angular: random puzzles of
+ * a difficulty (the daily puzzles' sizes for that level) or of one custom
+ * size, one after another until the time is up.
  *
  * The clock counts down from the first touch on the board, and runs only
  * while the puzzle is on screen (see setActive), and not while a solved
@@ -71,6 +148,8 @@ export class ClockStore<Params, State, Move> implements ClockControls {
   readonly id: string;
   readonly title: string;
   readonly minutes: number;
+  readonly choice: ClockChoice;
+  readonly choiceLabel: string;
   readonly canShowMistakes: boolean;
   readonly showMistakes: WritableSignal<boolean>;
   readonly celebrate = signal(false);
@@ -96,6 +175,8 @@ export class ClockStore<Params, State, Move> implements ClockControls {
   private active = false;
   /** A solved puzzle on show before the next one. */
   private between = false;
+  /** The settings the puzzles are dealt from (see nextParams). */
+  private readonly choices: Params[];
   /** The rest of the current set of puzzle settings (see nextParams). */
   private bag: number[];
   private nextPuzzle: ReturnType<typeof setTimeout> | undefined;
@@ -114,12 +195,17 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     game: PuzzleGame<Params, State, Move>,
     records: ClockRecords,
     minutes: number,
+    choice: ClockChoice,
     showMistakes: WritableSignal<boolean>,
   ) {
     this.game = game;
     this.records = records;
+    this.choice = choice;
+    this.choiceLabel = clockChoiceLabel(game, choice);
+    const choices = clockChoiceParams(game, choice);
+    this.choices = choices.length ? choices : [game.defaultParams()];
     const saved = records.run<Move>();
-    const run = saved?.minutes === minutes ? saved : null;
+    const run = saved?.minutes === minutes && saved.choice === choice ? saved : null;
     this.bag = run?.bag ? [...run.bag] : [];
     const continued = run && new GameSession(game, game.defaultParams(), undefined, run.snapshot);
     this.session =
@@ -130,7 +216,7 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     this.left = signal(run ? run.left : minutes * 60_000);
     this.solved = signal(run ? run.solved : 0);
     this.started = run ? run.started : false;
-    this.record = records.records()[minutes] ?? 0;
+    this.record = records.record(choice, minutes);
 
     this.id = game.id;
     this.title = game.name;
@@ -182,7 +268,7 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     clearTimeout(this.nextPuzzle);
     this.between = false;
     this.started = false;
-    this.record = this.records.records()[this.minutes] ?? 0;
+    this.record = this.records.record(this.choice, this.minutes);
     this.solved.set(0);
     this.left.set(this.minutes * 60_000);
     this.finished.set(false);
@@ -196,7 +282,7 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     const puzzles = this.solved() === 1 ? '1 puzzle' : `${this.solved()} puzzles`;
     return shareText(
       `${this.title}: Beat the clock`,
-      `${this.title}, Beat the clock: ${puzzles} solved in ${this.minutes} minutes, a new record!`,
+      `${this.title}, Beat the clock (${this.choiceLabel}): ${puzzles} solved in ${this.minutes} minutes, a new record!`,
     );
   }
 
@@ -213,8 +299,8 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     this.since.set(null);
     this.finished.set(true);
     this.celebrate.set(false);
-    if (this.solved() > (this.records.records()[this.minutes] ?? 0)) {
-      this.records.setRecord(this.minutes, this.solved());
+    if (this.solved() > this.records.record(this.choice, this.minutes)) {
+      this.records.setRecord(this.choice, this.minutes, this.solved());
       this.newRecord.set(true);
       this.celebration.set('big');
       this.celebrate.set(true);
@@ -255,11 +341,11 @@ export class ClockStore<Params, State, Move> implements ClockControls {
 
   /**
    * The next puzzle's settings, dealt like cards for a fair mix: each set
-   * has every one of the game's beatTheClock settings once, in random
-   * order, so no run can be all big puzzles or all small ones.
+   * has every one of the choice's settings once, in random order, so no
+   * run can be all big puzzles or all small ones.
    */
   private nextParams(): Params {
-    const choices = this.game.beatTheClock ?? [this.game.defaultParams()];
+    const choices = this.choices;
     if (this.bag.length === 0) {
       this.bag = choices.map((_, i) => i);
       for (let i = this.bag.length - 1; i > 0; i--) {
@@ -280,6 +366,7 @@ export class ClockStore<Params, State, Move> implements ClockControls {
   private save(): void {
     if (this.finished()) return;
     this.records.saveRun({
+      choice: this.choice,
       minutes: this.minutes,
       left: this.timeLeft(this.since()),
       solved: this.solved(),

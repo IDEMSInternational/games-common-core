@@ -1,8 +1,13 @@
-import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, input, signal, viewChild } from '@angular/core';
+import { DAILY_LEVELS } from '../../engine/daily';
+import { CLOCK_LEVELS, ClockChoice } from '../clock-store';
 import { DayStatus } from '../daily-records';
 import { PuzzleMenu } from '../puzzle-menu/puzzle-menu';
-import { DayInfo, HomeControls, LevelInfo } from '../puzzle-screens';
+import { ClockRunInfo, DayInfo, HomeControls, LevelInfo } from '../puzzle-screens';
 import { formatTime } from '../shell-controls';
+
+/** The Beat the clock sheet's custom size option. */
+const CUSTOM = 'custom';
 
 /**
  * The home page: today's daily puzzles with the last 7 days', free play
@@ -10,7 +15,8 @@ import { formatTime } from '../shell-controls';
  * the level (Easy, Medium or Hard) each time.
  *
  * Also the Challenges page (see HomeControls.page), in the same style:
- * Beat the clock, which asks for the time limit, and timed play.
+ * Beat the clock, which asks for the difficulty (Easy, Medium, Hard or a
+ * custom size) and the time limit, and timed play.
  */
 @Component({
   selector: 'puzzle-home',
@@ -27,24 +33,62 @@ export class PuzzleHome {
 
   /** The day whose level is being chosen, if any. */
   protected readonly choosing = signal<DayInfo | null>(null);
-  /** Choosing Beat the clock's time limit. */
+  /** Choosing Beat the clock's difficulty and time limit. */
   protected readonly choosingTime = signal(false);
-  protected readonly timeLimits = [5, 10, 15, 20];
+  protected readonly timeLimits = [1, 2, 5, 10];
   protected readonly time = formatTime;
+  protected readonly CUSTOM = CUSTOM;
+  protected readonly clockLevels = CLOCK_LEVELS.map((choice, i) => ({ choice, name: DAILY_LEVELS[i] }));
+  /** The difficulty chosen in the sheet, or CUSTOM. */
+  protected readonly clockChoice = signal<ClockChoice>('medium');
+  /** The custom size's fields, as the sheet opened. */
+  protected readonly customFields = signal<ReturnType<HomeControls['clockCustomFields']>>({ fields: [], difficulty: 0 });
+  protected readonly customError = signal<string | null>(null);
+  private readonly customSize = viewChild<ElementRef<HTMLFormElement>>('customSize');
+
+  /** Opens Beat the clock's sheet, at the difficulty (or custom size) last played. */
+  protected openClockChooser(): void {
+    const c = this.controls();
+    const last = c.clockChoice();
+    this.clockChoice.set(CLOCK_LEVELS.includes(last) ? last : CUSTOM);
+    this.customFields.set(c.clockCustomFields());
+    this.customError.set(null);
+    this.choosingTime.set(true);
+  }
+
+  protected chooseCustomSize(): void {
+    this.customError.set(null);
+    this.clockChoice.set(CUSTOM);
+  }
 
   protected open(day: DayInfo, level: LevelInfo): void {
     this.choosing.set(null);
     this.controls().openDaily(day.date, level.level);
   }
 
+  /** A new run at the chosen difficulty, or custom size if it's valid. */
   protected startClock(minutes: number): void {
+    let choice = this.clockChoice();
+    if (choice === CUSTOM) {
+      const form = this.customSize()?.nativeElement;
+      if (!form) return;
+      const data = new FormData(form);
+      const values: Record<string, number> = {};
+      for (const field of this.customFields().fields) values[field.key] = Number(data.get(field.key));
+      const custom = this.controls().customClock(values, Number(data.get('difficulty') ?? 0));
+      if ('error' in custom) {
+        this.customError.set(custom.error);
+        return;
+      }
+      choice = custom.choice;
+    }
     this.choosingTime.set(false);
-    this.controls().openClock(minutes, true);
+    this.controls().openClock(minutes, choice, true);
   }
 
-  protected continueClock(minutes: number): void {
+  protected continueClock(run: ClockRunInfo): void {
     this.choosingTime.set(false);
-    this.controls().openClock(minutes);
+    this.controls().openClock(run.minutes, run.choice);
   }
 
   protected startCustomClock(event: Event): void {

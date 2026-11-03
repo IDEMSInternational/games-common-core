@@ -68,9 +68,9 @@
         <h2 id="clock-heading">Beat the clock</h2>
         <p class="what">As many puzzles as you can solve in the time given.</p>
         @if (c.clockRecord(); as record) {
-          <p class="status">Your record for {{ record.minutes }} min: {{ record.solved === 1 ? '1 puzzle' : record.solved + ' puzzles' }}</p>
+          <p class="status">Your record for {{ record.label }}, {{ record.minutes }} min: {{ record.solved === 1 ? '1 puzzle' : record.solved + ' puzzles' }}</p>
         }
-        <button type="button" class="primary" (click)="choosingTime.set(true)">Play</button>
+        <button type="button" class="primary" (click)="openClockChooser()">Play</button>
       </section>
     }
 
@@ -106,15 +106,64 @@
   <div class="chooser" role="dialog" aria-modal="true" aria-labelledby="time-heading">
     <h2 id="time-heading">Beat the clock</h2>
     @if (c.clockRun(); as run) {
-      <button type="button" class="level started" (click)="continueClock(run.minutes)">
+      <button type="button" class="level started" (click)="continueClock(run)">
         <span class="name">Continue</span>
-        <span class="size">{{ run.minutes }} min</span>
+        <span class="size">{{ run.label }} · {{ run.minutes }} min</span>
         <span class="state">Solved: {{ run.solved }}, {{ time(run.left) }} left</span>
       </button>
-      <p>Or start again with</p>
-    } @else {
-      <p>How long?</p>
+      <p>Or start again</p>
     }
+    <p>Difficulty</p>
+    <div class="difficulty">
+      @for (level of clockLevels; track level.choice) {
+        <button
+          type="button"
+          [class.chosen]="clockChoice() === level.choice"
+          [attr.aria-pressed]="clockChoice() === level.choice"
+          (click)="clockChoice.set(level.choice)"
+        >
+          {{ level.name }}
+        </button>
+      }
+    </div>
+    <button
+      type="button"
+      class="custom-toggle"
+      [class.chosen]="clockChoice() === CUSTOM"
+      [attr.aria-pressed]="clockChoice() === CUSTOM"
+      (click)="chooseCustomSize()"
+    >
+      Custom size ›
+    </button>
+    @if (clockChoice() === CUSTOM) {
+      <form #customSize class="custom-size" (submit)="$event.preventDefault()">
+        @for (field of customFields().fields; track field.key) {
+          <label>
+            {{ field.label }}
+            <input
+              type="number"
+              inputmode="numeric"
+              [name]="field.key"
+              [min]="field.min"
+              [max]="field.max"
+              [value]="field.value"
+              required
+            />
+          </label>
+        }
+        @if (c.difficulties.length > 0) {
+          <select name="difficulty" aria-label="Difficulty">
+            @for (name of c.difficulties; track $index) {
+              <option [value]="$index" [selected]="$index === customFields().difficulty">{{ name }}</option>
+            }
+          </select>
+        }
+      </form>
+      @if (customError(); as error) {
+        <p class="error" role="alert">{{ error }}</p>
+      }
+    }
+    <p>How long?</p>
     <div class="times">
       @for (minutes of timeLimits; track minutes) {
         <button type="button" class="primary" (click)="startClock(minutes)">{{ minutes }} min</button>

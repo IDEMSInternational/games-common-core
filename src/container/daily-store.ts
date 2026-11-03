@@ -185,7 +185,10 @@ export class DailyStore<Params, State, Move> implements DailyControls {
   }
 }
 
-/** A puzzle's size (as named in the size menu) and difficulty: "9×9", "10×12 Hard". */
+/**
+ * A puzzle's size (as named in the size menu, else its custom settings:
+ * "7×9") and difficulty: "9×9", "10×12 Hard".
+ */
 export function paramsLabel<Params, State, Move>(
   game: PuzzleGame<Params, State, Move>,
   params: Params,
@@ -196,7 +199,10 @@ export function paramsLabel<Params, State, Move>(
   const encoded = game.encodeParams(params);
   const size =
     game.presets().find((p) => game.encodeParams(atDifficulty(p.params)) === encoded)?.name ??
-    encoded;
+    game
+      .customFields(params)
+      .map((field) => field.value)
+      .join('×');
   return difficulty !== undefined && game.difficulties
     ? `${size} ${game.difficulties[difficulty]}`
     : size;

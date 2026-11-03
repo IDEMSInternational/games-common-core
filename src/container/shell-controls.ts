@@ -90,6 +90,8 @@ export interface ClockControls extends PlayControls {
   readonly kind: 'clock';
   /** The time limit, in minutes. */
   readonly minutes: number;
+  /** The run's difficulty, or its custom size: "Medium", "7×9". */
+  readonly choiceLabel: string;
   /** The puzzle's size and difficulty: "7×7", "10×10 Easy". */
   readonly label: Signal<string>;
   /** Milliseconds left. */
@@ -98,11 +100,11 @@ export interface ClockControls extends PlayControls {
   readonly solved: Signal<number>;
   /** True once the time is up. */
   readonly finished: Signal<boolean>;
-  /** The record for this time limit, before this run. */
+  /** The record for this difficulty (or size) and time limit, before this run. */
   readonly record: number;
   /** True when the time is up with a new record. */
   readonly newRecord: Signal<boolean>;
-  /** Another run with the same time limit. */
+  /** Another run with the same difficulty (or size) and time limit. */
   playAgain(): void;
   /** Shares a new record through the device's share panel. Returns a message to show, if any. */
   share(): Promise<string | null>;
