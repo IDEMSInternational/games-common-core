@@ -28,7 +28,7 @@ import { hasSeenTutorial, markTutorialSeen } from './first-run';
 import { LadderRecords, LadderStore } from './ladder-store';
 import { SessionStore } from './session-store';
 import { BestTime, TimedStore } from './timed-store';
-import { readStored, writeStored } from './stored-setting';
+import { readStored, readStoredJson, writeStored, writeStoredJson } from './stored-setting';
 import { TutorialStore } from './tutorial-store';
 
 export type Screen =
@@ -116,14 +116,28 @@ export interface LadderRunInfo {
 /** A day's status is the best of its levels'. */
 const STATUS_ORDER: readonly DayStatus[] = ['solved', 'late', 'started', 'new'];
 
+/** The game options in the ☰ menu that belong to the game (the theme is the app's). */
+export interface GameOptions {
+  /** Whether the game has daily puzzles. */
+  readonly hasDaily: boolean;
+  /** The daily levels the player plays, Easy, Medium and Hard: at least one. */
+  readonly dailyLevels: Signal<readonly boolean[]>;
+  /** Plays (or stops playing) a daily level; the last one played can't be turned off. */
+  setDailyLevel(level: number, on: boolean): void;
+}
+
 /** What the home page needs, independent of the game's types. */
-export interface HomeControls {
+export interface HomeControls extends GameOptions {
   readonly id: string;
   readonly title: string;
   readonly version: string;
   /** The home page, or the Challenges page (Beat the clock and timed play). */
   readonly page: Signal<'home' | 'challenges'>;
-  /** The daily puzzles that can be played, today's last (null before the first one); empty without daily puzzles. */
+  /**
+   * The daily puzzles that can be played, today's last (null before the
+   * first one); empty without daily puzzles. Each day has the levels the
+   * player plays (see GameOptions).
+   */
   readonly days: Signal<readonly (DayInfo | null)[]>;
   readonly today: Signal<DayInfo | null>;
   /** One of the levels' current streaks: the next one each time the home page opens. */
@@ -222,21 +236,26 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   /** Likewise for the Challenges page: picks the record and best time shown. */
   private readonly challengeVisits: WritableSignal<number>;
 
+  readonly dailyLevels: WritableSignal<readonly boolean[]>;
+  readonly hasDaily: boolean;
   readonly days = computed(() => {
     this.screen(); // read the records again on coming back home
     const today = this.todayDate();
     const schedule = this.game.daily;
+    const played = this.dailyLevels();
     if (!schedule) return [];
     return availableDays(today).map((date): DayInfo | null => {
       const puzzles = DAILY_LEVELS.map((_, level) => dailyPuzzle(this.id, schedule, date, level));
       if (!puzzles[0]) return null;
-      const levels = puzzles.map((puzzle, level): LevelInfo => ({
-        level,
-        name: DAILY_LEVELS[level],
-        label: paramsLabel(this.game, puzzle!.params),
-        status: this.records.status(date, level),
-        time: this.records.result(date, level)?.time ?? this.records.game(date, level)?.elapsed ?? 0,
-      }));
+      const levels = puzzles
+        .map((puzzle, level): LevelInfo => ({
+          level,
+          name: DAILY_LEVELS[level],
+          label: paramsLabel(this.game, puzzle!.params),
+          status: this.records.status(date, level),
+          time: this.records.result(date, level)?.time ?? this.records.game(date, level)?.elapsed ?? 0,
+        }))
+        .filter((level) => played[level.level]);
       return {
         date,
         number: puzzles[0].number,
@@ -305,9 +324,11 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly streak = computed(() => {
     const visits = this.homeVisits(); // read first: it also brings in new results
     const today = this.todayDate();
-    const streaks = DAILY_LEVELS.map((name, level) => ({ name, days: this.records.streak(today, level) })).filter(
-      (streak) => streak.days > 0,
-    );
+    const played = this.dailyLevels();
+    const streaks = DAILY_LEVELS.map((name, level) => ({
+      name,
+      days: played[level] ? this.records.streak(today, level) : 0,
+    })).filter((streak) => streak.days > 0);
     return streaks.length ? streaks[visits % streaks.length] : null;
   });
 
@@ -328,6 +349,13 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.ladderRecords = new LadderRecords(game.id);
     this.homeVisits = signal(Number(readStored(`${game.id}.home.visits`)) || 0);
     this.challengeVisits = signal(Number(readStored(`${game.id}.challenges.visits`)) || 0);
+    this.hasDaily = !!game.daily;
+    const levels = readStoredJson<boolean[]>(`${game.id}.daily.levels`);
+    this.dailyLevels = signal(
+      Array.isArray(levels) && levels.length === DAILY_LEVELS.length && levels.some(Boolean)
+        ? levels.map(Boolean)
+        : DAILY_LEVELS.map(() => true),
+    );
     this.hasClock = !!game.daily;
     this.difficulties = game.difficulties ?? [];
     const choice = readStored(`${game.id}.clock.choice`);
@@ -379,6 +407,15 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
 
   openTimed(): void {
     this.go({ name: 'timed' });
+  }
+
+  setDailyLevel(level: number, on: boolean): void {
+    const levels = [...this.dailyLevels()];
+    if (!(level in levels)) return;
+    levels[level] = on;
+    if (!levels.some(Boolean)) return; // at least one
+    this.dailyLevels.set(levels);
+    writeStoredJson(`${this.id}.daily.levels`, levels);
   }
 
   ladderBestTimes(): Readonly<Record<string, number>> {
@@ -470,7 +507,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       const open = this.daily()?.puzzle;
       if (open?.date !== screen.date || open.level !== screen.level) {
         this.daily()?.setActive(false);
-        this.daily.set(new DailyStore(this.game, puzzle, this.records, this.session.showMistakes));
+        this.daily.set(new DailyStore(this.game, puzzle, this.records, this.session.showMistakes, this.dailyLevels));
       }
     }
     if (screen.name === 'clock') {

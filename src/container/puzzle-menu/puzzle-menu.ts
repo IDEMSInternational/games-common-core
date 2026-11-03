@@ -9,15 +9,21 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { DAILY_LEVELS } from '../../engine/daily';
+import type { GameOptions } from '../puzzle-screens';
 import { PuzzleSwitch } from '../puzzle-switch/puzzle-switch';
 import { ThemeStore } from '../theme-store';
 import { MenuGame, MenuLink, MenuPage, QuoteItem, menuPages } from './menu-pages';
 
+/** The Game options page, first in the menu. */
+const OPTIONS: MenuPage = { id: 'options', title: 'Game options' };
+
 /**
  * The ☰ button and the menu it opens: a panel sliding in from the left
- * listing the studio's pages (see menu-pages.ts), each opening in the
- * panel, and the Dark theme switch. Closes with ×, a tap outside the
- * panel, or Escape. On the home page, so every game has it.
+ * listing Game options (the theme, and the game's `options`) and the
+ * studio's pages (see menu-pages.ts), each opening in the panel. Closes
+ * with ×, a tap outside the panel, or Escape. On the home page, so every
+ * game has it.
  */
 @Component({
   selector: 'puzzle-menu',
@@ -28,7 +34,11 @@ import { MenuGame, MenuLink, MenuPage, QuoteItem, menuPages } from './menu-pages
 })
 export class PuzzleMenu {
   readonly game = input.required<MenuGame>();
+  /** The game's own options, if any. */
+  readonly options = input<GameOptions | null>(null);
   protected readonly theme = inject(ThemeStore);
+  protected readonly OPTIONS = OPTIONS;
+  protected readonly levelNames = DAILY_LEVELS;
 
   protected readonly pages = computed(() => menuPages(this.game()));
   protected readonly open = signal(false);
@@ -47,6 +57,18 @@ export class PuzzleMenu {
   protected close(): void {
     this.open.set(false);
     this.opener().nativeElement.focus();
+  }
+
+  /** Ticks or unticks a daily level (the last one ticked stays). */
+  protected setDailyLevel(options: GameOptions, level: number, event: Event): void {
+    const box = event.target as HTMLInputElement;
+    options.setDailyLevel(level, box.checked);
+    box.checked = options.dailyLevels()[level];
+  }
+
+  /** How many daily levels are ticked. */
+  protected ticked(levels: readonly boolean[]): number {
+    return levels.filter(Boolean).length;
   }
 
   protected read(page: MenuPage | null): void {

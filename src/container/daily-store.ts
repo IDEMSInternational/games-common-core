@@ -28,12 +28,13 @@ export class DailyStore<Params, State, Move> implements DailyControls {
   readonly canShowMistakes: boolean;
   readonly showMistakes: WritableSignal<boolean>;
   readonly celebrate = signal(false);
-  /** Normal; big when this solve completes all three of the day's levels. */
+  /** Normal; big when this solve completes all the day's levels the player plays. */
   readonly celebration = signal<CelebrationSize>('normal');
   readonly result: WritableSignal<DailyResult | null>;
 
   readonly puzzle: DailyPuzzle<Params>;
   private readonly records: DailyRecords;
+  private readonly played: Signal<readonly boolean[]>;
   private readonly session: GameSession<Params, State, Move>;
   private readonly version = signal(0);
   /** Time on the clock before it last started. */
@@ -62,7 +63,10 @@ export class DailyStore<Params, State, Move> implements DailyControls {
     puzzle: DailyPuzzle<Params>,
     records: DailyRecords,
     showMistakes: WritableSignal<boolean>,
+    /** The levels the player plays (see GameOptions); all three if not given. */
+    played: Signal<readonly boolean[]> = signal(DAILY_LEVELS.map(() => true)),
   ) {
+    this.played = played;
     this.puzzle = puzzle;
     this.records = records;
     const saved = records.game<Move>(puzzle.date, puzzle.level);
@@ -133,7 +137,10 @@ export class DailyStore<Params, State, Move> implements DailyControls {
     this.since.set(null);
     this.result.set(result);
     this.records.addResult(this.puzzle.date, this.puzzle.level, result);
-    const allLevels = DAILY_LEVELS.every((_, level) => this.records.result(this.puzzle.date, level));
+    const played = this.played();
+    const allLevels = DAILY_LEVELS.every(
+      (_, level) => !played[level] || level === this.puzzle.level || this.records.result(this.puzzle.date, level),
+    );
     this.celebration.set(allLevels ? 'big' : 'normal');
     this.celebrate.set(true);
     this.save();

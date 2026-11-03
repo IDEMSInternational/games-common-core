@@ -37,7 +37,35 @@
       </button>
     </header>
 
-    @if (page(); as p) {
+    @if (page() === OPTIONS) {
+      <div class="page options">
+        <section>
+          <h3>Appearance</h3>
+          <puzzle-switch [checked]="theme.dark()" (checkedChange)="theme.setDark($event)">Dark theme</puzzle-switch>
+        </section>
+        @if (options(); as o) {
+          @if (o.hasDaily) {
+            <section>
+              <h3 id="daily-levels-heading">Daily puzzles</h3>
+              <p class="hint">The levels you play. Your streaks and the circles on the home page follow them.</p>
+              <div role="group" aria-labelledby="daily-levels-heading">
+                @for (name of levelNames; track $index) {
+                  <label class="tick">
+                    <input
+                      type="checkbox"
+                      [checked]="o.dailyLevels()[$index]"
+                      [disabled]="o.dailyLevels()[$index] && ticked(o.dailyLevels()) === 1"
+                      (change)="setDailyLevel(o, $index, $event)"
+                    />
+                    {{ name }}
+                  </label>
+                }
+              </div>
+            </section>
+          }
+        }
+      </div>
+    } @else if (page(); as p) {
       <div class="page">
         @if (p.paragraphs) {
           @for (paragraph of p.paragraphs; track $index) {
@@ -111,6 +139,12 @@
     } @else {
       <nav aria-label="IDEMS Games">
         <ul>
+          <li>
+            <button type="button" (click)="read(OPTIONS)">
+              Game options
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+            </button>
+          </li>
           @for (p of pages(); track p.id) {
             <li>
               <button type="button" (click)="read(p)">
@@ -121,9 +155,6 @@
           }
         </ul>
       </nav>
-      <div class="settings">
-        <puzzle-switch [checked]="theme.dark()" (checkedChange)="theme.setDark($event)">Dark theme</puzzle-switch>
-      </div>
       <p class="version">{{ game().name }} version {{ game().version }}</p>
     }
   </aside>

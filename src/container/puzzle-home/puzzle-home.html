@@ -2,7 +2,7 @@
 
 <header class="puzzle-title-row">
   @if (c.page() === 'home') {
-    <puzzle-menu [game]="{ id: c.id, name: c.title, version: c.version }" />
+    <puzzle-menu [game]="{ id: c.id, name: c.title, version: c.version }" [options]="c" />
     <h1>{{ c.title }}</h1>
   } @else {
     <button type="button" class="back" aria-label="Back" (click)="c.goHome()">
@@ -36,7 +36,7 @@
                   type="button"
                   [class]="day.status"
                   [class.today]="day.isToday"
-                  [style.background]="thirds(day)"
+                  [style.background]="segments(day)"
                   [attr.aria-label]="dayLabel(day)"
                   (click)="choosing.set(day)"
                 >

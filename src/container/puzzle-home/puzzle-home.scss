@@ -68,7 +68,7 @@ h3 {
   color: var(--text-muted);
 }
 
-/* The last 7 days, a circle for each, in thirds shaded by level (see PuzzleHome.thirds). */
+/* The last 7 days, a circle for each, shaded by level (see PuzzleHome.segments). */
 .days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -102,7 +102,7 @@ h3 {
   }
 
   button {
-    border-color: transparent; // drawn by the background (see PuzzleHome.thirds)
+    border-color: transparent; // drawn by the background (see PuzzleHome.segments)
     text-shadow: 0 0 3px var(--surface), 0 0 2px var(--surface); // readable over the orange
   }
 

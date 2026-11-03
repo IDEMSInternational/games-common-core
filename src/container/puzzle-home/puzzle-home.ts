@@ -145,13 +145,17 @@ export class PuzzleHome {
   }
 
   /**
-   * A day's circle, in thirds clockwise from the top: Easy, Medium, Hard.
-   * A level solved on its day fills its third in orange; solved later, it
-   * colours only that third's edge.
+   * A day's circle, shared clockwise from the top between the levels the
+   * player plays (thirds for Easy, Medium and Hard; halves for two; whole
+   * for one). A level solved on its day fills its part in orange; solved
+   * later, it colours only that part's edge.
    */
-  protected thirds(day: DayInfo): string {
-    const pie = (colours: string[]) =>
-      `conic-gradient(${colours[0]} 0 120deg, ${colours[1]} 120deg 240deg, ${colours[2]} 240deg 360deg)`;
+  protected segments(day: DayInfo): string {
+    const pie = (colours: string[]) => {
+      const share = 360 / colours.length;
+      const stops = colours.map((colour, i) => `${colour} ${i * share}deg ${(i + 1) * share}deg`);
+      return `conic-gradient(${stops.join(', ')})`;
+    };
     const fills = day.levels.map((l) => (l.status === 'solved' ? 'var(--brand)' : 'var(--surface)'));
     const edges = day.levels.map((l) =>
       l.status === 'solved' || l.status === 'late' ? 'var(--brand)' : 'var(--border)',
