@@ -92,20 +92,12 @@ header {
   }
 
   .reset {
-    color: var(--danger);
-    border-color: var(--danger);
+    border: 2px solid var(--brand);
   }
 
   .confirm {
     display: flex;
     gap: 8px;
-  }
-
-  .danger {
-    background: var(--danger);
-    border-color: var(--danger);
-    color: #fff;
-    font-weight: 600;
   }
 
   .tick {
