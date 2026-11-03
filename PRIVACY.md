@@ -18,6 +18,10 @@ You can delete any record from the records page (🏆), or all of them with "Res
 
 When you share a result or a record, the app puts together a line of text, such as your time, and opens your device's share panel. You choose whether to send it, and where: it goes only to the app or person you pick, and nothing is sent to IDEMS.
 
+## Announcements
+
+To show news about IDEMS Games, such as new games, the app downloads a short list of announcements from GitHub, where IDEMS publishes it, at most once a day. Nothing about you or your games is sent. As with any website, GitHub's servers see your device's internet address when the list is downloaded; IDEMS doesn't receive it. GitHub's own privacy statement covers this.
+
 ## Who the apps are for
 
 The apps are made for people aged 13 and over. They are not designed for younger children. Because the apps don't currently collect personal information, they don't collect any from anyone, whatever their age.

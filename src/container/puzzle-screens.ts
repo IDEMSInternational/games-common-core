@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { App } from '@capacitor/app';
+import { AnnouncementsStore } from './announcements-store';
 import { DAILY_LEVELS, WEEKDAYS, availableDays, dailyPuzzle, localDay } from '../engine/daily';
 import { PuzzleGame } from '../engine/puzzle-game';
 import { Tutorial } from '../engine/tutorial';
@@ -490,6 +491,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     const choice = readStored(`${game.id}.clock.choice`);
     this.clockChoice = signal(choice && clockChoiceParams(game, choice).length ? choice : 'medium');
     this.records.clearOldGames(this.todayDate());
+    inject(AnnouncementsStore).load(game.id);
     this.tutorial = signal(hasSeenTutorial(game.id) ? null : this.newTutorial());
 
     // After a reload, stay on the same screen.

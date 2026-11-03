@@ -12,8 +12,18 @@ import {
 import { DAILY_LEVELS } from '../../engine/daily';
 import type { GameOptions } from '../puzzle-screens';
 import { PuzzleSwitch } from '../puzzle-switch/puzzle-switch';
+import { AnnouncementsStore } from '../announcements-store';
 import { ThemeStore } from '../theme-store';
 import { MenuGame, MenuLink, MenuPage, QuoteItem, menuPages } from './menu-pages';
+
+/** The Announcements page's id (see menu-pages.ts): its content is downloaded (see AnnouncementsStore). */
+const ANNOUNCEMENTS = 'announcements';
+
+/** "1 December 2026" */
+function longDate(day: string): string {
+  const [year, month, date] = day.split('-').map(Number);
+  return new Date(year, month - 1, date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
 
 /** The Game options page, first in the menu. */
 const OPTIONS: MenuPage = { id: 'options', title: 'Game options' };
@@ -21,9 +31,11 @@ const OPTIONS: MenuPage = { id: 'options', title: 'Game options' };
 /**
  * The ☰ button and the menu it opens: a panel sliding in from the left
  * listing Game options (the theme, and the game's `options`) and the
- * studio's pages (see menu-pages.ts), each opening in the panel. Closes
- * with ×, a tap outside the panel, or Escape. On the home page, so every
- * game has it.
+ * studio's pages (see menu-pages.ts), each opening in the panel. The
+ * Announcements page shows IDEMS's news (see AnnouncementsStore); an
+ * orange dot on ☰ and beside it means there's something new. Closes with
+ * ×, a tap outside the panel, or Escape. On the home page, so every game
+ * has it.
  */
 @Component({
   selector: 'puzzle-menu',
@@ -37,7 +49,10 @@ export class PuzzleMenu {
   /** The game's own options, if any. */
   readonly options = input<GameOptions | null>(null);
   protected readonly theme = inject(ThemeStore);
+  protected readonly announcements = inject(AnnouncementsStore);
   protected readonly OPTIONS = OPTIONS;
+  protected readonly ANNOUNCEMENTS = ANNOUNCEMENTS;
+  protected readonly longDate = longDate;
   protected readonly levelNames = DAILY_LEVELS;
 
   protected readonly pages = computed(() => menuPages(this.game()));
@@ -85,6 +100,7 @@ export class PuzzleMenu {
     this.confirmingReset.set(false);
     this.resetDone.set(false);
     this.page.set(page);
+    if (page?.id === ANNOUNCEMENTS) this.announcements.markSeen();
     this.panel()?.nativeElement.focus();
   }
 

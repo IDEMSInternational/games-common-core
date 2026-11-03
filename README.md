@@ -53,6 +53,11 @@ The games are educational phone apps (Angular + Capacitor) built from
     in it. Nothing scrolls except the ☰ menu's pages and the notice's text
   - `daily-records.ts`: daily results, streak and the last 7 days' games, kept
     on the device; `share.ts`: the device's share panel
+  - `announcements-store.ts`: IDEMS's news for the ☰ menu's Announcements
+    page, downloaded at most once a day from the
+    [games-data](https://github.com/IDEMSInternational/games-data)
+    repository (data kept apart from code), with an orange dot for
+    anything new
   - `theme-store.ts`: light or dark theme (follows the phone until the
     player chooses in Game options, in the ☰ menu)
   - `theme.scss`: design tokens, base styles and shared `.board-*` SVG

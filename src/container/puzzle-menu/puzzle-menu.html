@@ -10,6 +10,9 @@
   <svg viewBox="0 0 24 24" aria-hidden="true">
     <path d="M4 6.5h16M4 12h16M4 17.5h16" />
   </svg>
+  @if (announcements.unseen()) {
+    <span class="dot" aria-label="New announcements"></span>
+  }
 </button>
 
 @if (open()) {
@@ -92,6 +95,21 @@
               <button type="button" class="reset" (click)="confirmingReset.set(true)">Reset my records…</button>
             }
           </section>
+        }
+      </div>
+    } @else if (page()?.id === ANNOUNCEMENTS) {
+      <div class="page">
+        @for (item of announcements.current(); track item.id) {
+          <article class="announcement">
+            <h3>{{ item.title }}</h3>
+            <p class="date">{{ longDate(item.date) }}</p>
+            <p>{{ item.text }}</p>
+            @if (item.link; as link) {
+              <a class="primary store" [href]="link.url" target="_blank" rel="noopener">{{ link.label }}</a>
+            }
+          </article>
+        } @empty {
+          <p class="soon">No announcements yet. News about IDEMS Games, such as new games, will appear here.</p>
         }
       </div>
     } @else if (page(); as p) {
@@ -177,7 +195,12 @@
           @for (p of pages(); track p.id) {
             <li>
               <button type="button" (click)="read(p)">
-                {{ p.title }}
+                <span>
+                  {{ p.title }}
+                  @if (p.id === ANNOUNCEMENTS && announcements.unseen()) {
+                    <span class="dot" aria-label="New"></span>
+                  }
+                </span>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
               </button>
             </li>

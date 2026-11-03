@@ -69,7 +69,7 @@ export function menuPages(game: MenuGame): readonly MenuPage[] {
       ],
     },
     { id: 'about', title: 'About IDEMS Games' },
-    { id: 'other-games', title: 'Other IDEMS Games' },
+    { id: 'other-games', title: 'Other IDEMS Games', paragraphs: ['More games coming soon!'] },
     {
       id: 'licence',
       title: 'Licence',
