@@ -80,6 +80,31 @@ export class DailyRecords {
     return streak;
   }
 
+  /** The longest run of days in a row with the puzzle at `level` solved on its day. */
+  bestStreak(level: number): number {
+    const days = Object.entries(this.results())
+      .filter(([k, result]) => result.onDay && k.endsWith(`.${DAILY_LEVEL_KEYS[level]}`))
+      .map(([k]) => k.slice(0, 10))
+      .sort();
+    let best = 0;
+    let run = 0;
+    days.forEach((day, i) => {
+      run = i > 0 && addDays(days[i - 1], 1) === day ? run + 1 : 1;
+      best = Math.max(best, run);
+    });
+    return best;
+  }
+
+  /** Forgets a level's results and games: its streaks start again. */
+  forgetLevel(level: number): void {
+    const suffix = `.${DAILY_LEVEL_KEYS[level]}`;
+    const kept = Object.entries(this.results()).filter(([k]) => !k.endsWith(suffix));
+    writeStoredJson(this.resultsKey, Object.fromEntries(kept));
+    storedKeys()
+      .filter((k) => k.startsWith(this.savePrefix) && k.endsWith(suffix))
+      .forEach(removeStored);
+  }
+
   /** Forgets the games that can no longer be played (their results are kept). */
   clearOldGames(today: string): void {
     const oldest = availableDays(today)[0];

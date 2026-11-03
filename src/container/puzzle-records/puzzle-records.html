@@ -1,0 +1,48 @@
+@for (group of controls().recordGroups(); track group.title) {
+  <section aria-labelledby="records-{{ $index }}">
+    <h2 id="records-{{ $index }}">{{ group.title }}</h2>
+    @if (group.rows.length === 0) {
+      <p class="none">No records yet</p>
+    } @else {
+      <ul>
+        @for (row of group.rows; track row.id) {
+          <li>
+            <div class="record">
+              <span class="label">{{ row.label }}</span>
+              <span class="value">{{ row.value }}</span>
+              @if (row.detail) {
+                <span class="detail">{{ row.detail }}</span>
+              }
+              @if (shared()?.id === row.id) {
+                <span class="detail" role="status">{{ shared()!.message }}</span>
+              }
+            </div>
+            <button type="button" class="icon" [attr.aria-label]="'Share: ' + row.label" (click)="share(row)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 13v7h14v-7" /></svg>
+            </button>
+            <button type="button" class="icon" [attr.aria-label]="'Delete: ' + row.label" (click)="deleting.set(row)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}
+
+@if (deleting(); as row) {
+  <div class="backdrop" (click)="deleting.set(null)"></div>
+  <div class="confirm" role="alertdialog" aria-modal="true" aria-labelledby="delete-heading" aria-describedby="delete-what">
+    <h2 id="delete-heading">Do you want to delete this record?</h2>
+    <p id="delete-what">
+      {{ row.label }}: {{ row.value }}
+      @if (row.id.startsWith('daily:')) {
+        <br />Your results at this level are forgotten, and its streaks start again.
+      }
+    </p>
+    <div class="buttons">
+      <button type="button" class="danger" (click)="delete(row)">Yes, delete it</button>
+      <button type="button" (click)="deleting.set(null)">No</button>
+    </div>
+  </div>
+}

@@ -40,6 +40,11 @@ export class LadderRecords {
     return this.bestTimes()[difficulty] ?? null;
   }
 
+  deleteBest(difficulty: number): void {
+    const { [difficulty]: _, ...rest } = this.bestTimes();
+    writeStoredJson(this.bestKey, rest);
+  }
+
   setBest(difficulty: number, time: number): void {
     writeStoredJson(this.bestKey, { ...this.bestTimes(), [difficulty]: time });
   }

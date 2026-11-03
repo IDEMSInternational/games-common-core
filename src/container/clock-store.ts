@@ -114,6 +114,12 @@ export class ClockRecords {
     return this.saved()[`${choice}/${minutes}`] ?? 0;
   }
 
+  deleteRecord(choice: ClockChoice, minutes: number): void {
+    const records = this.saved();
+    delete records[`${choice}/${minutes}`];
+    writeStoredJson(this.recordsKey, records);
+  }
+
   setRecord(choice: ClockChoice, minutes: number, solved: number): void {
     writeStoredJson(this.recordsKey, { ...this.saved(), [`${choice}/${minutes}`]: solved });
   }
@@ -282,7 +288,7 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     const puzzles = this.solved() === 1 ? '1 puzzle' : `${this.solved()} puzzles`;
     return shareText(
       `${this.title}: Beat the clock`,
-      `${this.title}, Beat the clock (${this.choiceLabel}): ${puzzles} solved in ${this.minutes} minutes, a new record!`,
+      `${this.title}, Beat the clock (${this.choiceLabel}): ${puzzles} solved in ${this.minutes === 1 ? '1 minute' : `${this.minutes} minutes`}, a new record!`,
     );
   }
 

@@ -27,6 +27,7 @@ import { DailyStore, paramsLabel } from './daily-store';
 import { hasSeenTutorial, markTutorialSeen } from './first-run';
 import { LadderRecords, LadderStore } from './ladder-store';
 import { SessionStore } from './session-store';
+import { formatTime } from './shell-controls';
 import { BestTime, TimedStore } from './timed-store';
 import {
   readStored,
@@ -42,6 +43,7 @@ import { TutorialStore } from './tutorial-store';
 export type Screen =
   | { readonly name: 'home' }
   | { readonly name: 'challenges' }
+  | { readonly name: 'records' }
   | { readonly name: 'free' }
   | { readonly name: 'daily'; readonly date: string; readonly level: number }
   | { readonly name: 'clock'; readonly minutes: number; readonly choice: ClockChoice }
@@ -121,6 +123,32 @@ export interface LadderRunInfo {
   readonly elapsed: number;
 }
 
+/** One of the player's records, on the records page. */
+export interface RecordRow {
+  /** Identifies it, for deleting it (see PuzzleScreens.deleteRecord). */
+  readonly id: string;
+  /** "Easy: best streak", "Medium, 5 min", "7×7" */
+  readonly label: string;
+  /** "6 days", "7 puzzles", "1:05" */
+  readonly value: string;
+  /** More, under it: "Now: 4 days". */
+  readonly detail: string | null;
+  /** The text to share it with. */
+  readonly share: string;
+}
+
+/** A mode's records, on the records page. */
+export interface RecordGroup {
+  /** "Daily puzzles", "Beat the clock", "Timed play", "Ladder" */
+  readonly title: string;
+  readonly rows: readonly RecordRow[];
+}
+
+/** "1 day", "6 days" */
+const dayCount = (days: number) => (days === 1 ? '1 day' : `${days} days`);
+/** "1 puzzle", "7 puzzles" */
+const puzzleCount = (solved: number) => (solved === 1 ? '1 puzzle' : `${solved} puzzles`);
+
 /** A day's status is the best of its levels'. */
 const STATUS_ORDER: readonly DayStatus[] = ['solved', 'late', 'started', 'new'];
 
@@ -161,8 +189,13 @@ export interface HomeControls extends GameOptions {
   readonly id: string;
   readonly title: string;
   readonly version: string;
-  /** The home page, or the Challenges page (Beat the clock and timed play). */
-  readonly page: Signal<'home' | 'challenges'>;
+  /** The home page, the Challenges page (Beat the clock, timed play, the ladder) or the records page. */
+  readonly page: Signal<'home' | 'challenges' | 'records'>;
+  /** The player's records, by mode, for the records page. */
+  readonly recordGroups: Signal<readonly RecordGroup[]>;
+  /** Deletes one record (see RecordRow.id). */
+  deleteRecord(id: string): void;
+  openRecords(): void;
   /**
    * The daily puzzles that can be played, today's last (null before the
    * first one); empty without daily puzzles. Each day has the levels the
@@ -241,7 +274,10 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly screen = signal<Screen>(HOME);
   /** The tutorial in progress, if any. It runs automatically on first launch. */
   readonly tutorial: WritableSignal<TutorialStore<Params, State, Move, Hint> | null>;
-  readonly page = computed(() => (this.screen().name === 'challenges' ? 'challenges' : 'home'));
+  readonly page = computed(() => {
+    const name = this.screen().name;
+    return name === 'challenges' || name === 'records' ? name : 'home';
+  });
   /** The puzzle on screen: a daily puzzle, free play, Beat the clock or timed play; null on the home and Challenges pages. */
   readonly play = computed(() => {
     const screen = this.screen();
@@ -271,7 +307,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   /** The app's "Show mistakes" setting, shared by every mode. */
   readonly showMistakes: WritableSignal<boolean>;
   readonly switches: readonly OptionSwitch[];
-  /** Bumped when the records are reset, so what's shown is read again. */
+  /** Bumped when records are deleted (one, or all), so what's shown is read again. */
   private readonly resets = signal(0);
   readonly days = computed(() => {
     this.screen(); // read the records again on coming back home
@@ -306,22 +342,69 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly clockRecord = computed(() => {
     const visits = this.challengeVisits(); // read first: it also brings in new records
     this.resets();
-    // Easy, Medium and Hard, then custom sizes; each by time limit.
-    const order = (choice: ClockChoice) => {
-      const level = CLOCK_LEVELS.indexOf(choice);
-      return level >= 0 ? level : CLOCK_LEVELS.length;
-    };
-    const records = this.clockRecordsStore
-      .records()
-      .map((record) => ({ ...record, label: clockChoiceLabel(this.game, record.choice) }))
-      .sort(
-        (a, b) =>
-          order(a.choice) - order(b.choice) ||
-          a.label.localeCompare(b.label, undefined, { numeric: true }) ||
-          a.minutes - b.minutes,
-      )
-      .map(({ label, minutes, solved }): ClockRecordInfo => ({ label, minutes, solved }));
+    const records = this.sortedClockRecords().map(
+      ({ label, minutes, solved }): ClockRecordInfo => ({ label, minutes, solved }),
+    );
     return records.length ? records[visits % records.length] : null;
+  });
+  readonly recordGroups = computed((): RecordGroup[] => {
+    this.screen(); // read the records again on opening the page
+    this.resets();
+    const title = this.title;
+    const groups: RecordGroup[] = [];
+    if (this.hasDaily) {
+      const today = this.todayDate();
+      const rows = DAILY_LEVELS.flatMap((name, level): RecordRow[] => {
+        const best = this.records.bestStreak(level);
+        if (best === 0) return [];
+        const now = this.records.streak(today, level);
+        return [
+          {
+            id: `daily:${level}`,
+            label: `${name}: best streak`,
+            value: dayCount(best),
+            detail: now > 0 ? `Now: ${dayCount(now)}` : null,
+            share: `${title} daily puzzles: my best streak at ${name} is ${dayCount(best)} 🔥`,
+          },
+        ];
+      });
+      groups.push({ title: 'Daily puzzles', rows });
+    }
+    if (this.hasClock) {
+      const rows = this.sortedClockRecords().map(({ choice, label, minutes, solved }): RecordRow => ({
+        id: `clock:${choice}/${minutes}`,
+        label: `${label}, ${minutes} min`,
+        value: puzzleCount(solved),
+        detail: null,
+        share: `${title}, Beat the clock (${label}): my record is ${puzzleCount(solved)} in ${minutes === 1 ? '1 minute' : `${minutes} minutes`}`,
+      }));
+      groups.push({ title: 'Beat the clock', rows });
+    }
+    const timed = Object.entries(this.timed.bestTimes())
+      .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
+      .map(([size, best]): RecordRow => ({
+        id: `timed:${size}`,
+        label: best.label,
+        value: formatTime(best.time),
+        detail: null,
+        share: `${title}, timed play: my best time for ${best.label} is ${formatTime(best.time)}`,
+      }));
+    groups.push({ title: 'Timed play', rows: timed });
+    const sizes = this.game.presets().length;
+    const ladder = Object.entries(this.ladderRecords.bestTimes())
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([difficulty, time]): RecordRow => {
+        const name = this.game.difficulties?.[Number(difficulty)];
+        return {
+          id: `ladder:${difficulty}`,
+          label: name ? `${name}, ${sizes} sizes` : `${sizes} sizes`,
+          value: formatTime(time),
+          detail: null,
+          share: `${title}, Ladder${name ? ` (${name})` : ''}: my best time for all ${sizes} sizes is ${formatTime(time)}`,
+        };
+      });
+    groups.push({ title: 'Ladder', rows: ladder });
+    return groups;
   });
   readonly clockRun = computed((): ClockRunInfo | null => {
     this.screen();
@@ -449,6 +532,36 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
 
   openChallenges(): void {
     this.go({ name: 'challenges' });
+  }
+
+  openRecords(): void {
+    this.go({ name: 'records' });
+  }
+
+  deleteRecord(id: string): void {
+    const colon = id.indexOf(':');
+    const [kind, rest] = [id.slice(0, colon), id.slice(colon + 1)];
+    if (kind === 'daily') {
+      const level = Number(rest);
+      this.records.forgetLevel(level);
+      if (this.daily()?.puzzle.level === level) {
+        this.daily()?.setActive(false);
+        this.daily.set(null); // it would save its old result again
+      }
+    } else if (kind === 'clock') {
+      const slash = rest.lastIndexOf('/');
+      const [choice, minutes] = [rest.slice(0, slash), Number(rest.slice(slash + 1))];
+      this.clockRecordsStore.deleteRecord(choice, minutes);
+      const open = this.clock();
+      if (open?.choice === choice && open.minutes === minutes) open.record = 0;
+    } else if (kind === 'timed') {
+      this.timed.forgetBestTime(rest);
+    } else if (kind === 'ladder') {
+      const difficulty = Number(rest);
+      this.ladderRecords.deleteBest(difficulty);
+      if (this.ladder()?.difficulty === difficulty) this.ladder()?.best.set(null);
+    }
+    this.resets.update((n) => n + 1);
   }
 
   openTimed(): void {
@@ -601,6 +714,23 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       writeStored(`${this.id}.challenges.visits`, String(this.challengeVisits()));
     }
     this.screen.set(screen);
+  }
+
+  /** The Beat the clock records: Easy, Medium and Hard, then custom sizes; each by time limit. */
+  private sortedClockRecords(): (ClockRecordInfo & { readonly choice: ClockChoice })[] {
+    const order = (choice: ClockChoice) => {
+      const level = CLOCK_LEVELS.indexOf(choice);
+      return level >= 0 ? level : CLOCK_LEVELS.length;
+    };
+    return this.clockRecordsStore
+      .records()
+      .map((record) => ({ ...record, label: clockChoiceLabel(this.game, record.choice) }))
+      .sort(
+        (a, b) =>
+          order(a.choice) - order(b.choice) ||
+          a.label.localeCompare(b.label, undefined, { numeric: true }) ||
+          a.minutes - b.minutes,
+      );
   }
 
   /** A difficulty of the game's (0 if it has none). */

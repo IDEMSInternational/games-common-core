@@ -22,13 +22,16 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `tutorial.ts`: the interactive tutorial engine
 - `src/container/`: the Angular frame every game sits in:
   - `puzzle-screens.ts`: which screen shows (home, a daily puzzle, free
-    play, Challenges, Beat the clock, timed play, the ladder, the
-    tutorial), as browser history so Back works
+    play, Challenges, Beat the clock, timed play, the ladder, the records
+    page, the tutorial), as browser history so Back works
   - `puzzle-home/`: the home page: today's daily puzzles and the last 7
     days' with a streak, free play, Challenges, and the ☰ menu; and the
     Challenges page: Beat the clock (Easy, Medium, Hard or a custom size,
     with records for each), timed play with a best time, and the ladder
     (every size in turn, with a best time per difficulty)
+  - `puzzle-records/`: the records page, opened with 🏆 beside the ?:
+    best daily streaks, Beat the clock records, timed play's and the
+    ladder's best times, each to share or delete (after asking)
   - `puzzle-shell/`: the frame around a puzzle: title, day and clock
     (daily puzzle), count and time left (Beat the clock), rungs and clock
     (ladder), or size and difficulty menus and custom size (free play,

@@ -51,9 +51,9 @@
         <div class="row">
           <p class="shared">
             @if (c.newRecord()) {
-              A new record for {{ c.choiceLabel }}, {{ c.minutes }} minutes!
+              A new record for {{ c.choiceLabel }}, {{ c.minutes === 1 ? '1 minute' : c.minutes + ' minutes' }}!
             } @else {
-              Your record for {{ c.choiceLabel }}, {{ c.minutes }} minutes: {{ c.record }}
+              Your record for {{ c.choiceLabel }}, {{ c.minutes === 1 ? '1 minute' : c.minutes + ' minutes' }}: {{ c.record }}
             }
           </p>
           @if (c.newRecord()) {

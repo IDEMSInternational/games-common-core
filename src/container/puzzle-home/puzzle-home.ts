@@ -3,6 +3,7 @@ import { DAILY_LEVELS } from '../../engine/daily';
 import { CLOCK_LEVELS, ClockChoice } from '../clock-store';
 import { DayStatus } from '../daily-records';
 import { PuzzleMenu } from '../puzzle-menu/puzzle-menu';
+import { PuzzleRecords } from '../puzzle-records/puzzle-records';
 import { ClockRunInfo, DayInfo, HomeControls, LevelInfo } from '../puzzle-screens';
 import { formatTime } from '../shell-controls';
 
@@ -18,10 +19,12 @@ const CUSTOM = 'custom';
  * Beat the clock, which asks for the difficulty (Easy, Medium, Hard or a
  * custom size) and the time limit, timed play, and the ladder, which
  * asks for the difficulty (if the game has them) or whether to continue.
+ *
+ * And the records page (see PuzzleRecords), opened with 🏆 beside the ?.
  */
 @Component({
   selector: 'puzzle-home',
-  imports: [PuzzleMenu],
+  imports: [PuzzleMenu, PuzzleRecords],
   templateUrl: './puzzle-home.html',
   styleUrl: './puzzle-home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

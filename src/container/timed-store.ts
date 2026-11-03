@@ -117,6 +117,16 @@ export class TimedStore<Params, State, Move> implements TimedControls {
     this.newBest.set(false);
   }
 
+  /** Forgets one best time, by its size and difficulty ("7x7"). */
+  forgetBestTime(size: string): void {
+    const { [size]: _, ...rest } = this.bestTimes();
+    writeStoredJson(this.bestKey, rest);
+    if (size === this.sizeKey()) {
+      this.best.set(null);
+      this.newBest.set(false);
+    }
+  }
+
   /** Every best time, by size and difficulty in the game's text form ("7x7", "10x10dh"). */
   bestTimes(): Readonly<Record<string, BestTime>> {
     return readStoredJson<Record<string, BestTime>>(this.bestKey) ?? {};
