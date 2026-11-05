@@ -10,7 +10,7 @@ At the moment, the apps do not collect any personal information. You don't need 
 
 ## What stays on your device
 
-So that you can carry on where you left off, the app saves the puzzles you are playing, your daily puzzle results and streaks, your records and best times, the puzzle sizes you chose, your game options, and whether you have seen the tutorial and the welcome notice. This is stored only on your device, and we cannot see it.
+So that you can carry on where you left off, the app saves the puzzles you are playing, your daily puzzle results and streaks, your records and best times, the puzzle sizes you chose, your game options, and whether you have seen the tutorial and the welcome notice. This is stored on your device, and we cannot see it. If your device backs up its apps, for example to your Google account or to iCloud, that backup may include it: the backup belongs to you, and IDEMS can't see it either.
 
 You can delete any record from the records page (🏆), or all of them with "Reset my records" in Game options, in the ☰ menu. Deleting the app, or clearing its data, removes everything.
 
