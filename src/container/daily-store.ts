@@ -128,7 +128,7 @@ export class DailyStore<Params, State, Move> implements DailyControls {
       `Solved in ${formatTime(result.time)}`,
       ...(streak > 1 ? [`🔥 ${streak}-day streak at ${this.levelName}`] : []),
     ];
-    return shareText(`${this.title} daily puzzle #${this.number}`, lines.join('\n'));
+    return shareText(this.id, `${this.title} daily puzzle #${this.number}`, lines.join('\n'));
   }
 
   private finish(): void {

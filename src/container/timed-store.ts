@@ -183,6 +183,7 @@ export class TimedStore<Params, State, Move> implements TimedControls {
     const time = this.result();
     if (time === null || !this.newBest()) return null;
     return shareText(
+      this.id,
       `${this.title}: timed play`,
       `${this.title}, timed play: ${this.session.label()} solved in ${formatTime(time)}, a new best time!`,
     );

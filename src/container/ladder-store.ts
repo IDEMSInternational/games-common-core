@@ -215,6 +215,7 @@ export class LadderStore<Params, State, Move> implements LadderControls {
     if (time === null || !this.newBest()) return null;
     const ladder = this.difficultyName ? `Ladder (${this.difficultyName})` : 'Ladder';
     return shareText(
+      this.id,
       `${this.title}: Ladder`,
       `${this.title}, ${ladder}: ${this.rungCount} sizes climbed in ${formatTime(time)}, a new best time!`,
     );

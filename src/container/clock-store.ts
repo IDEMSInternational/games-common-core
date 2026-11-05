@@ -287,6 +287,7 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     if (!this.newRecord()) return null;
     const puzzles = this.solved() === 1 ? '1 puzzle' : `${this.solved()} puzzles`;
     return shareText(
+      this.id,
       `${this.title}: Beat the clock`,
       `${this.title}, Beat the clock (${this.choiceLabel}): ${puzzles} solved in ${this.minutes === 1 ? '1 minute' : `${this.minutes} minutes`}, a new record!`,
     );

@@ -27,7 +27,7 @@ export class PuzzleRecords {
 
   protected async share(row: RecordRow): Promise<void> {
     this.shared.set(null);
-    const message = await shareText(`${this.controls().title}: my records`, row.share);
+    const message = await shareText(this.controls().id, `${this.controls().title}: my records`, row.share);
     if (message) this.shared.set({ id: row.id, message });
   }
 
