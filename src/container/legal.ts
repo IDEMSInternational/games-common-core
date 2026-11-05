@@ -15,7 +15,7 @@ export interface LegalDocument {
 }
 
 /** Bump when either document changes enough that players should see the notice again. */
-export const LEGAL_VERSION = '2026-11-03';
+export const LEGAL_VERSION = '2026-11-05';
 
 export const TERMS = parseLegal(termsText);
 export const PRIVACY = parseLegal(privacyText);

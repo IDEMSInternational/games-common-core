@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 3 November 2026
+Last updated: 5 November 2026
 
 This policy explains what the IDEMS Games puzzle apps, such as Rectangles and Slant, do with information. The apps are made by IDEMS International Community Interest Company ("IDEMS", "we" or "us"), registered in the United Kingdom.
 
@@ -40,4 +40,4 @@ In the future we may want to use the apps for research, to understand how people
 
 ## Contact
 
-If you have any questions about this policy, please contact IDEMS International at [email address to be added].
+If you have any questions about this policy, please contact IDEMS International at games@idems.international.
