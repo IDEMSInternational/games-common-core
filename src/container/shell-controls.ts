@@ -5,7 +5,7 @@ import { CelebrationSize } from './puzzle-fireworks/puzzle-fireworks';
 
 /** What the puzzle shell needs from any puzzle being played, independent of the game's types. */
 export interface PlayControls {
-  /** The game's short id ("slant"), also its repository's name. */
+  /** The game's short id ("slanted"), also its repository's name. */
   readonly id: string;
   readonly title: string;
   readonly canUndo: Signal<boolean>;

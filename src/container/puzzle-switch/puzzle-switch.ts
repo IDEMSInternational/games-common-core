@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input, model } from '@angular/core'
 
 /**
  * An on/off switch with a label, for game modes and settings shown under
- * the board (e.g. Slant's "Thinking", Rectangles' "Lock"). Built around a
+ * the board (e.g. Slanted's "Thinking", Rectangles' "Lock"). Built around a
  * real checkbox, so it works with screen readers and the keyboard.
  *
  *   <puzzle-switch [(checked)]="thinking">Thinking</puzzle-switch>
