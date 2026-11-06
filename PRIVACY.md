@@ -2,7 +2,7 @@
 
 Last updated: 5 November 2026
 
-This policy explains what the IDEMS Games puzzle apps, such as Rectangles and Slant, do with information. The apps are made by IDEMS International Community Interest Company ("IDEMS", "we" or "us"), registered in the United Kingdom.
+This policy explains what the IDEMS Games puzzle apps, such as Rectangles and Slanted, do with information. The apps are made by IDEMS International Community Interest Company ("IDEMS", "we" or "us"), registered in the United Kingdom.
 
 ## The short version
 
