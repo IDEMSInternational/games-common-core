@@ -1,0 +1,92 @@
+# Builds a game's signed app and uploads it to TestFlight. The shared "iOS - Release"
+# workflow (.github/workflows/ios-release.yml) copies this file into the game's
+# ios/App/fastlane folder and runs it there, with the environment variables used
+# below set from the game's secrets and variables. See README.md in this folder.
+#
+# Adapted from open-app-builder's ios/App/fastlane/Fastfile.template: signing uses
+# fastlane match, with the certificate and profiles kept encrypted in a Google Cloud
+# Storage bucket shared with the other IDEMS apps. Nothing here is specific to one
+# game: the App ID comes from the game's Xcode project.
+
+default_platform(:ios)
+
+# The App ID (bundle ID) that the game's Xcode project builds, the same as appId in
+# its capacitor.config.ts. Lanes run in the fastlane folder, so the project is one up.
+def xcode_app_id
+  project = Xcodeproj::Project.open("../App.xcodeproj")
+  release = project.targets.find { |t| t.name == "App" }
+                   .build_configurations.find { |c| c.name == "Release" }
+  release.build_settings.fetch("PRODUCT_BUNDLE_IDENTIFIER")
+end
+
+# match reads its encryption password from MATCH_PASSWORD
+ENV["MATCH_PASSWORD"] ||= ENV["GCP_IOS_CERTS_ENCRYPTION_PASSWORD"]
+
+# Only let match create or renew the provisioning profile when the workflow asks for it
+def allow_provisioning_changes?
+  ENV["ALLOW_PROVISIONING_CHANGES"].to_s.downcase == "true"
+end
+
+platform :ios do
+  desc "Build a signed IPA and upload it to TestFlight"
+  lane :release_testflight do
+    app_id = xcode_app_id
+    UI.message("App ID: #{app_id}")
+    gcp_key_path = File.join(Dir.pwd, "gc_keys.json")
+    begin
+      # A temporary keychain for the signing certificate
+      setup_ci
+
+      api_key = app_store_connect_api_key(
+        key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+        key_content: ENV["APP_STORE_CONNECT_API_KEY"],
+        in_house: false
+      )
+      File.write(gcp_key_path, ENV["GCP_IOS_CERTS_SERVICE_ACCOUNT_KEY"])
+
+      # 1. Fetch the signing certificate and profile from the bucket
+      match(
+        type: "appstore",
+        storage_mode: "google_cloud",
+        google_cloud_bucket_name: ENV["GCP_IOS_CERTS_BUCKET_ID"],
+        google_cloud_project_id: ENV["GCP_IOS_CERTS_PROJECT_ID"],
+        google_cloud_keys_file: gcp_key_path,
+        api_key: api_key,
+        app_identifier: app_id,
+        team_id: ENV["APP_STORE_TEAM_ID"],
+        readonly: !allow_provisioning_changes?,
+        force: allow_provisioning_changes?
+      )
+
+      # 2. Sign with the match profile instead of automatic signing
+      # (changes the project on the CI machine only, nothing is committed)
+      update_code_signing_settings(
+        use_automatic_signing: false,
+        path: "App.xcodeproj",
+        targets: ["App"],
+        code_sign_identity: "Apple Distribution",
+        profile_name: "match AppStore #{app_id}",
+        team_id: ENV["APP_STORE_TEAM_ID"]
+      )
+
+      # 3. Build the IPA. The version is the one in the Xcode project,
+      # which the workflow copies from package.json first.
+      build_app(
+        project: "App.xcodeproj",
+        scheme: "App",
+        configuration: "Release",
+        export_method: "app-store",
+        output_directory: "build"
+      )
+
+      # 4. Upload it. Apple then processes the build for a while before testers get it.
+      upload_to_testflight(
+        api_key: api_key,
+        skip_waiting_for_build_processing: true
+      )
+    ensure
+      File.delete(gcp_key_path) if File.exist?(gcp_key_path)
+    end
+  end
+end

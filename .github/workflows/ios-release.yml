@@ -1,0 +1,153 @@
+# The iOS release for every IDEMS puzzle game: builds the game, signs it and uploads
+# it to TestFlight. A game doesn't run this directly: its own
+# .github/workflows/ios-release.yml calls it. See ios-release/README.md.
+#
+# Signing works as in open-app-builder's iOS release (open-app-builder-actions):
+# fastlane match, with the certificate and profiles kept encrypted in a Google
+# Cloud Storage bucket. Nothing here is specific to one game: the Fastfile reads
+# the App ID from the game's Xcode project.
+name: iOS - Release
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        description: 'Where to release: testflight (the only one so far)'
+        type: string
+        default: testflight
+      allow_provisioning_changes:
+        description: "Let fastlane match create or renew the provisioning profile (needed on a game's first run)"
+        type: boolean
+        default: false
+      games_common_core_ref:
+        description: >-
+          The games-common-core branch to take ios-release/ from. Keep it the same as the
+          branch after @ in the game's workflow: main, unless testing a branch.
+        type: string
+        default: main
+    # Games pass them with `secrets: inherit`. Not marked required, so that the first
+    # step can list every one that is missing.
+    secrets:
+      APP_STORE_CONNECT_API_KEY_ID:
+        description: App Store Connect API key ID
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        description: Its issuer ID
+      APP_STORE_CONNECT_API_KEY:
+        description: The contents of its .p8 file
+      GCP_IOS_CERTS_SERVICE_ACCOUNT_KEY:
+        description: Service account JSON key for the certificates bucket
+      GCP_IOS_CERTS_ENCRYPTION_PASSWORD:
+        description: fastlane match's encryption password for the bucket
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Build iOS and release to ${{ inputs.target }}
+    # App Store Connect requires the iOS 26 SDK (Xcode 26), the default on macos-26.
+    # Keep in step with open-app-builder-actions when Apple raises the requirement.
+    runs-on: macos-26
+    timeout-minutes: 60
+    # Starting a release on a branch cancels one already running there
+    concurrency:
+      group: ios-release-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      # Fails in seconds if one is missing, rather than after the build.
+      # Only this step and the fastlane one get the secrets, so npm packages'
+      # install scripts and the web build never see them.
+      - name: Check secrets and variables are set
+        env: &signing-env
+          APP_STORE_TEAM_ID: ${{ vars.APP_STORE_TEAM_ID }}
+          GCP_IOS_CERTS_PROJECT_ID: ${{ vars.GCP_IOS_CERTS_PROJECT_ID }}
+          GCP_IOS_CERTS_BUCKET_ID: ${{ vars.GCP_IOS_CERTS_BUCKET_ID }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          GCP_IOS_CERTS_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_IOS_CERTS_SERVICE_ACCOUNT_KEY }}
+          GCP_IOS_CERTS_ENCRYPTION_PASSWORD: ${{ secrets.GCP_IOS_CERTS_ENCRYPTION_PASSWORD }}
+          ALLOW_PROVISIONING_CHANGES: ${{ inputs.allow_provisioning_changes }}
+          RELEASE_TARGET: ${{ inputs.target }}
+        run: |
+          missing=0
+          for var in APP_STORE_TEAM_ID GCP_IOS_CERTS_PROJECT_ID GCP_IOS_CERTS_BUCKET_ID \
+                     APP_STORE_CONNECT_API_KEY_ID APP_STORE_CONNECT_API_ISSUER_ID APP_STORE_CONNECT_API_KEY \
+                     GCP_IOS_CERTS_SERVICE_ACCOUNT_KEY GCP_IOS_CERTS_ENCRYPTION_PASSWORD; do
+            if [ -z "$(printenv "$var")" ]; then
+              echo "❌ $var is not set"
+              missing=1
+            else
+              echo "✅ $var is set"
+            fi
+          done
+          case "$RELEASE_TARGET" in
+            testflight) echo "✅ Releasing to $RELEASE_TARGET" ;;
+            *) echo "❌ Unknown target: $RELEASE_TARGET"; missing=1 ;;
+          esac
+          exit $missing
+
+      # Pin the major Xcode version so a runner image update can't silently change it
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26'
+
+      # The game, at the commit the release was started on
+      - uses: actions/checkout@v7
+        with:
+          submodules: true # games-common-core
+          persist-credentials: false
+
+      # This repository's ios-release/ folder, from the same branch as this workflow, so
+      # that the two always match. (GitHub doesn't tell a called workflow which commit it
+      # came from, so the game passes the branch in.) The game's own games-common-core
+      # folder isn't used for this: it stays at the commit the game was last updated to.
+      - uses: actions/checkout@v7
+        with:
+          repository: IDEMSInternational/games-common-core
+          ref: ${{ inputs.games_common_core_ref }}
+          path: .release-tools
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build web app and sync iOS project
+        run: |
+          npm run build
+          npx cap sync ios
+
+      # npm version already did this; again in case package.json was edited by hand
+      - name: Copy the version from package.json into the Xcode project
+        run: node .release-tools/ios-release/ios-version.mjs
+
+      # Only on this machine: the game's repository doesn't keep these files
+      - name: Add the Fastfile and Gemfile to the game's iOS project
+        run: |
+          mkdir -p ios/App/fastlane
+          cp .release-tools/ios-release/Fastfile ios/App/fastlane/Fastfile
+          cp .release-tools/ios-release/Gemfile .release-tools/ios-release/Gemfile.lock ios/App/
+
+      # Installs the gems from Gemfile.lock and caches them
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+          working-directory: ios/App
+
+      - name: Build and release to ${{ inputs.target }}
+        working-directory: ios/App
+        env: *signing-env
+        run: bundle exec fastlane "release_$RELEASE_TARGET"
+
+      - name: Upload Xcode build logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: xcode-build-logs
+          path: ~/Library/Logs/gym
+          if-no-files-found: ignore
