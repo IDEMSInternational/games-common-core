@@ -58,7 +58,7 @@ export class SessionStore<Params, State, Move> implements FreePlayControls {
 
   /**
    * `key` keeps this store's size and game apart from others' (e.g.
-   * "slant.timed"); `showMistakes`, if given, is the app's shared setting.
+   * "slanted.timed"); `showMistakes`, if given, is the app's shared setting.
    */
   constructor(
     game: PuzzleGame<Params, State, Move>,

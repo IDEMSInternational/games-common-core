@@ -35,17 +35,17 @@ describe('daily puzzles', () => {
   });
 
   it('numbers the puzzles from the first day, and follows the weekly schedule at each level', () => {
-    expect(dailyPuzzle('slant', schedule, '2026-10-25', 0)).toBeNull();
-    expect(dailyPuzzle('slant', schedule, '2026-10-26', 0)).toEqual({
+    expect(dailyPuzzle('slanted', schedule, '2026-10-25', 0)).toBeNull();
+    expect(dailyPuzzle('slanted', schedule, '2026-10-26', 0)).toEqual({
       date: '2026-10-26',
       number: 1,
       weekday: 0,
       level: 0,
       params: 'low mon',
-      seed: 'slant daily 2026-10-26 low',
+      seed: 'slanted daily 2026-10-26 low',
     });
-    const later = dailyPuzzle('slant', schedule, '2027-01-03', 2)!;
-    expect([later.number, later.params, later.seed]).toEqual([70, 'high sun', 'slant daily 2027-01-03 high']);
+    const later = dailyPuzzle('slanted', schedule, '2027-01-03', 2)!;
+    expect([later.number, later.params, later.seed]).toEqual([70, 'high sun', 'slanted daily 2027-01-03 high']);
   });
 
   it('rejects anything but a date', () => {

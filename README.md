@@ -2,7 +2,7 @@
 
 Code shared by every IDEMS puzzle game, such as
 [rectangles](https://github.com/IDEMSInternational/rectangles) and
-[slant](https://github.com/IDEMSInternational/slant). Each game includes
+[slanted](https://github.com/IDEMSInternational/slanted). Each game includes
 this repository as a **git submodule** instead of keeping its own copy.
 
 The games are educational phone apps (Angular + Capacitor) built from
@@ -67,7 +67,7 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `puzzle-splash/`: the IDEMS Games opening screen (logo in `assets/`)
   - `puzzle-notice/`: the welcome notice with the terms and privacy policy
   - `puzzle-switch/`: an on/off switch for game modes and settings
-    under the board (e.g. Slant's Thinking, Rectangles' Lock)
+    under the board (e.g. Slanted's Thinking, Rectangles' Lock)
   - `board-label.ts`, `first-run.ts`, `stored-setting.ts`: label
     placement, "tutorial seen" memory, settings remembered on the device
 - `assets/app/`: source images for the app icon and Android's launch
