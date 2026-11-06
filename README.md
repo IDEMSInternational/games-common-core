@@ -73,6 +73,9 @@ The games are educational phone apps (Angular + Capacitor) built from
 - `assets/app/`: source images for the app icon and Android's launch
   screen (the IDEMS knot), made by `tools/make-app-images.ps1`; each game
   turns them into Android resources with `npm run app-images`
+- `ios-release/` and `.github/workflows/ios-release.yml`: the iOS release
+  every game uses, which builds the game, signs it and uploads it to
+  TestFlight; see [ios-release/README.md](ios-release/README.md)
 
 ## How a game uses it
 
@@ -115,6 +118,52 @@ shared files then find the game's own Angular in the game's
 error NG0203. So **never run `npm install` in the submodule folder inside
 a game**; run it in the game.
 
+For the iOS release, see [ios-release/README.md](ios-release/README.md).
+
+## A game's App ID
+
+The App ID is the name that the app stores and phones know a game by (Apple
+calls it the bundle ID, Google Play the application ID). The games use
+`international.idems.games.<game>`, for example
+`international.idems.games.rectangles`, following the open-app-builder apps'
+`international.idems.<app>`.
+
+**Choose it before the first release.** Once a game is on TestFlight, the App
+Store or Google Play, its App ID can't change: a new App ID is a new app. Its
+players wouldn't get it as an update, and what the game keeps on their phones
+(records, streaks, settings) would stay with the old app.
+
+**Setting it, for a new game.** Set `appId` in the game's `capacitor.config.ts`
+before adding the Android and iOS projects:
+
+```sh
+npx cap add android
+npx cap add ios
+```
+
+Each of these copies `appId` into its project, once, when it creates it. They
+end up in these files, which must all agree:
+
+| File                                              | Setting                                                                  |
+| ------------------------------------------------- | ------------------------------------------------------------------------ |
+| `capacitor.config.ts`                             | `appId`                                                                  |
+| `android/app/build.gradle`                        | `namespace` and `applicationId`                                          |
+| `android/app/src/main/res/values/strings.xml`     | `package_name` and `custom_url_scheme`                                   |
+| `android/app/src/main/java/.../MainActivity.java` | its `package` line and its folders (`international/idems/games/<game>/`) |
+| `ios/App/App.xcodeproj/project.pbxproj`           | `PRODUCT_BUNDLE_IDENTIFIER`, twice (Debug and Release)                   |
+
+The iOS release reads the App ID from the Xcode project, so no workflow sets it.
+
+**Changing it.** `npx cap sync` doesn't copy `appId` again, so change it by
+hand in every file in the table, moving `MainActivity.java` to the folders for
+the new App ID. Then build both apps to check. Rectangles'
+[pull request #2](https://github.com/IDEMSInternational/rectangles/pull/2)
+is an example. For iOS, also register the new App ID and create its app in App
+Store Connect, then run the next release with **allow_provisioning_changes**
+ticked, so that match creates a provisioning profile for it (see
+[ios-release/README.md](ios-release/README.md#adding-ios-release-to-a-game),
+steps 3 and 6).
+
 ## Working on it
 
 Changes are best made in a standalone clone of this repository:
@@ -136,7 +185,10 @@ git commit -am "Update games-common-core"
 ```
 
 Each game keeps the version it was last updated to, so a change here never
-breaks a game until that game is updated.
+breaks a game until that game is updated. The exception is the iOS release:
+games use it from `main`, so a change to it reaches every game's next release.
+Try such changes from a branch first, as
+[ios-release/README.md](ios-release/README.md#changing-the-release) explains.
 
 ## Licence
 

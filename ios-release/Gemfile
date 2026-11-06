@@ -1,0 +1,5 @@
+source "https://rubygems.org"
+
+# Builds and signs the app, and uploads it to TestFlight (see Fastfile).
+# Gemfile.lock pins the version, so every game's release uses the same one.
+gem "fastlane"
