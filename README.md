@@ -76,6 +76,10 @@ The games are educational phone apps (Angular + Capacitor) built from
 - `ios-release/` and `.github/workflows/ios-release.yml`: the iOS release
   every game uses, which builds the game, signs it and uploads it to
   TestFlight; see [ios-release/README.md](ios-release/README.md)
+- `android-release/` and `.github/workflows/android-release.yml`: the Android
+  release every game uses, which builds the game's bundle, signs it and
+  uploads it to Google Play; see
+  [android-release/README.md](android-release/README.md)
 
 ## How a game uses it
 
@@ -118,7 +122,8 @@ shared files then find the game's own Angular in the game's
 error NG0203. So **never run `npm install` in the submodule folder inside
 a game**; run it in the game.
 
-For the iOS release, see [ios-release/README.md](ios-release/README.md).
+For the releases, see [ios-release/README.md](ios-release/README.md) and
+[android-release/README.md](android-release/README.md).
 
 ## A game's App ID
 
@@ -152,7 +157,8 @@ end up in these files, which must all agree:
 | `android/app/src/main/java/.../MainActivity.java` | its `package` line and its folders (`international/idems/games/<game>/`) |
 | `ios/App/App.xcodeproj/project.pbxproj`           | `PRODUCT_BUNDLE_IDENTIFIER`, twice (Debug and Release)                   |
 
-The iOS release reads the App ID from the Xcode project, so no workflow sets it.
+The iOS release reads the App ID from the Xcode project, and the Android release
+from `build.gradle`, so no workflow sets it.
 
 **Changing it.** `npx cap sync` doesn't copy `appId` again, so change it by
 hand in every file in the table, moving `MainActivity.java` to the folders for
@@ -185,10 +191,12 @@ git commit -am "Update games-common-core"
 ```
 
 Each game keeps the version it was last updated to, so a change here never
-breaks a game until that game is updated. The exception is the iOS release:
-games use it from `main`, so a change to it reaches every game's next release.
-Try such changes from a branch first, as
-[ios-release/README.md](ios-release/README.md#changing-the-release) explains.
+breaks a game until that game is updated. The exceptions are the iOS and
+Android releases: games use them from `main`, so a change to them reaches every
+game's next release. Try such changes from a branch first, as
+[ios-release/README.md](ios-release/README.md#changing-the-release) and
+[android-release/README.md](android-release/README.md#changing-the-release)
+explain.
 
 ## Licence
 

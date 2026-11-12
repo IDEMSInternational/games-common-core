@@ -1,0 +1,174 @@
+# The Android release for every IDEMS puzzle game: builds the game's release
+# bundle (.aab), signs it with the upload key and uploads it to Google Play. A game
+# doesn't run this directly: its own .github/workflows/android-release.yml calls it.
+# See android-release/README.md.
+#
+# It works as open-app-builder's Android release (open-app-builder-actions,
+# android-build.yml and android-release.yml), with the same secret names: the
+# upload keystore in SIGNING_KEY, and a Google Play service account to upload.
+# Nothing here is specific to one game: the package name is read from the game's
+# android/app/build.gradle.
+name: Android - Release
+
+on:
+  workflow_call:
+    inputs:
+      track:
+        description: >-
+          Where to release: internal, alpha (closed testing), beta (open testing), or
+          none to only build the signed bundle (to download, e.g. for the first upload)
+        type: string
+        default: internal
+      status:
+        description: >-
+          completed (testers or users get it straight away) or draft (finish it in the
+          Play Console). Google Play allows only draft until the app's first release
+          there has been rolled out, which is done by hand in the Play Console.
+        type: string
+        default: completed
+    # Games pass them with `secrets: inherit`. Not marked required, so that the first
+    # step can list every one that is missing.
+    secrets:
+      SIGNING_KEY:
+        description: The upload keystore (.jks), base64-encoded
+      ALIAS:
+        description: The upload key's alias in the keystore
+      KEY_STORE_PASSWORD:
+        description: The keystore's password
+      KEY_PASSWORD:
+        description: The upload key's password
+      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON:
+        description: JSON key of a service account with release rights in the Play Console
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Build Android and release to ${{ inputs.track }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Starting a release on a branch cancels one already running there
+    concurrency:
+      group: android-release-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      # Fails in seconds if one is missing, rather than after the build.
+      # Only this step, signing and uploading get the secrets, so npm packages'
+      # install scripts and the build never see them.
+      - name: Check secrets and inputs
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          ALIAS: ${{ secrets.ALIAS }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          TRACK: ${{ inputs.track }}
+          STATUS: ${{ inputs.status }}
+        run: |
+          missing=0
+          needed="SIGNING_KEY ALIAS KEY_STORE_PASSWORD KEY_PASSWORD"
+          [ "$TRACK" != none ] && needed="$needed GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"
+          for var in $needed; do
+            if [ -z "$(printenv "$var")" ]; then
+              echo "❌ $var is not set"
+              missing=1
+            else
+              echo "✅ $var is set"
+            fi
+          done
+          case "$TRACK" in
+            internal|alpha|beta) echo "✅ Releasing to $TRACK ($STATUS)" ;;
+            none) echo "✅ Only building the signed bundle" ;;
+            *) echo "❌ Unknown track: $TRACK"; missing=1 ;;
+          esac
+          case "$STATUS" in
+            completed|draft) ;;
+            *) echo "❌ Unknown status: $STATUS"; missing=1 ;;
+          esac
+          exit $missing
+
+      # The game, at the commit the release was started on
+      - uses: actions/checkout@v7
+        with:
+          submodules: true # games-common-core
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build web app and sync Android project
+        run: |
+          npm run build
+          npx cap sync android
+
+      # Capacitor 8 builds with JDK 21 and SDK 36, as in open-app-builder-actions
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+
+      - name: Read the package name and version
+        id: app
+        run: |
+          package=$(sed -n 's/^ *applicationId *"\([^"]*\)".*/\1/p' android/app/build.gradle)
+          version=$(node -p "require('./package.json').version")
+          if [ -z "$package" ]; then echo "❌ No applicationId in android/app/build.gradle"; exit 1; fi
+          echo "package=$package" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "📦 $package, version $version"
+
+      # Built unsigned: the game's build.gradle signs only when ANDROID_KEYSTORE
+      # is set, which it isn't here.
+      - name: Build the release bundle
+        working-directory: android
+        run: ./gradlew :app:bundleRelease
+
+      # As r0adkll/sign-android-release does in open-app-builder, with the JDK's
+      # jarsigner directly, so the key goes to no other action
+      - name: Sign the bundle with the upload key
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          ALIAS: ${{ secrets.ALIAS }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          keystore="$RUNNER_TEMP/upload.jks"
+          echo "$SIGNING_KEY" | base64 -d > "$keystore"
+          bundle=android/app/build/outputs/bundle/release/app-release.aab
+          jarsigner -keystore "$keystore" -storepass:env KEY_STORE_PASSWORD -keypass:env KEY_PASSWORD \
+            "$bundle" "$ALIAS"
+          rm "$keystore"
+          jarsigner -verify "$bundle" | grep -q 'jar verified' || { echo "❌ Signing failed"; exit 1; }
+          mkdir -p release
+          cp "$bundle" "release/${{ steps.app.outputs.package }}-${{ steps.app.outputs.version }}.aab"
+          echo "✅ Signed"
+
+      # Kept for two weeks: download it from the run's page (e.g. for the first
+      # upload, which Google Play only accepts by hand in the Play Console)
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-bundle
+          path: release/*.aab
+          retention-days: 14
+
+      # r0adkll/upload-google-play v1.1.5, pinned to its commit as it gets the
+      # Play Console key. (open-app-builder-actions uses v1.1.2, on Node 16.)
+      - name: Upload to Google Play (${{ inputs.track }})
+        if: inputs.track != 'none'
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ steps.app.outputs.package }}
+          releaseFiles: release/*.aab
+          track: ${{ inputs.track }}
+          status: ${{ inputs.status }}
