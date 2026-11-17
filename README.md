@@ -122,6 +122,12 @@ shared files then find the game's own Angular in the game's
 error NG0203. So **never run `npm install` in the submodule folder inside
 a game**; run it in the game.
 
+**A new game's name in the legal texts.** `PRIVACY.md` and `TERMS.md`
+(which every app shows, and which the app stores link to) name every game
+they cover. Add the new game to both, then regenerate the public copy of
+the policy in [games-data](https://github.com/IDEMSInternational/games-data)
+(`node tools/privacy.mjs`), and give the game a page there too.
+
 For the releases, see [ios-release/README.md](ios-release/README.md) and
 [android-release/README.md](android-release/README.md).
 
