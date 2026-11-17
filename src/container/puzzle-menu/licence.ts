@@ -17,10 +17,11 @@ export const MIT_TERMS: readonly string[] = [
 ];
 
 /**
- * The games' licence, word for word as in each repository's LICENSE, except
- * that line breaks inside paragraphs are removed (so it wraps on a phone) and
- * the collection's web address, in our own words at the top, is a link on its
- * name instead. The original collection's notice is indented, as there, and
+ * The games' licence: each repository's LICENSE (our MIT licence) and the
+ * original collection's notice from its THIRD-PARTY-NOTICES, word for word,
+ * except that line breaks inside paragraphs are removed (so it wraps on a
+ * phone) and the collection's web address, in our own words at the top, is a
+ * link on its name instead. The original collection's notice is indented and
  * unchanged. The MIT licence requires the notice in every copy of the games,
  * so it is shown in the app, not only kept in the repositories.
  */
