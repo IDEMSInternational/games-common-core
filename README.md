@@ -68,6 +68,13 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `puzzle-notice/`: the welcome notice with the terms and privacy policy
   - `puzzle-switch/`: an on/off switch for game modes and settings
     under the board (e.g. Slanted's Thinking, Rectangles' Lock)
+  - `*.spec.ts`: the tests of these screens, next to the code they test,
+    run by every game (see below)
+  - `testing/`: for those tests only: a stand-in game ("Sample": fill in
+    a hidden pattern, with Rectangles' sizes and daily puzzles, and a
+    version with Easy and Hard), the app every game wires around its
+    board (`sample-app.ts`), and `AppHarness`, which opens it on a fresh
+    device at a chosen date
   - `board-label.ts`, `first-run.ts`, `stored-setting.ts`: label
     placement, "tutorial seen" memory, settings remembered on the device
 - `assets/app/`: source images for the app icon and Android's launch
@@ -111,6 +118,18 @@ and its `angular.json` serves the shared images by adding to the build's
 ```json
 { "glob": "**/*", "input": "games-common-core/assets", "output": "studio" }
 ```
+
+It runs the screens' tests (`src/container/**/*.spec.ts`) with its own:
+its `angular.json` test options include them, relative to `src`,
+
+```json
+"include": ["**/*.spec.ts", "../games-common-core/src/container/**/*.spec.ts"]
+```
+
+and its `tsconfig.spec.json` type-checks them, adding
+`"games-common-core/src/container/**/*.spec.ts"` to its `include`. A game's
+own tests then cover only what is its own: its rules, board, tutorial,
+daily puzzles and any switches of its own.
 
 The game also installs the Capacitor plugins the shared code uses (peer
 dependencies): `npm install @capacitor/app @capacitor/preferences @capacitor/share`.
@@ -187,7 +206,16 @@ npm run typecheck  # type-check the engine
 ```
 
 The Angular container is type-checked and tested through the games that
-include it. After pushing a change here, update each game to use it:
+include it: its tests are here, beside the code, and every game runs them
+(see [How a game uses it](#how-a-game-uses-it)). To try a change before
+pushing it, copy the changed files into a game's `games-common-core` folder
+and run that game's tests, e.g. only these:
+
+```sh
+npx ng test --watch=false --include='../games-common-core/src/container/**/*.spec.ts'
+```
+
+After pushing a change here, update each game to use it:
 
 ```sh
 cd <game>
