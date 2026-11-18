@@ -84,6 +84,10 @@ The games are educational phone apps (Angular + Capacitor) built from
     progress, and ignores all but the main mouse button; each game's
     board uses it, and the game's own `input.ts` decides what a drag, a
     swipe or a tap means
+  - `board-finger.ts` and `board-label-view.ts`: drawn on a game's board
+    (`<g boardFinger>`, `<g boardLabel>`): the tutorial's finger, tapping
+    or showing a drag or swipe (the same speed in every game), and the
+    pill-shaped labels placed by `board-label.ts`
   - `board-label.ts`, `first-run.ts`, `stored-setting.ts`: label
     placement, "tutorial seen" memory, settings remembered on the device
 - `assets/app/`: source images for the app icon and Android's launch
