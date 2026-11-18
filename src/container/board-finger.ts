@@ -11,6 +11,8 @@ import { Point } from '../engine/geometry';
 
 /** How long the finger takes to show a drag or swipe once, before it starts again. */
 const GESTURE_SECONDS = 2;
+/** The part of each loop the finger waits at the start (keyTimes below), before moving. */
+const START_WAIT = 0.2;
 
 /**
  * The tutorial's finger on a game's board (an SVG group, in squares),
@@ -35,7 +37,7 @@ const GESTURE_SECONDS = 2;
           begin="indefinite"
           repeatCount="indefinite"
           keyPoints="0;0;1;1"
-          keyTimes="0;0.2;0.8;1"
+          keyTimes="0;${START_WAIT};0.8;1"
           calcMode="linear"
         />
       </svg:circle>
@@ -61,11 +63,12 @@ export class BoardFinger {
   constructor() {
     // An SVG animation keeps time from when the page opened, so a finger
     // shown later would start anywhere in its loop (often at the end, then
-    // waiting). Start it from the beginning whenever it appears or its
-    // gesture changes.
+    // waiting). Whenever it appears or its gesture changes, start it at the
+    // moment it begins to move: straight into the gesture, without the wait
+    // at the start that later loops have.
     afterRenderEffect(() => {
       this.path();
-      this.motion()?.nativeElement.beginElement?.();
+      this.motion()?.nativeElement.beginElementAt?.(-START_WAIT * GESTURE_SECONDS);
     });
   }
 }

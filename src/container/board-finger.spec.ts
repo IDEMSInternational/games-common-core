@@ -60,12 +60,14 @@ describe('The tutorial finger and labels on a board', () => {
     expect(motion.getAttribute('dur')).toBe('2s'); // the same in every game
   });
 
-  it('starts a drag or swipe from its beginning whenever it appears or changes', async () => {
+  it('starts a drag or swipe moving at once whenever it appears or changes', async () => {
     // The browser's SVG animations; the test DOM has none, so count the starts.
-    const started: Element[] = [];
-    const proto = SVGElement.prototype as SVGElement & { beginElement?: () => void };
-    proto.beginElement = function (this: Element) {
-      started.push(this);
+    const started: [Element, number][] = [];
+    const proto = SVGElement.prototype as SVGElement & {
+      beginElementAt?: (offset: number) => void;
+    };
+    proto.beginElementAt = function (this: Element, offset: number) {
+      started.push([this, offset]);
     };
     try {
       const { board, update } = render();
@@ -79,7 +81,9 @@ describe('The tutorial finger and labels on a board', () => {
         { x: 2.5, y: 0.5 },
       ]);
       expect(started.length).toBe(1);
-      expect(started[0].getAttribute('begin')).toBe('indefinite'); // not timed from the page opening
+      const [motion, offset] = started[0];
+      expect(motion.getAttribute('begin')).toBe('indefinite'); // not timed from the page opening
+      expect(offset).toBeCloseTo(-0.4); // past the wait at the start: moving at once
 
       await step([
         { x: 0.5, y: 0.5 },
@@ -100,7 +104,7 @@ describe('The tutorial finger and labels on a board', () => {
       ]);
       expect(started.length).toBe(3);
     } finally {
-      delete proto.beginElement;
+      delete proto.beginElementAt;
     }
   });
 
