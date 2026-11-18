@@ -1,0 +1,78 @@
+:host {
+  display: block;
+}
+
+.game {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--board);
+  color: var(--text);
+  text-decoration: none;
+  line-height: 1.3;
+
+  & + & {
+    margin-top: 8px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--brand);
+  }
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 11px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+
+  &.blank {
+    background: var(--border);
+  }
+}
+
+.about {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+}
+
+.soon {
+  color: var(--brand);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+small {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.none {
+  color: var(--text-muted);
+}

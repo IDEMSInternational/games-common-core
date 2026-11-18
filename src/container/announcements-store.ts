@@ -1,15 +1,12 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { localDay } from '../engine/daily';
-import { readStored, readStoredJson, writeStored, writeStoredJson } from './stored-setting';
+import { GAMES_DATA, downloadDaily } from './games-data';
+import { readStoredJson, writeStoredJson } from './stored-setting';
 
 /** Where the announcements are published (the games-data repository, on GitHub Pages). */
-export const ANNOUNCEMENTS_URL = 'https://idemsinternational.github.io/games-data/announcements.json';
-
-/** Check for news at most this often. */
-const CHECK_EVERY_MS = 24 * 60 * 60 * 1000;
-/** Give up on a slow download after this long; the copy kept from last time is shown meanwhile. */
-const TIMEOUT_MS = 8000;
+const FILE = 'announcements.json';
+export const ANNOUNCEMENTS_URL = GAMES_DATA + FILE;
 
 const CACHE_KEY = 'announcements.cache';
 const CHECKED_KEY = 'announcements.checked';
@@ -96,8 +93,7 @@ export class AnnouncementsStore {
   load(gameId: string): void {
     this.gameId.set(gameId);
     this.today.set(localDay());
-    const checked = Number(readStored(CHECKED_KEY)) || 0;
-    if (Date.now() - checked >= CHECK_EVERY_MS) void this.download();
+    void this.download();
   }
 
   /** The player opened the Announcements page: the current ones are seen. */
@@ -109,22 +105,13 @@ export class AnnouncementsStore {
     writeStoredJson(SEEN_KEY, seen);
   }
 
+  /** Checks for news if it's been a day; keeps what we had if offline. */
   private async download(): Promise<void> {
-    if (typeof fetch !== 'function') return;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-    try {
-      const response = await fetch(ANNOUNCEMENTS_URL, { cache: 'no-cache', signal: controller.signal });
-      if (!response.ok) return;
-      const all = parseAnnouncements(await response.json());
-      this.all.set(all);
-      writeStoredJson(CACHE_KEY, { announcements: all });
-      writeStored(CHECKED_KEY, String(Date.now()));
-    } catch {
-      // Offline, or a bad file: keep what we had, and try again next time.
-    } finally {
-      clearTimeout(timer);
-    }
+    const data = await downloadDaily(FILE, CHECKED_KEY);
+    if (data === null) return;
+    const all = parseAnnouncements(data);
+    this.all.set(all);
+    writeStoredJson(CACHE_KEY, { announcements: all });
   }
 }
 

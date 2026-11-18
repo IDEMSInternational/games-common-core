@@ -1,4 +1,5 @@
 import { Share } from '@capacitor/share';
+import { GAMES_DATA } from './games-data';
 
 /**
  * A game's page in the games-data repository, which sends phones on to the
@@ -6,7 +7,7 @@ import { Share } from '@capacitor/share';
  * to it rather than to a store, as the friend may have another kind of
  * phone, and so that the link works before the game is in the stores.
  */
-export const gamePage = (gameId: string) => `https://idemsinternational.github.io/games-data/${gameId}/`;
+export const gamePage = (gameId: string) => `${GAMES_DATA}${gameId}/`;
 
 /**
  * Opens the device's share panel with `text` and a link to the game's page

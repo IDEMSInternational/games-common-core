@@ -62,6 +62,15 @@ The games are educational phone apps (Angular + Capacitor) built from
     [games-data](https://github.com/IDEMSInternational/games-data)
     repository (data kept apart from code), with an orange dot for
     anything new
+  - `games-store.ts` and `puzzle-games/`: the ☰ menu's Other IDEMS Games
+    page, listing the other games (icon, name, a line about the puzzle,
+    "Coming soon" until it's in this phone's store), downloaded at most once
+    a day from games-data's `games.json`, so a new game appears without a
+    release; a tap opens the game's store, or its page until it's there.
+    `games.json` here is the copy each app is built with, used until its
+    first download
+  - `games-data.ts`: where games-data is published, and the daily download
+    the announcements and the games list share
   - `theme-store.ts`: light or dark theme (follows the phone until the
     player chooses in Game options, in the ☰ menu)
   - `theme.scss`: design tokens, base styles and shared `.board-*` SVG
@@ -159,6 +168,11 @@ a game**; run it in the game.
 they cover. Add the new game to both, then regenerate the public copy of
 the policy in [games-data](https://github.com/IDEMSInternational/games-data)
 (`node tools/privacy.mjs`), and give the game a page there too.
+
+**A new game in the list of games.** Add it to `games.json` in games-data
+(see its README): every app's Other IDEMS Games page shows it within a day.
+Copy that file here too (`src/container/games.json`), so the apps built
+next include it before their first download.
 
 For the releases, see [ios-release/README.md](ios-release/README.md) and
 [android-release/README.md](android-release/README.md).

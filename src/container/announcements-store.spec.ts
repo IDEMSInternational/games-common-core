@@ -118,10 +118,4 @@ describe('Announcements', () => {
     expect(parseAnnouncements(null)).toEqual([]);
     expect(parseAnnouncements({ announcements: 'x' })).toEqual([]);
   });
-
-  it('says more games are coming soon', async () => {
-    await open({ announcements: [] });
-    await openPage('Other IDEMS Games');
-    expect(app.text('puzzle-menu .page')).toBe('More games coming soon!');
-  });
 });

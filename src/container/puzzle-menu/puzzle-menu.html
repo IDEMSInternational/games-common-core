@@ -112,6 +112,10 @@
           <p class="soon">No announcements yet. News about IDEMS Games, such as new games, will appear here.</p>
         }
       </div>
+    } @else if (page()?.id === OTHER_GAMES) {
+      <div class="page">
+        <puzzle-games />
+      </div>
     } @else if (page(); as p) {
       <div class="page">
         @if (p.paragraphs) {
