@@ -51,8 +51,11 @@ export class TutorialStore<Params, State, Move, Hint> implements TutorialControl
     if (result !== 'step-done') return;
 
     this.pausing.set(true);
-    if (this.run.next()) {
+    if (this.run.stepIndex < this.run.stepCount - 1) {
+      // The step stays on screen with the move's result for a moment; then
+      // the next one's caption and finger come together.
       setTimeout(() => {
+        this.run.next();
         this.pausing.set(false);
         this.version.update((v) => v + 1);
       }, STEP_PAUSE_MS);

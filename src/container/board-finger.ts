@@ -11,8 +11,9 @@ import { Point } from '../engine/geometry';
 
 /** How long the finger takes to show a drag or swipe once, before it starts again. */
 const GESTURE_SECONDS = 2;
-/** The part of each loop the finger waits at the start (keyTimes below), before moving. */
+/** The parts of each loop the finger waits at the start and, after moving, at the end. */
 const START_WAIT = 0.2;
+const END_WAIT = 0.2;
 
 /**
  * The tutorial's finger on a game's board (an SVG group, in squares),
@@ -28,19 +29,14 @@ const START_WAIT = 0.2;
 @Component({
   selector: 'g[boardFinger]',
   template: `
-    @if (path(); as path) {
-      <svg:circle class="board-finger" r="0.22">
-        <svg:animateMotion
-          #motion
-          [attr.path]="path"
-          dur="${GESTURE_SECONDS}s"
-          begin="indefinite"
-          repeatCount="indefinite"
-          keyPoints="0;0;1;1"
-          keyTimes="0;${START_WAIT};0.8;1"
-          calcMode="linear"
-        />
-      </svg:circle>
+    @if (gesture(); as g) {
+      <svg:circle
+        #moving
+        class="board-finger"
+        [attr.cx]="g.start.x"
+        [attr.cy]="g.start.y"
+        r="0.22"
+      />
     } @else if (at(); as at) {
       <svg:circle class="board-finger tap" [attr.cx]="at.x" [attr.cy]="at.y" r="0.22" />
     }
@@ -53,22 +49,56 @@ export class BoardFinger {
   /** The points a drag or swipe goes through, from start to end (used instead of `at`). */
   readonly along = input<readonly Point[] | null>(null);
 
-  protected readonly path = computed(() => {
-    const points = this.along();
-    if (!points || points.length < 2) return null;
-    return 'M ' + points.map((p) => `${p.x} ${p.y}`).join(' L ');
-  });
-  private readonly motion = viewChild<ElementRef<SVGAnimationElement>>('motion');
+  /** The gesture to show, as its start and its keyframes; the same for equal points. */
+  protected readonly gesture = computed(
+    () => {
+      const points = this.along();
+      return points && points.length > 1
+        ? { start: points[0], frames: gestureFrames(points) }
+        : null;
+    },
+    { equal: (a, b) => JSON.stringify(a) === JSON.stringify(b) },
+  );
+  private readonly moving = viewChild<ElementRef<SVGCircleElement>>('moving');
 
   constructor() {
-    // An SVG animation keeps time from when the page opened, so a finger
-    // shown later would start anywhere in its loop (often at the end, then
-    // waiting). Whenever it appears or its gesture changes, start it at the
+    // Whenever the finger appears or its gesture changes, it starts at the
     // moment it begins to move: straight into the gesture, without the wait
     // at the start that later loops have.
-    afterRenderEffect(() => {
-      this.path();
-      this.motion()?.nativeElement.beginElementAt?.(-START_WAIT * GESTURE_SECONDS);
+    afterRenderEffect((onCleanup) => {
+      const gesture = this.gesture();
+      const circle = this.moving()?.nativeElement;
+      if (!gesture || !circle?.animate) return; // the test DOM has no animations
+      const animation = circle.animate(gesture.frames, {
+        duration: GESTURE_SECONDS * 1000,
+        delay: -START_WAIT * GESTURE_SECONDS * 1000,
+        iterations: Infinity,
+      });
+      onCleanup(() => animation.cancel());
     });
   }
+}
+
+/**
+ * The finger's keyframes for a gesture through `points`, moving it from the
+ * first point (where it is drawn): wait, move at an even speed, wait.
+ */
+export function gestureFrames(points: readonly Point[]): Keyframe[] {
+  const [first] = points;
+  const lengths = points.slice(1).map((p, i) => Math.hypot(p.x - points[i].x, p.y - points[i].y));
+  const total = lengths.reduce((a, b) => a + b, 0) || 1;
+  const moving = 1 - START_WAIT - END_WAIT;
+  const at = (p: Point, offset: number): Keyframe => ({
+    offset,
+    transform: `translate(${p.x - first.x}px, ${p.y - first.y}px)`,
+  });
+
+  const frames = [at(first, 0), at(first, START_WAIT)];
+  let done = 0;
+  points.slice(1).forEach((p, i) => {
+    done += lengths[i];
+    frames.push(at(p, START_WAIT + (moving * done) / total));
+  });
+  frames.push(at(points[points.length - 1], 1));
+  return frames;
 }

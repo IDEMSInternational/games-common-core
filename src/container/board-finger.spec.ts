@@ -1,7 +1,7 @@
 import { ApplicationRef, Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Point } from '../engine/geometry';
-import { BoardFinger } from './board-finger';
+import { BoardFinger, gestureFrames } from './board-finger';
 import { BoardLabel } from './board-label';
 import { BoardLabelView } from './board-label-view';
 
@@ -55,19 +55,38 @@ describe('The tutorial finger and labels on a board', () => {
     const [moving] = fingers();
     expect(fingers().length).toBe(1);
     expect(moving.classList).not.toContain('tap');
-    const motion = moving.querySelector('animateMotion')!;
-    expect(motion.getAttribute('path')).toBe('M 0.5 0.5 L 2.5 1.5 L 3 2');
-    expect(motion.getAttribute('dur')).toBe('2s'); // the same in every game
+    // drawn at the gesture's start, where it waits when not animated
+    expect([moving.getAttribute('cx'), moving.getAttribute('cy')]).toEqual(['0.5', '0.5']);
+  });
+
+  it('moves through the points at an even speed, waiting at both ends', () => {
+    const frames = gestureFrames([
+      { x: 0.5, y: 0.5 },
+      { x: 3.5, y: 0.5 },
+      { x: 3.5, y: 1.5 },
+    ]);
+    expect(frames.map((f) => f['transform'])).toEqual([
+      'translate(0px, 0px)',
+      'translate(0px, 0px)', // waits at the start
+      'translate(3px, 0px)',
+      'translate(3px, 1px)',
+      'translate(3px, 1px)', // waits at the end
+    ]);
+    const offsets = [0, 0.2, 0.2 + 0.6 * 0.75, 0.8, 1]; // 3 of the 4 squares to go at 0.65
+    frames.forEach((f, i) => expect(f.offset).toBeCloseTo(offsets[i]));
   });
 
   it('starts a drag or swipe moving at once whenever it appears or changes', async () => {
-    // The browser's SVG animations; the test DOM has none, so count the starts.
-    const started: [Element, number][] = [];
-    const proto = SVGElement.prototype as SVGElement & {
-      beginElementAt?: (offset: number) => void;
+    // The browser's animations; the test DOM has none, so record them.
+    const started: { frames: Keyframe[]; options: KeyframeAnimationOptions; cancel: () => void }[] =
+      [];
+    const proto = Element.prototype as unknown as {
+      animate?: (frames: Keyframe[], options: KeyframeAnimationOptions) => unknown;
     };
-    proto.beginElementAt = function (this: Element, offset: number) {
-      started.push([this, offset]);
+    proto.animate = function (frames: Keyframe[], options: KeyframeAnimationOptions) {
+      const animation = { frames, options, cancel: vi.fn() };
+      started.push(animation);
+      return animation;
     };
     try {
       const { board, update } = render();
@@ -81,9 +100,8 @@ describe('The tutorial finger and labels on a board', () => {
         { x: 2.5, y: 0.5 },
       ]);
       expect(started.length).toBe(1);
-      const [motion, offset] = started[0];
-      expect(motion.getAttribute('begin')).toBe('indefinite'); // not timed from the page opening
-      expect(offset).toBeCloseTo(-0.4); // past the wait at the start: moving at once
+      expect(started[0].options).toEqual({ duration: 2000, delay: -400, iterations: Infinity });
+      // 2 seconds a loop in every game; started 0.4 s in, past the wait at the start
 
       await step([
         { x: 0.5, y: 0.5 },
@@ -96,6 +114,7 @@ describe('The tutorial finger and labels on a board', () => {
         { x: 3.5, y: 1.5 },
       ]); // the next step's gesture
       expect(started.length).toBe(2);
+      expect(started[0].cancel).toHaveBeenCalled();
 
       await step(null); // hidden, e.g. while the player draws
       await step([
@@ -104,7 +123,7 @@ describe('The tutorial finger and labels on a board', () => {
       ]);
       expect(started.length).toBe(3);
     } finally {
-      delete proto.beginElementAt;
+      delete proto.animate;
     }
   });
 
