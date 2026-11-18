@@ -20,6 +20,10 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `daily.ts`: daily puzzles at three levels: dates, the days that can be played, and the rule turning a date and level
     into the day's puzzle (the same for everyone)
   - `tutorial.ts`: the interactive tutorial engine
+  - `geometry.ts`: positions and sizes on a board (`Point`, `Size`), the
+    square under a position (`squareAt`), and turning a screen position
+    into a board position (`screenToBoard`); every game uses these rather
+    than its own
 - `src/container/`: the Angular frame every game sits in:
   - `puzzle-screens.ts`: which screen shows (home, a daily puzzle, free
     play, Challenges, Beat the clock, timed play, the ladder, the records
@@ -75,6 +79,11 @@ The games are educational phone apps (Angular + Capacitor) built from
     version with Easy and Hard), the app every game wires around its
     board (`sample-app.ts`), and `AppHarness`, which opens it on a fresh
     device at a chosen date
+  - `board-pointer.ts`: the finger on a game's board (`BoardPointer`):
+    turns pointer events into board positions, keeps the gesture in
+    progress, and ignores all but the main mouse button; each game's
+    board uses it, and the game's own `input.ts` decides what a drag, a
+    swipe or a tap means
   - `board-label.ts`, `first-run.ts`, `stored-setting.ts`: label
     placement, "tutorial seen" memory, settings remembered on the device
 - `assets/app/`: source images for the app icon and Android's launch
