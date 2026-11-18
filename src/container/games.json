@@ -1,0 +1,22 @@
+{
+  "games": [
+    {
+      "id": "rectangles",
+      "name": "Rectangles",
+      "summary": "Divide the grid into rectangles, each holding one number: its area.",
+      "stores": { "android": "", "ios": "" }
+    },
+    {
+      "id": "slanted",
+      "name": "Slanted",
+      "summary": "Draw a diagonal in every square, touching each number that many times, without loops.",
+      "stores": { "android": "", "ios": "" }
+    },
+    {
+      "id": "lightup",
+      "name": "Light Up",
+      "summary": "Place lights until every white square is lit, without any shining on another.",
+      "stores": { "android": "", "ios": "" }
+    }
+  ]
+}

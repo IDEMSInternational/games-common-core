@@ -1,0 +1,21 @@
+@for (game of games.others(); track game.id) {
+  <a class="game" [href]="game.url" target="_blank" rel="noopener">
+    @if (noIcon().has(game.id)) {
+      <span class="icon blank" aria-hidden="true"></span>
+    } @else {
+      <img class="icon" [src]="game.icon" alt="" (error)="iconFailed(game.id)" />
+    }
+    <span class="about">
+      <span class="name">
+        <strong>{{ game.name }}</strong>
+        @if (!game.inStore) {
+          <span class="soon">Coming soon</span>
+        }
+      </span>
+      <small>{{ game.summary }}</small>
+    </span>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+  </a>
+} @empty {
+  <p class="none">More games coming soon!</p>
+}

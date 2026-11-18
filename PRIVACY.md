@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 17 November 2026
+Last updated: 18 November 2026
 
 This policy explains what the IDEMS Games puzzle apps (Rectangles, Slanted and Light Up) do with information. The apps are made by IDEMS International Community Interest Company ("IDEMS", "we" or "us"), registered in the United Kingdom.
 
@@ -18,9 +18,9 @@ You can delete any record from the records page (🏆), or all of them with "Res
 
 When you share a result or a record, the app puts together a line of text, such as your time, and opens your device's share panel. You choose whether to send it, and where: it goes only to the app or person you pick, and nothing is sent to IDEMS.
 
-## Announcements
+## Announcements and other games
 
-To show news about IDEMS Games, such as new games, the app downloads a short list of announcements from GitHub, where IDEMS publishes it, at most once a day. Nothing about you or your games is sent. As with any website, GitHub's servers see your device's internet address when the list is downloaded; IDEMS doesn't receive it. GitHub's own privacy statement covers this.
+To show news about IDEMS Games, such as new games, and the other IDEMS Games you can play, the app downloads a short list of announcements and a list of the games from GitHub, where IDEMS publishes them, at most once a day, and the games' icons when you open that list. Nothing about you or your games is sent. As with any website, GitHub's servers see your device's internet address when something is downloaded; IDEMS doesn't receive it. GitHub's own privacy statement covers this.
 
 ## Who the apps are for
 

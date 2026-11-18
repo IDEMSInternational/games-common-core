@@ -13,11 +13,14 @@ import { DAILY_LEVELS } from '../../engine/daily';
 import type { GameOptions } from '../puzzle-screens';
 import { PuzzleSwitch } from '../puzzle-switch/puzzle-switch';
 import { AnnouncementsStore } from '../announcements-store';
+import { PuzzleGames } from '../puzzle-games/puzzle-games';
 import { ThemeStore } from '../theme-store';
 import { MenuGame, MenuLink, MenuPage, QuoteItem, menuPages } from './menu-pages';
 
 /** The Announcements page's id (see menu-pages.ts): its content is downloaded (see AnnouncementsStore). */
 const ANNOUNCEMENTS = 'announcements';
+/** The Other IDEMS Games page's id: the list is downloaded too (see GamesStore). */
+const OTHER_GAMES = 'other-games';
 
 /** "1 December 2026" */
 function longDate(day: string): string {
@@ -33,13 +36,14 @@ const OPTIONS: MenuPage = { id: 'options', title: 'Game options' };
  * listing Game options (the theme, and the game's `options`) and the
  * studio's pages (see menu-pages.ts), each opening in the panel. The
  * Announcements page shows IDEMS's news (see AnnouncementsStore); an
- * orange dot on ☰ and beside it means there's something new. Closes with
+ * orange dot on ☰ and beside it means there's something new. Other IDEMS
+ * Games lists the other games (see GamesStore). Closes with
  * ×, a tap outside the panel, or Escape. On the home page, so every game
  * has it.
  */
 @Component({
   selector: 'puzzle-menu',
-  imports: [NgTemplateOutlet, PuzzleSwitch],
+  imports: [NgTemplateOutlet, PuzzleGames, PuzzleSwitch],
   templateUrl: './puzzle-menu.html',
   styleUrl: './puzzle-menu.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,6 +56,7 @@ export class PuzzleMenu {
   protected readonly announcements = inject(AnnouncementsStore);
   protected readonly OPTIONS = OPTIONS;
   protected readonly ANNOUNCEMENTS = ANNOUNCEMENTS;
+  protected readonly OTHER_GAMES = OTHER_GAMES;
   protected readonly longDate = longDate;
   protected readonly levelNames = DAILY_LEVELS;
 
