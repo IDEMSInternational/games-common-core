@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { ApplicationRef, Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Point } from '../engine/geometry';
 import { BoardFinger } from './board-finger';
@@ -58,6 +58,50 @@ describe('The tutorial finger and labels on a board', () => {
     const motion = moving.querySelector('animateMotion')!;
     expect(motion.getAttribute('path')).toBe('M 0.5 0.5 L 2.5 1.5 L 3 2');
     expect(motion.getAttribute('dur')).toBe('2s'); // the same in every game
+  });
+
+  it('starts a drag or swipe from its beginning whenever it appears or changes', async () => {
+    // The browser's SVG animations; the test DOM has none, so count the starts.
+    const started: Element[] = [];
+    const proto = SVGElement.prototype as SVGElement & { beginElement?: () => void };
+    proto.beginElement = function (this: Element) {
+      started.push(this);
+    };
+    try {
+      const { board, update } = render();
+      const step = async (along: Point[] | null) => {
+        board.along.set(along);
+        update();
+        await TestBed.inject(ApplicationRef).whenStable();
+      };
+      await step([
+        { x: 0.5, y: 0.5 },
+        { x: 2.5, y: 0.5 },
+      ]);
+      expect(started.length).toBe(1);
+      expect(started[0].getAttribute('begin')).toBe('indefinite'); // not timed from the page opening
+
+      await step([
+        { x: 0.5, y: 0.5 },
+        { x: 2.5, y: 0.5 },
+      ]); // the same gesture: it carries on
+      expect(started.length).toBe(1);
+
+      await step([
+        { x: 0.5, y: 1.5 },
+        { x: 3.5, y: 1.5 },
+      ]); // the next step's gesture
+      expect(started.length).toBe(2);
+
+      await step(null); // hidden, e.g. while the player draws
+      await step([
+        { x: 0.5, y: 1.5 },
+        { x: 3.5, y: 1.5 },
+      ]);
+      expect(started.length).toBe(3);
+    } finally {
+      delete proto.beginElement;
+    }
   });
 
   it('draws a label as a pill with its text', () => {
