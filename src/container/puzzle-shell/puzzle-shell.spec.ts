@@ -34,7 +34,8 @@ describe('Size menu', () => {
   }
 
   it('lists the sizes, then Custom…', () => {
-    expect(items()).toEqual(['4×4', '5×5', '6×6', '7×7', '8×8', '9×9', '10×10', 'Custom…']);
+    const sizes = ['4×4', '5×5', '6×6', '7×7', '8×8', '9×9', '10×10'];
+    expect(items()).toEqual([...sizes, 'Custom…']);
     expect(form()).toBeNull();
   });
 
