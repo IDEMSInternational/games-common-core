@@ -108,7 +108,11 @@
         @for (name of c.presetNames; track $index) {
           <option [value]="$index" [selected]="!customOpen() && $index === c.presetIndex()">{{ name }}</option>
         }
-        <option [value]="CUSTOM" [selected]="customOpen() || c.presetIndex() < 0">Custom…</option>
+        @if (c.presetIndex() < 0) {
+          <!-- A custom puzzle is its own item, so that Custom… can be chosen again. -->
+          <option [value]="CURRENT" [selected]="!customOpen()">{{ customSize(c) }}</option>
+        }
+        <option [value]="CUSTOM" [selected]="customOpen()">Custom…</option>
       </select>
       @if (c.difficulties.length > 0) {
         <select aria-label="Difficulty" (change)="chooseDifficulty($event)">

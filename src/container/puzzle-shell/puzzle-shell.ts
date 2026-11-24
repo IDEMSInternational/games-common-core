@@ -5,6 +5,8 @@ import { ShellControls, SizeControls, formatTime } from '../shell-controls';
 
 /** Value of the size menu's "Custom…" option. */
 const CUSTOM = 'custom';
+/** The size menu's item for the custom puzzle being played. */
+const CURRENT = 'current';
 
 /**
  * The common frame every game sits in: title, game menu (free and timed
@@ -31,6 +33,7 @@ export class PuzzleShell {
   readonly back = output<void>();
 
   protected readonly CUSTOM = CUSTOM;
+  protected readonly CURRENT = CURRENT;
   protected readonly customOpen = signal(false);
   protected readonly customError = signal<string | null>(null);
   protected readonly shareMessage = signal<string | null>(null);
@@ -43,10 +46,20 @@ export class PuzzleShell {
     if (value === CUSTOM) {
       this.customError.set(null);
       this.customOpen.set(true);
+    } else if (value === CURRENT) {
+      this.customOpen.set(false); // back to the custom puzzle being played, as Cancel
     } else {
       this.customOpen.set(false);
       this.sizes()?.newGame(Number(value));
     }
+  }
+
+  /** The custom puzzle's size, as the size menu shows it: "10×12". */
+  protected customSize(controls: SizeControls): string {
+    return controls
+      .customFields()
+      .map((field) => field.value)
+      .join('×');
   }
 
   protected chooseDifficulty(event: Event): void {
