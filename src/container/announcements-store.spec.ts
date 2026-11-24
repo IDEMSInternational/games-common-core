@@ -16,7 +16,15 @@ const launch = (id: string, date: string, more: object = {}) => ({
 describe('Announcements', () => {
   const app = new AppHarness({ now: new Date(2026, 11, 10, 10, 0) }); // 10 December 2026
   let fetch: ReturnType<typeof vi.fn>;
-  beforeEach(() => app.start(false));
+  beforeEach(async () => {
+    // Offline until a test publishes something, so the app never reaches the real games-data.
+    globalThis.fetch = vi.fn(() =>
+      Promise.reject(new Error('offline')),
+    ) as unknown as typeof globalThis.fetch;
+    // The app's first opening compiles every screen, which is slow on a busy machine: do it
+    // here, not in the first test's time. Each test then opens the app again as it needs.
+    await app.start();
+  });
   afterEach(() => app.stop());
 
   /** Opens the app, with this published (or offline, without). */
