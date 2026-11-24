@@ -1,8 +1,8 @@
 # Privacy Policy
 
-Last updated: 18 November 2026
+Last updated: 24 November 2026
 
-This policy explains what the IDEMS Games puzzle apps (Rectangles, Slanted and Light Up) do with information. The apps are made by IDEMS International Community Interest Company ("IDEMS", "we" or "us"), registered in the United Kingdom.
+This policy explains what the IDEMS Games puzzle apps (Rectangles, Slanted, Light Up and Unruly) do with information. The apps are made by IDEMS International Community Interest Company ("IDEMS", "we" or "us"), registered in the United Kingdom.
 
 ## The short version
 

@@ -17,6 +17,12 @@
       "name": "Light Up",
       "summary": "Place lights until every white square is lit, without any shining on another.",
       "stores": { "android": "", "ios": "" }
+    },
+    {
+      "id": "unruly",
+      "name": "Unruly",
+      "summary": "Make every square black or white: no three alike side by side, each row and column half and half.",
+      "stores": { "android": "", "ios": "" }
     }
   ]
 }
