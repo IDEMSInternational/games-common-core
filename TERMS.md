@@ -1,8 +1,8 @@
 # Terms and Conditions
 
-Last updated: 17 November 2026
+Last updated: 24 November 2026
 
-These terms are for the IDEMS Games puzzle apps: Rectangles, Slanted and Light Up. We have tried to make them easy to read. The apps are made for people aged 13 and over. If you're under 18, you might like to read these terms with a parent or carer.
+These terms are for the IDEMS Games puzzle apps: Rectangles, Slanted, Light Up and Unruly. We have tried to make them easy to read. The apps are made for people aged 13 and over. If you're under 18, you might like to read these terms with a parent or carer.
 
 ## Who we are
 
