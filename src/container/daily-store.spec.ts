@@ -12,8 +12,7 @@ describe('Daily puzzles', () => {
   const daily = () => app.screens.daily()!;
   /** The clock on screen moves on four times a second (in real time; only Date is faked). */
   async function clockShows(ms: number): Promise<void> {
-    await app.wait(300);
-    expect(daily().elapsed()).toBe(ms);
+    await app.until(() => expect(daily().elapsed()).toBe(ms));
   }
 
   it("opens on the home page, with today's daily puzzle and free play", () => {

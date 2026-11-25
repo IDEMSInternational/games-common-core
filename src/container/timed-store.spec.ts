@@ -31,8 +31,7 @@ describe('Timed play', () => {
     app.later(20); // not touched yet
     timed().touch();
     app.later(10);
-    await app.wait(300);
-    expect(timed().elapsed()).toBe(10_000);
+    await app.until(() => expect(timed().elapsed()).toBe(10_000));
 
     app.later(55);
     app.solve(timed());
