@@ -21,12 +21,25 @@ export function makeAppIcon(root, svg, background) {
   const work = mkdtempSync(join(tmpdir(), 'app-icon-'));
   const render = (svgText, size, file) => {
     const page = join(work, 'icon.html');
-    writeFileSync(page, `<html><body style="margin:0">${svgText.replace('<svg ', `<svg width="${size}" height="${size}" `)}</body></html>`);
-    execFileSync(EDGE, [
-      '--headless=new', '--disable-gpu', '--no-first-run', '--hide-scrollbars',
-      `--user-data-dir=${join(work, 'profile')}`, '--default-background-color=00000000',
-      `--window-size=${size},${size}`, `--screenshot=${file}`, pathToFileURL(page).href,
-    ], { stdio: 'ignore' });
+    writeFileSync(
+      page,
+      `<html><body style="margin:0">${svgText.replace('<svg ', `<svg width="${size}" height="${size}" `)}</body></html>`,
+    );
+    execFileSync(
+      EDGE,
+      [
+        '--headless=new',
+        '--disable-gpu',
+        '--no-first-run',
+        '--hide-scrollbars',
+        `--user-data-dir=${join(work, 'profile')}`,
+        '--default-background-color=00000000',
+        `--window-size=${size},${size}`,
+        `--screenshot=${file}`,
+        pathToFileURL(page).href,
+      ],
+      { stdio: 'ignore' },
+    );
   };
 
   mkdirSync(out, { recursive: true });
@@ -35,7 +48,11 @@ export function makeAppIcon(root, svg, background) {
   // Adaptive icons show only the middle two thirds of the layer, masked to a
   // shape: draw 1.5 times wider, so the same view is what shows.
   render(svg(1.5), 1024, join(out, 'icon-foreground.png'));
-  render(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect width="1" height="1" fill="${background}"/></svg>`, 1024, join(out, 'icon-background.png'));
+  render(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect width="1" height="1" fill="${background}"/></svg>`,
+    1024,
+    join(out, 'icon-background.png'),
+  );
   // Android launch screen before Android 12: the studio's, shared by every game.
   copyFileSync(join(root, 'games-common-core/assets/app/splash.png'), join(out, 'splash.png'));
 
@@ -59,7 +76,10 @@ export function makeAppIcon(root, svg, background) {
     header.writeUInt32LE(offset, entry + 12);
     offset += data.length;
   });
-  writeFileSync(join(root, 'public/favicon.ico'), Buffer.concat([header, ...pngs.map((p) => p.data)]));
+  writeFileSync(
+    join(root, 'public/favicon.ico'),
+    Buffer.concat([header, ...pngs.map((p) => p.data)]),
+  );
 
   rmSync(work, { recursive: true, force: true });
   console.log('Wrote assets/app/*.png and public/favicon.ico. Next: npm run app-images');

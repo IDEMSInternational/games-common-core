@@ -35,9 +35,12 @@ export interface ShownAnnouncement {
   readonly link: { readonly url: string; readonly label: string } | null;
 }
 
-const isDay = (value: unknown): value is string => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
-const isText = (value: unknown): value is string => typeof value === 'string' && value.trim() !== '';
-const isLink = (value: unknown): value is string => typeof value === 'string' && value.startsWith('https://');
+const isDay = (value: unknown): value is string =>
+  typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+const isText = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim() !== '';
+const isLink = (value: unknown): value is string =>
+  typeof value === 'string' && value.startsWith('https://');
 
 /** The announcements that can be read from downloaded data; anything malformed is skipped. */
 export function parseAnnouncements(data: unknown): Announcement[] {
@@ -48,7 +51,10 @@ export function parseAnnouncements(data: unknown): Announcement[] {
     const { id, date, until, about, title, text, links } = item as Record<string, unknown>;
     if (!isText(id) || !isDay(date) || !isText(title) || !isText(text)) return [];
     if (until !== undefined && !isDay(until)) return [];
-    const { android, ios } = (typeof links === 'object' && links !== null ? links : {}) as Record<string, unknown>;
+    const { android, ios } = (typeof links === 'object' && links !== null ? links : {}) as Record<
+      string,
+      unknown
+    >;
     return [
       {
         id,
@@ -72,7 +78,9 @@ export function parseAnnouncements(data: unknown): Announcement[] {
  */
 @Injectable({ providedIn: 'root' })
 export class AnnouncementsStore {
-  private readonly all = signal<readonly Announcement[]>(parseAnnouncements(readStoredJson(CACHE_KEY)));
+  private readonly all = signal<readonly Announcement[]>(
+    parseAnnouncements(readStoredJson(CACHE_KEY)),
+  );
   private readonly seen = signal<readonly string[]>(readStoredJson<string[]>(SEEN_KEY) ?? []);
   private readonly gameId = signal<string | null>(null);
   private readonly today = signal(localDay());
@@ -84,7 +92,13 @@ export class AnnouncementsStore {
     return this.all()
       .filter((a) => a.date <= today && (!a.until || today <= a.until) && a.about !== this.gameId())
       .sort((a, b) => b.date.localeCompare(a.date))
-      .map((a) => ({ id: a.id, date: a.date, title: a.title, text: a.text, link: storeLink(a, platform) }));
+      .map((a) => ({
+        id: a.id,
+        date: a.date,
+        title: a.title,
+        text: a.text,
+        link: storeLink(a, platform),
+      }));
   });
   /** True while there's an announcement the player hasn't opened the page to see. */
   readonly unseen = computed(() => this.current().some((a) => !this.seen().includes(a.id)));
@@ -100,7 +114,9 @@ export class AnnouncementsStore {
   markSeen(): void {
     const ids = new Set(this.all().map((a) => a.id));
     // Keep only ids still published, so the list doesn't grow for ever.
-    const seen = [...new Set([...this.seen(), ...this.current().map((a) => a.id)])].filter((id) => ids.has(id));
+    const seen = [...new Set([...this.seen(), ...this.current().map((a) => a.id)])].filter((id) =>
+      ids.has(id),
+    );
     this.seen.set(seen);
     writeStoredJson(SEEN_KEY, seen);
   }

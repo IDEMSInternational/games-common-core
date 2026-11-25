@@ -90,7 +90,10 @@ export class PuzzleShell {
     const command = event.ctrlKey || event.metaKey;
     if ((command && key === 'z' && !event.shiftKey) || (!command && key === 'u')) {
       controls.undo();
-    } else if ((command && (key === 'y' || (key === 'z' && event.shiftKey))) || (!command && key === 'r')) {
+    } else if (
+      (command && (key === 'y' || (key === 'z' && event.shiftKey))) ||
+      (!command && key === 'r')
+    ) {
       controls.redo();
     } else if (!command && key === 'n' && (controls.kind === 'free' || controls.kind === 'timed')) {
       controls.newGame();

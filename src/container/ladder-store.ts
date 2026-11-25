@@ -63,10 +63,15 @@ export class LadderRecords {
 }
 
 /** The ladder's rungs: the size menu's sizes, smallest first, at the difficulty. */
-export function ladderRungs<Params>(game: PuzzleGame<Params, unknown, unknown>, difficulty: number): Params[] {
+export function ladderRungs<Params>(
+  game: PuzzleGame<Params, unknown, unknown>,
+  difficulty: number,
+): Params[] {
   return game
     .presets()
-    .map((preset) => (game.withDifficulty ? game.withDifficulty(preset.params, difficulty) : preset.params));
+    .map((preset) =>
+      game.withDifficulty ? game.withDifficulty(preset.params, difficulty) : preset.params,
+    );
 }
 
 /**
@@ -142,7 +147,9 @@ export class LadderStore<Params, State, Move> implements LadderControls {
     const continued = run && new GameSession(game, game.defaultParams(), undefined, run.snapshot);
     const resumed = continued && continued.seed === run.snapshot.seed && !continued.isCompleted;
     // A rung solved just before closing the app: on to the next.
-    const rung = run ? Math.min(run.rung + (continued?.isCompleted ? 1 : 0), this.rungCount - 1) : 0;
+    const rung = run
+      ? Math.min(run.rung + (continued?.isCompleted ? 1 : 0), this.rungCount - 1)
+      : 0;
     this.rung = signal(rung);
     this.session = resumed ? continued : new GameSession(game, this.rungs[rung]);
     this.base = signal(run ? run.elapsed : 0);

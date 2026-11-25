@@ -103,7 +103,9 @@ h3 {
 
   button {
     border-color: transparent; // drawn by the background (see PuzzleHome.segments)
-    text-shadow: 0 0 3px var(--surface), 0 0 2px var(--surface); // readable over the orange
+    text-shadow:
+      0 0 3px var(--surface),
+      0 0 2px var(--surface); // readable over the orange
   }
 
   .today {

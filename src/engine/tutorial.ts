@@ -32,7 +32,10 @@ export class TutorialRun<Params, State, Move, Hint> {
   stepIndex = 0;
   state: State;
 
-  constructor(game: PuzzleGame<Params, State, Move>, tutorial: Tutorial<Params, State, Move, Hint>) {
+  constructor(
+    game: PuzzleGame<Params, State, Move>,
+    tutorial: Tutorial<Params, State, Move, Hint>,
+  ) {
     this.game = game;
     this.tutorial = tutorial;
     this.state = game.newGame(tutorial.params, tutorial.description);
@@ -45,7 +48,9 @@ export class TutorialRun<Params, State, Move, Hint> {
   /** The current step's guidance for the board as it is now. */
   get hint(): Hint | undefined {
     const hint = this.step.hint;
-    return typeof hint === 'function' ? (hint as (state: State) => Hint | undefined)(this.state) : hint;
+    return typeof hint === 'function'
+      ? (hint as (state: State) => Hint | undefined)(this.state)
+      : hint;
   }
 
   get stepCount(): number {

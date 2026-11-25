@@ -56,7 +56,9 @@
     height: 8px;
     border-radius: 50%;
     background: var(--grid);
-    transition: background-color 200ms ease, width 200ms ease;
+    transition:
+      background-color 200ms ease,
+      width 200ms ease;
 
     &.done {
       background: var(--accent);

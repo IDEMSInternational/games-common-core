@@ -25,9 +25,11 @@ describe('PuzzleStage', () => {
   const input = () => fixture.nativeElement.querySelector('input') as HTMLInputElement;
   /** Puts the box's bottom edge this far down the unlifted stage, in screen pixels. */
   const boxBottomAt = (bottom: number) =>
-    vi.spyOn(input(), 'getBoundingClientRect').mockImplementation(
-      () => ({ bottom: bottom + parseFloat(stage().style.top || '0') }) as DOMRect,
-    );
+    vi
+      .spyOn(input(), 'getBoundingClientRect')
+      .mockImplementation(
+        () => ({ bottom: bottom + parseFloat(stage().style.top || '0') }) as DOMRect,
+      );
 
   beforeEach(async () => {
     Object.defineProperty(window, 'innerWidth', { value: 393, configurable: true });

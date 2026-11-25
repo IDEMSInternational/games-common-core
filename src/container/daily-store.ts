@@ -139,7 +139,10 @@ export class DailyStore<Params, State, Move> implements DailyControls {
     this.records.addResult(this.puzzle.date, this.puzzle.level, result);
     const played = this.played();
     const allLevels = DAILY_LEVELS.every(
-      (_, level) => !played[level] || level === this.puzzle.level || this.records.result(this.puzzle.date, level),
+      (_, level) =>
+        !played[level] ||
+        level === this.puzzle.level ||
+        this.records.result(this.puzzle.date, level),
     );
     this.celebration.set(allLevels ? 'big' : 'normal');
     this.celebrate.set(true);

@@ -37,7 +37,8 @@ export interface MenuSection {
  * A paragraph of a quote: plain text, a list of text and links (shown as
  * linked words in the sentence), or `indented` paragraphs set in further.
  */
-export type QuoteItem = string | readonly (string | MenuLink)[] | { readonly indented: readonly string[] };
+export type QuoteItem =
+  string | readonly (string | MenuLink)[] | { readonly indented: readonly string[] };
 
 /** The game the menu belongs to: its id (also its repository's name) and display name. */
 export interface MenuGame {

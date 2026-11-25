@@ -220,7 +220,10 @@ export interface HomeControls extends GameOptions {
   /** The custom size's settings for Beat the clock, filled in from the last custom size played. */
   clockCustomFields(): { readonly fields: readonly CustomField[]; readonly difficulty: number };
   /** Beat the clock's choice for a custom size; or what's wrong with it. */
-  customClock(values: Readonly<Record<string, number>>, difficulty: number): { choice: ClockChoice } | { error: string };
+  customClock(
+    values: Readonly<Record<string, number>>,
+    difficulty: number,
+  ): { choice: ClockChoice } | { error: string };
   /**
    * Beat the clock at a difficulty (or custom size) with this time limit:
    * continues the unfinished run, or with `fresh`, starts a new one
@@ -327,7 +330,8 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
           name: DAILY_LEVELS[level],
           label: paramsLabel(this.game, puzzle!.params),
           status: this.records.status(date, level),
-          time: this.records.result(date, level)?.time ?? this.records.game(date, level)?.elapsed ?? 0,
+          time:
+            this.records.result(date, level)?.time ?? this.records.game(date, level)?.elapsed ?? 0,
         }))
         .filter((level) => played[level.level]);
       return {
@@ -373,13 +377,15 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       groups.push({ title: 'Daily puzzles', rows });
     }
     if (this.hasClock) {
-      const rows = this.sortedClockRecords().map(({ choice, label, minutes, solved }): RecordRow => ({
-        id: `clock:${choice}/${minutes}`,
-        label: `${label}, ${minutes} min`,
-        value: puzzleCount(solved),
-        detail: null,
-        share: `${title}, Beat the clock (${label}): my record is ${puzzleCount(solved)} in ${minutes === 1 ? '1 minute' : `${minutes} minutes`}`,
-      }));
+      const rows = this.sortedClockRecords().map(
+        ({ choice, label, minutes, solved }): RecordRow => ({
+          id: `clock:${choice}/${minutes}`,
+          label: `${label}, ${minutes} min`,
+          value: puzzleCount(solved),
+          detail: null,
+          share: `${title}, Beat the clock (${label}): my record is ${puzzleCount(solved)} in ${minutes === 1 ? '1 minute' : `${minutes} minutes`}`,
+        }),
+      );
       groups.push({ title: 'Beat the clock', rows });
     }
     const timed = Object.entries(this.timed.bestTimes())
@@ -423,7 +429,10 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.resets();
     const times = Object.entries(this.ladderRecords.bestTimes())
       .sort(([a], [b]) => Number(a) - Number(b))
-      .map(([difficulty, time]) => ({ difficulty: this.game.difficulties?.[Number(difficulty)] ?? null, time }));
+      .map(([difficulty, time]) => ({
+        difficulty: this.game.difficulties?.[Number(difficulty)] ?? null,
+        time,
+      }));
     return times.length ? times[visits % times.length] : null;
   });
   readonly ladderRun = computed((): LadderRunInfo | null => {
@@ -471,7 +480,13 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
     this.version = version;
     this.showMistakes = storedSetting(`${game.id}.showMistakes`);
     this.switches = game.canShowMistakes
-      ? [{ label: 'Show mistakes', description: 'Rule-breaking pieces are shown in red', checked: this.showMistakes }]
+      ? [
+          {
+            label: 'Show mistakes',
+            description: 'Rule-breaking pieces are shown in red',
+            checked: this.showMistakes,
+          },
+        ]
       : [];
     this.session = new SessionStore(game, game.id, this.showMistakes);
     this.timed = new TimedStore(game, this.showMistakes);
@@ -582,7 +597,11 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   }
 
   resetRecords(): void {
-    const kept = new Set([`${this.id}.daily.levels`, `${this.id}.clock.choice`, `${this.id}.clock.custom`]);
+    const kept = new Set([
+      `${this.id}.daily.levels`,
+      `${this.id}.clock.choice`,
+      `${this.id}.clock.custom`,
+    ]);
     const prefixes = ['daily.', 'clock.', 'ladder.', 'timed.best'].map((p) => `${this.id}.${p}`);
     for (const key of storedKeys()) {
       if (!kept.has(key) && prefixes.some((prefix) => key.startsWith(prefix))) removeStored(key);
@@ -622,10 +641,16 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       (custom && customClockParams(this.game, custom)) ||
       clockChoiceParams(this.game, 'medium')[0] ||
       this.game.defaultParams();
-    return { fields: this.game.customFields(params), difficulty: this.game.difficultyOf?.(params) ?? 0 };
+    return {
+      fields: this.game.customFields(params),
+      difficulty: this.game.difficultyOf?.(params) ?? 0,
+    };
   }
 
-  customClock(values: Readonly<Record<string, number>>, difficulty: number): { choice: ClockChoice } | { error: string } {
+  customClock(
+    values: Readonly<Record<string, number>>,
+    difficulty: number,
+  ): { choice: ClockChoice } | { error: string } {
     const game = this.game;
     for (const field of game.customFields(game.defaultParams())) {
       const value = values[field.key];
@@ -682,22 +707,33 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   private show(screen: Screen): void {
     if (screen.name === 'daily') {
       const puzzle =
-        this.game.daily && DAILY_LEVELS[screen.level] && dailyPuzzle(this.id, this.game.daily, screen.date, screen.level);
+        this.game.daily &&
+        DAILY_LEVELS[screen.level] &&
+        dailyPuzzle(this.id, this.game.daily, screen.date, screen.level);
       if (!puzzle || !this.available(screen.date)) return this.screen.set(HOME);
       const open = this.daily()?.puzzle;
       if (open?.date !== screen.date || open.level !== screen.level) {
         this.daily()?.setActive(false);
-        this.daily.set(new DailyStore(this.game, puzzle, this.records, this.showMistakes, this.dailyLevels));
+        this.daily.set(
+          new DailyStore(this.game, puzzle, this.records, this.showMistakes, this.dailyLevels),
+        );
       }
     }
     if (screen.name === 'clock') {
       const choice = screen.choice ?? 'medium'; // history from before difficulties
-      if (!this.hasClock || !clockChoiceParams(this.game, choice).length) return this.screen.set(HOME);
+      if (!this.hasClock || !clockChoiceParams(this.game, choice).length)
+        return this.screen.set(HOME);
       const open = this.clock();
       if (open?.minutes !== screen.minutes || open.choice !== choice || open.finished()) {
         open?.setActive(false);
         this.clock.set(
-          new ClockStore(this.game, this.clockRecordsStore, screen.minutes, choice, this.showMistakes),
+          new ClockStore(
+            this.game,
+            this.clockRecordsStore,
+            screen.minutes,
+            choice,
+            this.showMistakes,
+          ),
         );
       }
     }
@@ -706,7 +742,9 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       const open = this.ladder();
       if (open?.difficulty !== screen.difficulty || open.result() !== null) {
         open?.setActive(false);
-        this.ladder.set(new LadderStore(this.game, this.ladderRecords, screen.difficulty, this.showMistakes));
+        this.ladder.set(
+          new LadderStore(this.game, this.ladderRecords, screen.difficulty, this.showMistakes),
+        );
       }
     }
     if (screen.name === 'home') {
@@ -739,7 +777,11 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
 
   /** A difficulty of the game's (0 if it has none). */
   private validDifficulty(difficulty: number): boolean {
-    return Number.isInteger(difficulty) && difficulty >= 0 && difficulty < Math.max(1, this.difficulties.length);
+    return (
+      Number.isInteger(difficulty) &&
+      difficulty >= 0 &&
+      difficulty < Math.max(1, this.difficulties.length)
+    );
   }
 
   private available(date: string): boolean {

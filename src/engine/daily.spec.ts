@@ -1,7 +1,8 @@
 import { addDays, availableDays, dailyPuzzle, daysBetween, localDay, weekdayOf } from './daily';
 
 describe('daily puzzles', () => {
-  const week = (level: string) => ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((d) => `${level} ${d}`);
+  const week = (level: string) =>
+    ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((d) => `${level} ${d}`);
   const schedule = { firstDay: '2026-10-26', levels: [week('low'), week('medium'), week('high')] };
 
   it('takes the day from the local calendar', () => {
@@ -45,7 +46,11 @@ describe('daily puzzles', () => {
       seed: 'slanted daily 2026-10-26 low',
     });
     const later = dailyPuzzle('slanted', schedule, '2027-01-03', 2)!;
-    expect([later.number, later.params, later.seed]).toEqual([70, 'high sun', 'slanted daily 2027-01-03 high']);
+    expect([later.number, later.params, later.seed]).toEqual([
+      70,
+      'high sun',
+      'slanted daily 2027-01-03 high',
+    ]);
   });
 
   it('rejects anything but a date', () => {

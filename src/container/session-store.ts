@@ -53,7 +53,9 @@ export class SessionStore<Params, State, Move> implements FreePlayControls {
   readonly difficulty = this.read(() => this.game.difficultyOf?.(this.session.params) ?? 0);
   readonly presetIndex = this.read(() => {
     const current = this.game.encodeParams(this.session.params);
-    return this.game.presets().findIndex((p) => this.game.encodeParams(this.atCurrentDifficulty(p.params)) === current);
+    return this.game
+      .presets()
+      .findIndex((p) => this.game.encodeParams(this.atCurrentDifficulty(p.params)) === current);
   });
 
   /**
