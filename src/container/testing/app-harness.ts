@@ -101,11 +101,22 @@ export class AppHarness {
   /** Real time passing: the clocks' displays, the next puzzle. */
   readonly wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   /**
-   * Waits until `check` passes, e.g. for a clock on screen to catch up: the
-   * clocks move on four times a second in real time, which on a busy machine
-   * can take longer than a fixed wait.
+   * Waits until `check` passes (up to 3 s), e.g. for a clock on screen to
+   * catch up: the clocks move on four times a second in real time, which on
+   * a busy machine can take longer than a fixed wait. Unlike vi.waitFor, it
+   * leaves the faked Date where it is.
    */
-  readonly until = (check: () => void) => vi.waitFor(check, { timeout: 3000, interval: 20 });
+  async until(check: () => void): Promise<void> {
+    const end = performance.now() + 3000;
+    for (;;) {
+      try {
+        return check();
+      } catch (error) {
+        if (performance.now() > end) throw error;
+      }
+      await this.wait(20);
+    }
+  }
 
   /** The Android back button, or the page's back arrow: back a page, as browser history. */
   async goHome(): Promise<void> {
