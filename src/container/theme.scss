@@ -287,3 +287,37 @@ select {
     fill: var(--board);
   }
 }
+
+/*
+ * A palette under a board (container/board-palette.ts): its choices on the
+ * surface colour, the picked one ringed in the brand orange. The outlines
+ * keep their width on screen whatever the board's size.
+ */
+.board-palette .choice {
+  cursor: pointer;
+  outline: none;
+
+  .back {
+    fill: var(--surface);
+    stroke: var(--border);
+    stroke-width: 1.5px;
+    vector-effect: non-scaling-stroke;
+  }
+
+  &.picked .back {
+    stroke: var(--brand);
+    stroke-width: 4px;
+  }
+
+  &:focus-visible .back {
+    stroke: var(--accent);
+  }
+
+  .label {
+    font-size: 0.5px;
+    font-weight: 650;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    fill: var(--text);
+  }
+}
