@@ -1,9 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PuzzleGame } from '../../engine/puzzle-game';
+import { NEXT_PUZZLE_PAUSE } from '../clock-store';
 import { LEGAL_VERSION } from '../legal';
 import { PuzzleScreens } from '../puzzle-screens';
 import { SampleMove, SampleParams, SampleState, sampleGame } from './sample-game';
 import { SAMPLE_GAME, SampleApp } from './sample-app';
+
+/**
+ * The pause between puzzles in Beat the clock and the ladder, in these tests
+ * (0.9 s in the apps), so they don't wait for real.
+ */
+export const PAUSE_MS = 10;
 
 export type SampleScreens = PuzzleScreens<SampleParams, SampleState, SampleMove, number>;
 
@@ -68,7 +75,10 @@ export class AppHarness {
   async configure(): Promise<void> {
     await TestBed.configureTestingModule({
       imports: [SampleApp],
-      providers: [{ provide: SAMPLE_GAME, useValue: this.game }],
+      providers: [
+        { provide: SAMPLE_GAME, useValue: this.game },
+        { provide: NEXT_PUZZLE_PAUSE, useValue: PAUSE_MS },
+      ],
     }).compileComponents();
   }
 

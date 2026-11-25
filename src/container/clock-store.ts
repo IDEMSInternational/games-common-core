@@ -1,4 +1,4 @@
-import { Signal, WritableSignal, computed, signal } from '@angular/core';
+import { InjectionToken, Signal, WritableSignal, computed, signal } from '@angular/core';
 import { DAILY_LEVELS, DAILY_LEVEL_KEYS } from '../engine/daily';
 import { GameSession, SessionSnapshot } from '../engine/game-session';
 import { PuzzleGame } from '../engine/puzzle-game';
@@ -10,6 +10,16 @@ import { readStoredJson, removeStored, writeStoredJson } from './stored-setting'
 
 /** How long a solved puzzle stays on screen (with the clock stopped) before the next. */
 export const NEXT_PUZZLE_MS = 900;
+
+/**
+ * The pause between puzzles in Beat the clock and the ladder: NEXT_PUZZLE_MS
+ * in the apps. The shared tests make it a few milliseconds, so they don't
+ * wait for real between puzzles.
+ */
+export const NEXT_PUZZLE_PAUSE = new InjectionToken<number>('NEXT_PUZZLE_PAUSE', {
+  providedIn: 'root',
+  factory: () => NEXT_PUZZLE_MS,
+});
 
 /**
  * What a run's puzzles are: a difficulty, as the daily puzzles' levels
@@ -201,6 +211,8 @@ export class ClockStore<Params, State, Move> implements ClockControls {
   /** The rest of the current set of puzzle settings (see nextParams). */
   private bag: number[];
   private nextPuzzle: ReturnType<typeof setTimeout> | undefined;
+  /** The pause between puzzles (see NEXT_PUZZLE_PAUSE). */
+  private readonly pause: number;
 
   readonly state = this.read(() => this.session.state);
   readonly label = this.read(() => paramsLabel(this.game, this.session.params));
@@ -218,8 +230,10 @@ export class ClockStore<Params, State, Move> implements ClockControls {
     minutes: number,
     choice: ClockChoice,
     showMistakes: WritableSignal<boolean>,
+    pause = NEXT_PUZZLE_MS,
   ) {
     this.game = game;
+    this.pause = pause;
     this.records = records;
     this.choice = choice;
     this.choiceLabel = clockChoiceLabel(game, choice);
@@ -267,7 +281,7 @@ export class ClockStore<Params, State, Move> implements ClockControls {
       this.celebration.set('small');
       this.celebrate.set(true);
       this.between = true;
-      this.nextPuzzle = setTimeout(() => this.next(), NEXT_PUZZLE_MS);
+      this.nextPuzzle = setTimeout(() => this.next(), this.pause);
     }
     this.sync();
     this.save();

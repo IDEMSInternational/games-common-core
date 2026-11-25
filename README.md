@@ -20,6 +20,10 @@ The games are educational phone apps (Angular + Capacitor) built from
   - `daily.ts`: daily puzzles at three levels: dates, the days that can be played, and the rule turning a date and level
     into the day's puzzle (the same for everyone)
   - `tutorial.ts`: the interactive tutorial engine
+  - `reference-puzzles.ts`: which of a game's puzzles recorded from the
+    original its tests check: a sample in `npm test`, all of them in
+    `npm run test:puzzles` (`tools/test-all-puzzles.mjs`), which is run
+    whenever a generator or solver changes
   - `geometry.ts`: positions and sizes on a board (`Point`, `Size`), the
     square under a position (`squareAt`), and turning a screen position
     into a board position (`screenToBoard`); every game uses these rather
