@@ -1,5 +1,4 @@
-import { NEXT_PUZZLE_MS } from './clock-store';
-import { AppHarness, SAMPLE_PAGE } from './testing/app-harness';
+import { AppHarness, PAUSE_MS, SAMPLE_PAGE } from './testing/app-harness';
 
 /** The ladder, in a game without difficulties. */
 describe('Ladder', () => {
@@ -14,7 +13,7 @@ describe('Ladder', () => {
     app.later(seconds);
     app.solve(ladder());
     app.later(100); // while the solved puzzle shows: not counted
-    await app.wait(NEXT_PUZZLE_MS + 50);
+    await app.wait(PAUSE_MS + 50);
     await app.stable();
   }
   async function playFromChallenges(): Promise<void> {
@@ -75,7 +74,7 @@ describe('Ladder', () => {
     app.screens.openChallenges();
     await app.stable();
     expect(app.text('puzzle-home .card:nth-of-type(3) .status')).toBe('Your best time: 1:10');
-  }, 30_000); // real pauses between sizes
+  });
 
   it('can be continued later, or started again', async () => {
     await playFromChallenges();

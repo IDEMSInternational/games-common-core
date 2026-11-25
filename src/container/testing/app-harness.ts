@@ -1,9 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PuzzleGame } from '../../engine/puzzle-game';
+import { NEXT_PUZZLE_PAUSE } from '../clock-store';
 import { LEGAL_VERSION } from '../legal';
 import { PuzzleScreens } from '../puzzle-screens';
 import { SampleMove, SampleParams, SampleState, sampleGame } from './sample-game';
 import { SAMPLE_GAME, SampleApp } from './sample-app';
+
+/**
+ * The pause between puzzles in Beat the clock and the ladder, in these tests
+ * (0.9 s in the apps), so they don't wait for real.
+ */
+export const PAUSE_MS = 10;
 
 export type SampleScreens = PuzzleScreens<SampleParams, SampleState, SampleMove, number>;
 
@@ -68,7 +75,10 @@ export class AppHarness {
   async configure(): Promise<void> {
     await TestBed.configureTestingModule({
       imports: [SampleApp],
-      providers: [{ provide: SAMPLE_GAME, useValue: this.game }],
+      providers: [
+        { provide: SAMPLE_GAME, useValue: this.game },
+        { provide: NEXT_PUZZLE_PAUSE, useValue: PAUSE_MS },
+      ],
     }).compileComponents();
   }
 
@@ -90,6 +100,23 @@ export class AppHarness {
   readonly later = (seconds: number) => vi.setSystemTime(Date.now() + seconds * 1000);
   /** Real time passing: the clocks' displays, the next puzzle. */
   readonly wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  /**
+   * Waits until `check` passes (up to 3 s), e.g. for a clock on screen to
+   * catch up: the clocks move on four times a second in real time, which on
+   * a busy machine can take longer than a fixed wait. Unlike vi.waitFor, it
+   * leaves the faked Date where it is.
+   */
+  async until(check: () => void): Promise<void> {
+    const end = performance.now() + 3000;
+    for (;;) {
+      try {
+        return check();
+      } catch (error) {
+        if (performance.now() > end) throw error;
+      }
+      await this.wait(20);
+    }
+  }
 
   /** The Android back button, or the page's back arrow: back a page, as browser history. */
   async goHome(): Promise<void> {

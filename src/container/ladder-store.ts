@@ -118,6 +118,8 @@ export class LadderStore<Params, State, Move> implements LadderControls {
   /** A solved puzzle on show before the next size. */
   private between = false;
   private nextPuzzle: ReturnType<typeof setTimeout> | undefined;
+  /** The pause between puzzles (see NEXT_PUZZLE_PAUSE). */
+  private readonly pause: number;
 
   readonly state = this.read(() => this.session.state);
   readonly label = this.read(() => paramsLabel(this.game, this.session.params));
@@ -134,8 +136,10 @@ export class LadderStore<Params, State, Move> implements LadderControls {
     records: LadderRecords,
     difficulty: number,
     showMistakes: WritableSignal<boolean>,
+    pause = NEXT_PUZZLE_MS,
   ) {
     this.game = game;
+    this.pause = pause;
     this.records = records;
     this.difficulty = difficulty;
     this.difficultyName = game.difficulties?.[difficulty] ?? null;
@@ -184,7 +188,7 @@ export class LadderStore<Params, State, Move> implements LadderControls {
       this.celebration.set('small');
       this.celebrate.set(true);
       this.between = true;
-      this.nextPuzzle = setTimeout(() => this.next(), NEXT_PUZZLE_MS);
+      this.nextPuzzle = setTimeout(() => this.next(), this.pause);
     }
     this.sync();
     this.save();

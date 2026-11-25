@@ -19,6 +19,7 @@ import {
   ClockChoice,
   ClockRecords,
   ClockStore,
+  NEXT_PUZZLE_PAUSE,
   clockChoiceLabel,
   clockChoiceParams,
   customClockChoice,
@@ -311,6 +312,8 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
   readonly hasDaily: boolean;
   /** The app's "Show mistakes" setting, shared by every mode. */
   readonly showMistakes: WritableSignal<boolean>;
+  /** The pause between puzzles in Beat the clock and the ladder. */
+  private readonly nextPuzzlePause = inject(NEXT_PUZZLE_PAUSE);
   readonly switches: readonly OptionSwitch[];
   /** Bumped when records are deleted (one, or all), so what's shown is read again. */
   private readonly resets = signal(0);
@@ -733,6 +736,7 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
             screen.minutes,
             choice,
             this.showMistakes,
+            this.nextPuzzlePause,
           ),
         );
       }
@@ -743,7 +747,13 @@ export class PuzzleScreens<Params, State, Move, Hint> implements HomeControls {
       if (open?.difficulty !== screen.difficulty || open.result() !== null) {
         open?.setActive(false);
         this.ladder.set(
-          new LadderStore(this.game, this.ladderRecords, screen.difficulty, this.showMistakes),
+          new LadderStore(
+            this.game,
+            this.ladderRecords,
+            screen.difficulty,
+            this.showMistakes,
+            this.nextPuzzlePause,
+          ),
         );
       }
     }

@@ -1,5 +1,4 @@
-import { NEXT_PUZZLE_MS } from './clock-store';
-import { AppHarness, SAMPLE_PAGE } from './testing/app-harness';
+import { AppHarness, PAUSE_MS, SAMPLE_PAGE } from './testing/app-harness';
 
 /** Beat the clock, from the Challenges page. */
 describe('Beat the clock', () => {
@@ -83,18 +82,16 @@ describe('Beat the clock', () => {
 
     clock().touch();
     app.later(60);
-    await app.wait(300);
-    expect(clock().remaining()).toBe(240_000);
+    await app.until(() => expect(clock().remaining()).toBe(240_000));
 
     solve();
     expect(clock().solved()).toBe(1);
     expect(clock().celebrate()).toBe(true);
     app.later(100); // while the solved puzzle shows: not counted
-    await app.wait(NEXT_PUZZLE_MS + 100);
+    await app.wait(PAUSE_MS + 50);
     expect(clock().completed()).toBe(false); // the next puzzle
     app.later(10);
-    await app.wait(300);
-    expect(clock().remaining()).toBe(230_000);
+    await app.until(() => expect(clock().remaining()).toBe(230_000));
   });
 
   it('deals the puzzles in fair sets: each size once per set, in random order', async () => {
@@ -104,7 +101,7 @@ describe('Beat the clock', () => {
     const sizes = [clock().label()];
     for (let i = 0; i < 5; i++) {
       solve();
-      await app.wait(NEXT_PUZZLE_MS + 50);
+      await app.wait(PAUSE_MS + 50);
       sizes.push(clock().label());
     }
     expect(sizes.slice(0, 3).sort()).toEqual(['6×6', '7×7', '8×8']);
@@ -114,7 +111,7 @@ describe('Beat the clock', () => {
     await app.goHome();
     const left = JSON.parse(localStorage.getItem('sample.clock.run')!).bag as number[];
     expect(left.length).toBe(0); // the second set is used up
-  }, 15_000); // five real pauses between puzzles
+  });
 
   it("picks puzzles at random from the difficulty's daily puzzle sizes", async () => {
     const sizes = async (choice: string) => {
@@ -138,12 +135,10 @@ describe('Beat the clock', () => {
     await app.stable();
     clock().touch();
     solve();
-    await app.wait(NEXT_PUZZLE_MS + 100);
+    await app.wait(PAUSE_MS + 50);
     app.later(301);
-    await app.wait(400);
+    await app.until(() => expect(clock().finished()).toBe(true));
     await app.stable();
-
-    expect(clock().finished()).toBe(true);
     expect(app.text('.mode-bar .clock')).toBe("Time's up! Solved: 1");
     expect(app.text('.mode-bar .shared')).toBe('A new record for Medium, 5 minutes!');
     expect(clock().canUndo()).toBe(false);
@@ -179,7 +174,7 @@ describe('Beat the clock', () => {
     await app.stable();
     clock().touch();
     app.later(301);
-    await app.wait(400);
+    await app.until(() => expect(clock().finished()).toBe(true));
     await app.stable();
     expect(app.text('.mode-bar .shared')).toBe('Your record for Medium, 5 minutes: 1');
     expect(app.element.querySelectorAll('.mode-bar button').length).toBe(1); // Play again
