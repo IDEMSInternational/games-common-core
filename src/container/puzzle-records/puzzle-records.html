@@ -17,10 +17,22 @@
                 <span class="detail" role="status">{{ shared()!.message }}</span>
               }
             </div>
-            <button type="button" class="icon" [attr.aria-label]="'Share: ' + row.label" (click)="share(row)">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 13v7h14v-7" /></svg>
+            <button
+              type="button"
+              class="icon"
+              [attr.aria-label]="'Share: ' + row.label"
+              (click)="share(row)"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 15V3M7 8l5-5 5 5M5 13v7h14v-7" />
+              </svg>
             </button>
-            <button type="button" class="icon" [attr.aria-label]="'Delete: ' + row.label" (click)="deleting.set(row)">
+            <button
+              type="button"
+              class="icon"
+              [attr.aria-label]="'Delete: ' + row.label"
+              (click)="deleting.set(row)"
+            >
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </li>
@@ -32,7 +44,13 @@
 
 @if (deleting(); as row) {
   <div class="backdrop" (click)="deleting.set(null)"></div>
-  <div class="confirm" role="alertdialog" aria-modal="true" aria-labelledby="delete-heading" aria-describedby="delete-what">
+  <div
+    class="confirm"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="delete-heading"
+    aria-describedby="delete-what"
+  >
     <h2 id="delete-heading">Do you want to delete this record?</h2>
     <p id="delete-what">
       {{ row.label }}: {{ row.value }}

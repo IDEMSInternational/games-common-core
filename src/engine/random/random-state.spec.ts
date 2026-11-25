@@ -1,7 +1,8 @@
 import { RandomState } from './random-state';
 import { sha1 } from './sha1';
 
-const hex = (bytes: Uint8Array) => Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+const hex = (bytes: Uint8Array) =>
+  Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 const ascii = (text: string) => new TextEncoder().encode(text);
 
 describe('sha1', () => {

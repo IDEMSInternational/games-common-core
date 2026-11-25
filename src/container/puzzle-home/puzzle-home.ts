@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, ElementRef, input, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { DAILY_LEVELS } from '../../engine/daily';
 import { CLOCK_LEVELS, ClockChoice } from '../clock-store';
 import { DayStatus } from '../daily-records';
@@ -29,7 +36,8 @@ const CUSTOM = 'custom';
   styleUrl: './puzzle-home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '(document:keydown.escape)': 'choosing.set(null); choosingTime.set(false); choosingLadder.set(false)',
+    '(document:keydown.escape)':
+      'choosing.set(null); choosingTime.set(false); choosingLadder.set(false)',
   },
 })
 export class PuzzleHome {
@@ -42,11 +50,17 @@ export class PuzzleHome {
   protected readonly timeLimits = [1, 2, 5, 10];
   protected readonly time = formatTime;
   protected readonly CUSTOM = CUSTOM;
-  protected readonly clockLevels = CLOCK_LEVELS.map((choice, i) => ({ choice, name: DAILY_LEVELS[i] }));
+  protected readonly clockLevels = CLOCK_LEVELS.map((choice, i) => ({
+    choice,
+    name: DAILY_LEVELS[i],
+  }));
   /** The difficulty chosen in the sheet, or CUSTOM. */
   protected readonly clockChoice = signal<ClockChoice>('medium');
   /** The custom size's fields, as the sheet opened. */
-  protected readonly customFields = signal<ReturnType<HomeControls['clockCustomFields']>>({ fields: [], difficulty: 0 });
+  protected readonly customFields = signal<ReturnType<HomeControls['clockCustomFields']>>({
+    fields: [],
+    difficulty: 0,
+  });
   protected readonly customError = signal<string | null>(null);
   private readonly customSize = viewChild<ElementRef<HTMLFormElement>>('customSize');
 
@@ -104,7 +118,8 @@ export class PuzzleHome {
       if (!form) return;
       const data = new FormData(form);
       const values: Record<string, number> = {};
-      for (const field of this.customFields().fields) values[field.key] = Number(data.get(field.key));
+      for (const field of this.customFields().fields)
+        values[field.key] = Number(data.get(field.key));
       const custom = this.controls().customClock(values, Number(data.get('difficulty') ?? 0));
       if ('error' in custom) {
         this.customError.set(custom.error);
@@ -131,7 +146,9 @@ export class PuzzleHome {
   protected summary(day: DayInfo): string {
     const played = day.levels.filter((level) => level.status !== 'new');
     if (played.length === 0) return 'Not played yet';
-    return played.map((level) => `${level.name}: ${this.status(level.status, level.time)}`).join(' · ');
+    return played
+      .map((level) => `${level.name}: ${this.status(level.status, level.time)}`)
+      .join(' · ');
   }
 
   protected status(status: DayStatus, time: number): string {
@@ -159,7 +176,9 @@ export class PuzzleHome {
       const stops = colours.map((colour, i) => `${colour} ${i * share}deg ${(i + 1) * share}deg`);
       return `conic-gradient(${stops.join(', ')})`;
     };
-    const fills = day.levels.map((l) => (l.status === 'solved' ? 'var(--brand)' : 'var(--surface)'));
+    const fills = day.levels.map((l) =>
+      l.status === 'solved' ? 'var(--brand)' : 'var(--surface)',
+    );
     const edges = day.levels.map((l) =>
       l.status === 'solved' || l.status === 'late' ? 'var(--brand)' : 'var(--border)',
     );

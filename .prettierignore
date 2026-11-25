@@ -1,0 +1,7 @@
+# Prettier formats the code only (the same settings as the games, in
+# .prettierrc). Left as written: the legal texts and READMEs, the games
+# list (a copy of games-data's), the release workflows, and package files.
+*.md
+*.json
+*.yml
+*.lock

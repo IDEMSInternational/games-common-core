@@ -22,7 +22,8 @@ export class ThemeStore {
   });
 
   constructor() {
-    const media = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+    const media =
+      typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
     if (media) {
       this.systemDark.set(media.matches);
       media.addEventListener?.('change', (event) => this.systemDark.set(event.matches));

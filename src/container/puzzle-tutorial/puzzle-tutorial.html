@@ -21,6 +21,9 @@
 
 <ol class="dots" [attr.aria-label]="'Step ' + (c.stepIndex() + 1) + ' of ' + c.stepCount">
   @for (i of dots(c.stepCount); track i) {
-    <li [class.done]="i < c.stepIndex() || c.finished()" [class.current]="i === c.stepIndex() && !c.finished()"></li>
+    <li
+      [class.done]="i < c.stepIndex() || c.finished()"
+      [class.current]="i === c.stepIndex() && !c.finished()"
+    ></li>
   }
 </ol>

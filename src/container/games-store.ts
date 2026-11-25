@@ -33,8 +33,10 @@ export interface ShownGame {
   readonly inStore: boolean;
 }
 
-const isText = (value: unknown): value is string => typeof value === 'string' && value.trim() !== '';
-const isLink = (value: unknown): value is string => typeof value === 'string' && value.startsWith('https://');
+const isText = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim() !== '';
+const isLink = (value: unknown): value is string =>
+  typeof value === 'string' && value.startsWith('https://');
 const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /** The games that can be read from published data, or null if it isn't a list of games at all. */
@@ -45,7 +47,9 @@ export function parseGames(data: unknown): IdemsGame[] | null {
     if (typeof item !== 'object' || item === null) return [];
     const { id, name, summary, stores } = item as Record<string, unknown>;
     if (typeof id !== 'string' || !ID.test(id) || !isText(name) || !isText(summary)) return [];
-    const { android, ios } = (typeof stores === 'object' && stores !== null ? stores : {}) as Record<string, unknown>;
+    const { android, ios } = (
+      typeof stores === 'object' && stores !== null ? stores : {}
+    ) as Record<string, unknown>;
     return [
       {
         id,
@@ -81,7 +85,12 @@ export class GamesStore {
     return this.all()
       .filter((game) => game.id !== this.gameId())
       .map((game) => {
-        const store = platform === 'ios' ? game.stores.ios : platform === 'android' ? game.stores.android : undefined;
+        const store =
+          platform === 'ios'
+            ? game.stores.ios
+            : platform === 'android'
+              ? game.stores.android
+              : undefined;
         return {
           id: game.id,
           name: game.name,
@@ -89,7 +98,8 @@ export class GamesStore {
           icon: `${gamePage(game.id)}icon.png`,
           url: store ?? gamePage(game.id),
           // In a browser (not a phone), the page offers whichever stores have it.
-          inStore: platform === 'web' ? Boolean(game.stores.android || game.stores.ios) : Boolean(store),
+          inStore:
+            platform === 'web' ? Boolean(game.stores.android || game.stores.ios) : Boolean(store),
         };
       });
   });

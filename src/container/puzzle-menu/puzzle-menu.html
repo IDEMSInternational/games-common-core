@@ -44,7 +44,9 @@
       <div class="page options">
         <section>
           <h3>Appearance</h3>
-          <puzzle-switch [checked]="theme.dark()" (checkedChange)="theme.setDark($event)">Dark theme</puzzle-switch>
+          <puzzle-switch [checked]="theme.dark()" (checkedChange)="theme.setDark($event)"
+            >Dark theme</puzzle-switch
+          >
         </section>
         @if (options(); as o) {
           @if (o.switches.length > 0) {
@@ -52,7 +54,10 @@
               <h3>Playing</h3>
               @for (setting of o.switches; track setting.label) {
                 <div class="setting">
-                  <puzzle-switch [checked]="setting.checked()" (checkedChange)="setting.checked.set($event)">
+                  <puzzle-switch
+                    [checked]="setting.checked()"
+                    (checkedChange)="setting.checked.set($event)"
+                  >
                     {{ setting.label }}
                   </puzzle-switch>
                   <p class="hint">{{ setting.description }}</p>
@@ -63,7 +68,9 @@
           @if (o.hasDaily) {
             <section>
               <h3 id="daily-levels-heading">Daily puzzles</h3>
-              <p class="hint">The levels you play. Your streaks and the circles on the home page follow them.</p>
+              <p class="hint">
+                The levels you play. Your streaks and the circles on the home page follow them.
+              </p>
               <div role="group" aria-labelledby="daily-levels-heading">
                 @for (name of levelNames; track $index) {
                   <label class="tick">
@@ -83,7 +90,8 @@
             <h3>Your progress</h3>
             @if (confirmingReset()) {
               <p class="hint" role="alert">
-                This deletes your daily results and streaks, records and best times on this phone. It can't be undone.
+                This deletes your daily results and streaks, records and best times on this phone.
+                It can't be undone.
               </p>
               <div class="confirm">
                 <button type="button" class="primary" (click)="reset(o)">Delete my records</button>
@@ -92,7 +100,9 @@
             } @else if (resetDone()) {
               <p class="hint" role="status">Your records have been deleted.</p>
             } @else {
-              <button type="button" class="reset" (click)="confirmingReset.set(true)">Reset my records…</button>
+              <button type="button" class="reset" (click)="confirmingReset.set(true)">
+                Reset my records…
+              </button>
             }
           </section>
         }
@@ -105,11 +115,15 @@
             <p class="date">{{ longDate(item.date) }}</p>
             <p>{{ item.text }}</p>
             @if (item.link; as link) {
-              <a class="primary store" [href]="link.url" target="_blank" rel="noopener">{{ link.label }}</a>
+              <a class="primary store" [href]="link.url" target="_blank" rel="noopener">{{
+                link.label
+              }}</a>
             }
           </article>
         } @empty {
-          <p class="soon">No announcements yet. News about IDEMS Games, such as new games, will appear here.</p>
+          <p class="soon">
+            No announcements yet. News about IDEMS Games, such as new games, will appear here.
+          </p>
         }
       </div>
     } @else if (page()?.id === OTHER_GAMES) {
@@ -128,8 +142,7 @@
                 <strong>{{ link.label }}</strong>
                 <small>
                   @for (part of urlParts(link.url); track $index) {
-                    <span>{{ part }}</span
-                    ><wbr />
+                    <span>{{ part }}</span><wbr />
                   }
                 </small>
               </span>

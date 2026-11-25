@@ -78,8 +78,20 @@ describe('Other IDEMS Games', () => {
   it('shows the downloaded list in its order, without this game, each opening its page', async () => {
     await open({ games: [game('slanted'), game('sample'), game('lightup')] });
     expect(shown()).toEqual([
-      ['Name slanted', 'Coming soon', 'About slanted', `${PAGES}/slanted/`, `${PAGES}/slanted/icon.png`],
-      ['Name lightup', 'Coming soon', 'About lightup', `${PAGES}/lightup/`, `${PAGES}/lightup/icon.png`],
+      [
+        'Name slanted',
+        'Coming soon',
+        'About slanted',
+        `${PAGES}/slanted/`,
+        `${PAGES}/slanted/icon.png`,
+      ],
+      [
+        'Name lightup',
+        'Coming soon',
+        'About lightup',
+        `${PAGES}/lightup/`,
+        `${PAGES}/lightup/icon.png`,
+      ],
     ]);
 
     // Later the same day, offline: what was downloaded is kept, without checking again.

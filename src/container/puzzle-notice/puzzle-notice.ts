@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, ElementRef, afterNextRender, input, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  afterNextRender,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { LEGAL_VERSION, PRIVACY, TERMS } from '../legal';
 import { readStored, writeStored } from '../stored-setting';
 

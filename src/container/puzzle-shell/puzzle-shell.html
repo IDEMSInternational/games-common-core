@@ -40,7 +40,9 @@
           <p class="shared" role="status">{{ message }}</p>
         }
       } @else {
-        <span class="clock" [attr.aria-label]="'Time ' + time(c.elapsed())">⏱ {{ time(c.elapsed()) }}</span>
+        <span class="clock" [attr.aria-label]="'Time ' + time(c.elapsed())"
+          >⏱ {{ time(c.elapsed()) }}</span
+        >
       }
     </div>
   } @else if (c.kind === 'clock') {
@@ -51,9 +53,11 @@
         <div class="row">
           <p class="shared">
             @if (c.newRecord()) {
-              A new record for {{ c.choiceLabel }}, {{ c.minutes === 1 ? '1 minute' : c.minutes + ' minutes' }}!
+              A new record for {{ c.choiceLabel }},
+              {{ c.minutes === 1 ? '1 minute' : c.minutes + ' minutes' }}!
             } @else {
-              Your record for {{ c.choiceLabel }}, {{ c.minutes === 1 ? '1 minute' : c.minutes + ' minutes' }}: {{ c.record }}
+              Your record for {{ c.choiceLabel }},
+              {{ c.minutes === 1 ? '1 minute' : c.minutes + ' minutes' }}: {{ c.record }}
             }
           </p>
           @if (c.newRecord()) {
@@ -94,19 +98,26 @@
         <span class="rungs">
           <ol [attr.aria-label]="'Size ' + (c.rung() + 1) + ' of ' + c.rungCount">
             @for (i of rungs(c.rungCount); track i) {
-              <li [class.done]="i < c.rung() || (i === c.rung() && c.completed())" [class.current]="i === c.rung()"></li>
+              <li
+                [class.done]="i < c.rung() || (i === c.rung() && c.completed())"
+                [class.current]="i === c.rung()"
+              ></li>
             }
           </ol>
           {{ c.label() }}
         </span>
-        <span class="clock" [attr.aria-label]="'Time ' + time(c.elapsed())">⏱ {{ time(c.elapsed()) }}</span>
+        <span class="clock" [attr.aria-label]="'Time ' + time(c.elapsed())"
+          >⏱ {{ time(c.elapsed()) }}</span
+        >
       }
     </div>
   } @else {
     <div class="game-menu">
       <select aria-label="Puzzle size" (change)="choosePreset($event)">
         @for (name of c.presetNames; track $index) {
-          <option [value]="$index" [selected]="!customOpen() && $index === c.presetIndex()">{{ name }}</option>
+          <option [value]="$index" [selected]="!customOpen() && $index === c.presetIndex()">
+            {{ name }}
+          </option>
         }
         @if (c.presetIndex() < 0) {
           <!-- A custom puzzle is its own item, so that Custom… can be chosen again. -->
@@ -144,7 +155,9 @@
           }
         } @else {
           <span>{{ c.best() === null ? 'No best time yet' : 'Best: ' + time(c.best()!) }}</span>
-          <span class="clock" [attr.aria-label]="'Time ' + time(c.elapsed())">⏱ {{ time(c.elapsed()) }}</span>
+          <span class="clock" [attr.aria-label]="'Time ' + time(c.elapsed())"
+            >⏱ {{ time(c.elapsed()) }}</span
+          >
         }
       </div>
     }
@@ -201,4 +214,3 @@
     <button type="button" (click)="c.solve()" [disabled]="c.completed()">Solve</button>
   }
 </nav>
-

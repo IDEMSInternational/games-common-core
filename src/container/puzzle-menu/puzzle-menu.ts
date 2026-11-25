@@ -25,7 +25,11 @@ const OTHER_GAMES = 'other-games';
 /** "1 December 2026" */
 function longDate(day: string): string {
   const [year, month, date] = day.split('-').map(Number);
-  return new Date(year, month - 1, date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  return new Date(year, month - 1, date).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 }
 
 /** The Game options page, first in the menu. */

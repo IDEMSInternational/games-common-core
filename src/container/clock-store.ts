@@ -24,12 +24,18 @@ export const CLOCK_LEVELS: readonly ClockChoice[] = DAILY_LEVEL_KEYS;
 const CUSTOM = 'custom:';
 
 /** A custom size's choice. */
-export function customClockChoice<Params>(game: PuzzleGame<Params, unknown, unknown>, params: Params): ClockChoice {
+export function customClockChoice<Params>(
+  game: PuzzleGame<Params, unknown, unknown>,
+  params: Params,
+): ClockChoice {
   return CUSTOM + game.encodeParams(params);
 }
 
 /** A custom choice's settings; null for a difficulty, or settings no longer valid. */
-export function customClockParams<Params>(game: PuzzleGame<Params, unknown, unknown>, choice: ClockChoice): Params | null {
+export function customClockParams<Params>(
+  game: PuzzleGame<Params, unknown, unknown>,
+  choice: ClockChoice,
+): Params | null {
   if (!choice.startsWith(CUSTOM)) return null;
   const params = game.decodeParams(choice.slice(CUSTOM.length));
   return game.validateParams(params) ? null : params;
@@ -40,7 +46,10 @@ export function customClockParams<Params>(game: PuzzleGame<Params, unknown, unkn
  * that daily level's sizes (each once); a custom choice's, its one size.
  * Empty if the choice can't be played.
  */
-export function clockChoiceParams<Params>(game: PuzzleGame<Params, unknown, unknown>, choice: ClockChoice): Params[] {
+export function clockChoiceParams<Params>(
+  game: PuzzleGame<Params, unknown, unknown>,
+  choice: ClockChoice,
+): Params[] {
   const level = CLOCK_LEVELS.indexOf(choice);
   if (level >= 0) {
     const sizes = new Map((game.daily?.levels[level] ?? []).map((p) => [game.encodeParams(p), p]));
@@ -51,7 +60,10 @@ export function clockChoiceParams<Params>(game: PuzzleGame<Params, unknown, unkn
 }
 
 /** "Medium", "7×9", "7×9 Hard". */
-export function clockChoiceLabel<Params>(game: PuzzleGame<Params, unknown, unknown>, choice: ClockChoice): string {
+export function clockChoiceLabel<Params>(
+  game: PuzzleGame<Params, unknown, unknown>,
+  choice: ClockChoice,
+): string {
   const level = CLOCK_LEVELS.indexOf(choice);
   if (level >= 0) return DAILY_LEVELS[level];
   const custom = customClockParams(game, choice);
@@ -98,7 +110,10 @@ export class ClockRecords {
     const saved = readStoredJson<Record<string, number>>(this.recordsKey) ?? {};
     // Records from before difficulties are keyed by minutes alone.
     return Object.fromEntries(
-      Object.entries(saved).map(([key, solved]) => [key.includes('/') ? key : `${OLD_CHOICE}/${key}`, solved]),
+      Object.entries(saved).map(([key, solved]) => [
+        key.includes('/') ? key : `${OLD_CHOICE}/${key}`,
+        solved,
+      ]),
     );
   }
 

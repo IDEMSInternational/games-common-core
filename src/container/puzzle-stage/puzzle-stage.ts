@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, isDevMode, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  isDevMode,
+  signal,
+} from '@angular/core';
 import { CelebrationSize, PuzzleFireworks } from '../puzzle-fireworks/puzzle-fireworks';
 import { ThemeStore } from '../theme-store';
 
@@ -60,7 +67,9 @@ export class PuzzleStage {
 
   constructor() {
     if (isDevMode()) {
-      (globalThis as { fireworks?: (size?: CelebrationSize) => void }).fireworks = (size = 'normal') => {
+      (globalThis as { fireworks?: (size?: CelebrationSize) => void }).fireworks = (
+        size = 'normal',
+      ) => {
         this.demo.set(null);
         setTimeout(() => this.demo.set(size));
       };

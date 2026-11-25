@@ -135,7 +135,8 @@ export interface LadderControls extends PlayControls {
   share(): Promise<string | null>;
 }
 
-export type ShellControls = FreePlayControls | DailyControls | ClockControls | TimedControls | LadderControls;
+export type ShellControls =
+  FreePlayControls | DailyControls | ClockControls | TimedControls | LadderControls;
 
 /** Formats a time on the clock: "0:42", "12:05", "1:02:03". */
 export function formatTime(ms: number): string {

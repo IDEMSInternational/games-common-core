@@ -11,7 +11,9 @@
     <h1>{{ c.page() === 'records' ? 'Your records' : 'Challenges' }}</h1>
   }
   @if (c.page() !== 'records') {
-    <button type="button" class="help trophy" aria-label="Your records" (click)="c.openRecords()">🏆</button>
+    <button type="button" class="help trophy" aria-label="Your records" (click)="c.openRecords()">
+      🏆
+    </button>
   }
   <button type="button" class="help" aria-label="How to play" (click)="c.startTutorial()">?</button>
 </header>
@@ -26,7 +28,10 @@
           <div class="card-head">
             <h2 id="daily-heading">Daily puzzles</h2>
             @if (c.streak(); as streak) {
-              <span class="streak">🔥 {{ streak.name }}: {{ streak.days === 1 ? '1 day' : streak.days + ' days' }}</span>
+              <span class="streak"
+                >🔥 {{ streak.name }}:
+                {{ streak.days === 1 ? '1 day' : streak.days + ' days' }}</span
+              >
             }
           </div>
           <p class="what">#{{ today.number }} · {{ today.dayName }}</p>
@@ -74,7 +79,10 @@
           <h2 id="clock-heading">Beat the clock</h2>
           <p class="what">As many puzzles as you can solve in the time given.</p>
           @if (c.clockRecord(); as record) {
-            <p class="status">Your record for {{ record.label }}, {{ record.minutes }} min: {{ record.solved === 1 ? '1 puzzle' : record.solved + ' puzzles' }}</p>
+            <p class="status">
+              Your record for {{ record.label }}, {{ record.minutes }} min:
+              {{ record.solved === 1 ? '1 puzzle' : record.solved + ' puzzles' }}
+            </p>
           }
           <button type="button" class="primary" (click)="openClockChooser()">Play</button>
         </section>
@@ -93,7 +101,10 @@
         <h2 id="ladder-heading">Ladder</h2>
         <p class="what">Every size, smallest to largest: climb as fast as you can.</p>
         @if (c.ladderBest(); as best) {
-          <p class="status">Your best time{{ best.difficulty ? ' for ' + best.difficulty : '' }}: {{ time(best.time) }}</p>
+          <p class="status">
+            Your best time{{ best.difficulty ? ' for ' + best.difficulty : '' }}:
+            {{ time(best.time) }}
+          </p>
         }
         <button type="button" class="primary" (click)="playLadder()">Play</button>
       </section>
@@ -104,7 +115,9 @@
 @if (choosing(); as day) {
   <div class="backdrop" (click)="choosing.set(null)"></div>
   <div class="chooser" role="dialog" aria-modal="true" aria-labelledby="chooser-heading">
-    <h2 id="chooser-heading">{{ day.isToday ? "Today's" : day.dayName + "'s" }} puzzle #{{ day.number }}</h2>
+    <h2 id="chooser-heading">
+      {{ day.isToday ? "Today's" : day.dayName + "'s" }} puzzle #{{ day.number }}
+    </h2>
     <p>Choose a level</p>
     @for (level of day.levels; track level.level) {
       <button type="button" class="level" [class]="level.status" (click)="open(day, level)">
@@ -124,7 +137,10 @@
     @if (c.ladderRun(); as run) {
       <button type="button" class="level started" (click)="continueLadder(run.difficulty)">
         <span class="name">Continue</span>
-        <span class="size">{{ run.difficultyName ? run.difficultyName + ' · ' : '' }}Size {{ run.rung + 1 }} of {{ run.rungCount }}</span>
+        <span class="size"
+          >{{ run.difficultyName ? run.difficultyName + ' · ' : '' }}Size {{ run.rung + 1 }} of
+          {{ run.rungCount }}</span
+        >
         <span class="state">{{ time(run.elapsed) }} so far</span>
       </button>
       @if (c.difficulties.length > 0) {
@@ -137,7 +153,11 @@
       @for (name of c.difficulties; track $index) {
         <button type="button" class="level" (click)="startLadder($index)">
           <span class="name">{{ name }}</span>
-          <span class="state">{{ ladderBests()[$index] ? 'Your best time: ' + time(ladderBests()[$index]) : 'No best time yet' }}</span>
+          <span class="state">{{
+            ladderBests()[$index]
+              ? 'Your best time: ' + time(ladderBests()[$index])
+              : 'No best time yet'
+          }}</span>
         </button>
       }
     } @else {
@@ -200,7 +220,9 @@
         @if (c.difficulties.length > 0) {
           <select name="difficulty" aria-label="Difficulty">
             @for (name of c.difficulties; track $index) {
-              <option [value]="$index" [selected]="$index === customFields().difficulty">{{ name }}</option>
+              <option [value]="$index" [selected]="$index === customFields().difficulty">
+                {{ name }}
+              </option>
             }
           </select>
         }
@@ -212,13 +234,23 @@
     <p>How long?</p>
     <div class="times">
       @for (minutes of timeLimits; track minutes) {
-        <button type="button" class="primary" (click)="startClock(minutes)">{{ minutes }} min</button>
+        <button type="button" class="primary" (click)="startClock(minutes)">
+          {{ minutes }} min
+        </button>
       }
     </div>
     <form class="custom" (submit)="startCustomClock($event)">
       <label>
         Other
-        <input type="number" name="minutes" inputmode="numeric" min="1" max="60" value="30" required />
+        <input
+          type="number"
+          name="minutes"
+          inputmode="numeric"
+          min="1"
+          max="60"
+          value="30"
+          required
+        />
         minutes
       </label>
       <button type="submit">Start</button>

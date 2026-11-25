@@ -64,7 +64,10 @@ export class PuzzleFireworks {
 
   private play(): void {
     // Not where motion is unwanted, nor where it can't be shown (e.g. tests, which have no matchMedia).
-    if (typeof matchMedia !== 'function' || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (
+      typeof matchMedia !== 'function' ||
+      matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
       this.done.emit();
       return;
     }

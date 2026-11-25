@@ -40,7 +40,12 @@ export class GameSession<Params, State, Move> {
    * Starts with a saved session if it can be restored, or else a new
    * puzzle (from `seed`, if given).
    */
-  constructor(game: PuzzleGame<Params, State, Move>, params?: Params, seed?: string, saved?: SessionSnapshot<Move>) {
+  constructor(
+    game: PuzzleGame<Params, State, Move>,
+    params?: Params,
+    seed?: string,
+    saved?: SessionSnapshot<Move>,
+  ) {
     this.game = game;
     this.params = params ?? game.defaultParams();
     if (!saved || !this.restore(saved)) this.newGame(undefined, seed);
@@ -138,7 +143,8 @@ export class GameSession<Params, State, Move> {
 
       const history = [this.game.newGame(params, snapshot.description)];
       for (const move of snapshot.moves) {
-        const next = move === null ? history[0] : this.game.applyMove(history[history.length - 1], move);
+        const next =
+          move === null ? history[0] : this.game.applyMove(history[history.length - 1], move);
         if (!next) return false;
         history.push(next);
       }

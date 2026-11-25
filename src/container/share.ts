@@ -16,7 +16,11 @@ export const gamePage = (gameId: string) => `${GAMES_DATA}${gameId}/`;
  * copies the text instead. Returns a message to show the player, or null if
  * the share panel did its job.
  */
-export async function shareText(gameId: string, title: string, message: string): Promise<string | null> {
+export async function shareText(
+  gameId: string,
+  title: string,
+  message: string,
+): Promise<string | null> {
   const text = `${message}\n${gamePage(gameId)}`;
   let canShare = false;
   try {

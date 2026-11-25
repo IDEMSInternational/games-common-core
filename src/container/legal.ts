@@ -11,7 +11,10 @@ export interface LegalDocument {
   readonly title: string;
   /** Paragraphs before the first heading (including "Last updated"). */
   readonly intro: readonly string[];
-  readonly sections: readonly { readonly heading: string; readonly paragraphs: readonly string[] }[];
+  readonly sections: readonly {
+    readonly heading: string;
+    readonly paragraphs: readonly string[];
+  }[];
 }
 
 /** Bump when either document changes enough that players should see the notice again. */
